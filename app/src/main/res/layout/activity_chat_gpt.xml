@@ -1,0 +1,122 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white_one">
+
+
+
+    <RelativeLayout
+        android:id="@+id/topPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:id="@+id/argpt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="@string/argpt"
+            android:lineSpacingExtra="-16sp"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            />
+        <ImageView
+            android:id="@+id/settingBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_settings"/>
+
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/topPanel"
+
+        android:id="@+id/scrollView"
+        android:layout_above="@id/connectivityRegion">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="7dp"
+        android:id="@+id/connectivityRegion"
+        android:layout_marginBottom="5dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_above="@id/idTILQuery" >
+
+        <TextView
+            android:id="@+id/connectionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="5dp"
+            android:padding="4dp"
+            android:text=""
+            android:textColor="@color/red"
+            android:textSize="15sp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/idTILQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="7dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/round_white_background">
+
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_marginStart="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/chatSend"
+            android:background="@android:color/transparent"
+            android:hint="@string/ask_question"
+            android:textColorHint="@color/gray"
+            android:inputType="text"
+            android:singleLine="true"
+            tools:ignore="Autofill" />
+
+        <ImageView
+            android:id="@+id/chatSend"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:padding="2dp"
+            android:layout_marginRight="5dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/rounded_shape"
+            android:src="@drawable/ic_arrow_upward"/>
+        <ImageView
+            android:id="@+id/voiceSend"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            android:padding="2dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/rounded_shape"
+            android:src="@drawable/ic_mic"/>
+
+    </RelativeLayout>
+</RelativeLayout>

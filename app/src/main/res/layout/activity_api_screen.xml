@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="@color/white_one">
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/topLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:text="@string/top_name"
+        android:lineSpacingExtra="-16sp"
+        android:textSize="12sp"
+        android:textColor="@color/black"
+        android:gravity="center_horizontal|center_vertical"
+        />
+    <TextView
+        android:id="@+id/argpt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/topLogo"
+        android:text="@string/argpt"
+        android:lineSpacingExtra="-16sp"
+        android:textSize="32sp"
+        android:textColor="@color/black"
+        android:gravity="center_horizontal|center_vertical"
+        />
+    <TextView
+        android:id="@+id/let_s_pair_"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="38dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="38dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="198dp"
+        android:text="@string/api_key_suggestion"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:gravity="top"
+        />
+
+</RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/idTILQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="7dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/round_white_background">
+
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_marginStart="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/chatSend"
+            android:background="@android:color/transparent"
+            android:hint="@string/enter_api_key"
+            android:textColorHint="@color/gray"
+            android:inputType="text"
+            android:maxLines="6"
+            tools:ignore="Autofill" />
+
+        <ImageView
+            android:id="@+id/chatSend"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:padding="2dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/rounded_shape"
+            android:src="@drawable/ic_arrow_forward"/>
+    </RelativeLayout>
+
+</RelativeLayout>

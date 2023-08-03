@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- rounded_shape.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#66BB6A" /> <!-- Change color as desired -->
+    <corners android:radius="500dp" /> <!-- Change radius as desired -->
+</shape>

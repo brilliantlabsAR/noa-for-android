@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">arGPT</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string name="choose_app_role">Choose the device role:</string>
+    <string name="button_role_peripheral">Peripheral/Server</string>
+    <string name="button_role_central">Central/Client</string>
+    <string name="scan">scan</string>
+    <string name="advertise_device">Advertise Device</string>
+    <string name="notify">Notify Client</string>
+    <string name="peripheral_screen">Peripheral/Server screen</string>
+    <string name="central_screen">Central/Client screen</string>
+    <string name="bt_not_supported">Bluetooth is not supported on this device.</string>
+    <string name="bt_ads_not_supported">Bluetooth Advertisements are not supported on this device.</string>
+    <string name="bt_not_enabled">User declined to enable Bluetooth.</string>
+    <string name="bt_not_permit_coarse">User declined to permit ACCESS_COARSE_LOCATION.</string>
+    <string name="already_scanning">Scanning already started.</string>
+    <string name="scan_start_toast">Scanning for</string>
+    <string name="seconds">seconds.</string>
+    <string name="empty_list">No devices found - refresh to try again.</string>
+    <string name="advertising_time_out">Advertising stopped due to timeout.</string>
+    <string name="error_unknown">Unknown error.</string>
+    <string name="connect_device">connect</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="central_connection_screen">Central Connection screen</string>
+    <string name="connection_status_label">Connection Status</string>
+    <string name="connected_device_name_label">Connected Device Name</string>
+    <string name="server_characteristic_label">Server Characteristic value</string>
+    <string name="status_error_when_connecting">An error occurred when connecting to a device. Error Code</string>
+    <string name="choose_color">Choose color</string>
+    <string name="request_read_characteristic">Request Characteristic</string>
+    <string name="characteristic_value_received">Characteristic value received: %1$d</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="top_name"><font color='#9C27B0'> > </font><font color='#000000'>Brilliant</font><font color='#9C27B0'> (Labs) </font> </string>
+    <string name="argpt">arGPT</string>
+    <string name="let_s_pair_">Let\'s pair your device. Take your Monocle out of the case, and bring it close.</string>
+    <string name="device_close">Bring your device close.</string>
+    <string name="searching">Searching</string>
+    <string name="api_key_suggestion">Next, enter your OpenAI developer API key. If you don\'t have one. You can sign up<font color='#4CAF50'> here </font>  </string>
+    <string name="enter_api_key">Enter your api key</string>
+    <string name="ask_question">Ask a question</string>
+    <string name="privacy_policy">Be sure to read our<font color='#E82E87'> Privacy Policy</font>, as well as\n <font color='#E82E87'>Terms and Conditions</font> before using arGPT</string>
+
+</resources>

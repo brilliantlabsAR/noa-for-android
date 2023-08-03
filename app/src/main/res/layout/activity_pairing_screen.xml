@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white_one">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/topLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="100dp"
+            android:text="@string/top_name"
+            android:lineSpacingExtra="-16sp"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:gravity="center_horizontal|center_vertical"
+            />
+        <TextView
+            android:id="@+id/argpt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/topLogo"
+            android:text="@string/argpt"
+            android:lineSpacingExtra="-16sp"
+            android:textSize="32sp"
+            android:textColor="@color/black"
+            android:gravity="center_horizontal|center_vertical"
+            />
+        <TextView
+            android:id="@+id/let_s_pair_"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="38dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="38dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="198dp"
+            android:text="@string/let_s_pair_"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:gravity="top"
+            />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/privacyPolicy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/privacy_policy"
+        android:textColor="@color/black"
+        android:layout_centerInParent="true"
+        android:textSize="14sp"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/rounded_button"
+        android:text="Start Scan"
+        android:textSize="18dp"
+        android:visibility="gone"
+        android:id="@+id/btnStartScan"
+        />
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/myCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="-35dp"
+        app:cardCornerRadius="20dp"
+        android:visibility="visible"
+        app:cardElevation="4dp">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:background="@drawable/square_white_background">
+
+            <TextView
+                android:id="@+id/deviceCloseTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="40dp"
+                android:text="@string/device_close"
+                android:lineSpacingExtra="-16sp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:gravity="center_horizontal|center_vertical"
+                />
+            <ImageView
+                android:id="@+id/logoBtn"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:scaleType="centerCrop"
+                android:layout_below="@+id/deviceCloseTextView"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/logo_button"/>
+
+            <RelativeLayout
+                android:id="@+id/searchBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/logoBtn"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/square_gray_background">
+                <TextView
+                    android:id="@+id/popUpbtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:text="@string/searching"
+                    android:textSize="16sp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:textColor="@color/black"
+                    android:gravity="center_horizontal|center_vertical"
+                    />
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>
