@@ -46,10 +46,13 @@ class ChatGptFragment : Fragment() {
     private val chatMessages = ArrayList<ChatModel>()
     lateinit var mView: View
     private lateinit var parentActivity: BaseActivity
-    lateinit var connectionStatus : TextView
+    lateinit var connectionStatus : ImageView
     fun updateConnectionStatus(status: String) {
         activity?.runOnUiThread {
-            connectionStatus.text = status
+            if(status.isNotEmpty())
+            connectionStatus.visibility = View.VISIBLE
+            else
+                connectionStatus.visibility = View.GONE
         }
     }
     override fun onAttach(context: Context) {
@@ -71,19 +74,24 @@ class ChatGptFragment : Fragment() {
         settingBtn=mView.findViewById(R.id.settingBtn)
         mainView=mView.findViewById(R.id.mainView)
         chatView=mView.findViewById(R.id.chatView)
-        voiceSend=mView.findViewById(R.id.voiceSend)
+        //voiceSend=mView.findViewById(R.id.voiceSend)
         layoutManager = LinearLayoutManager(activity)
         layoutManager.stackFromEnd = true;
         //layoutManager.reverseLayout = true;
         chatView.layoutManager = layoutManager
-        connectionStatus=mView.findViewById<TextView>(R.id.connectionStatus)
+        connectionStatus=mView.findViewById<ImageView>(R.id.connectionStatus)
         chatAdapter = ChatAdapter(chatMessages)
         chatView.adapter = chatAdapter
         if(parentActivity.apiKey.isNullOrEmpty()){
             openChangeApiKey()
         }
         if(parentActivity.connectionStatus.isNotEmpty()){
-            connectionStatus.text = parentActivity.connectionStatus
+
+
+
+            connectionStatus.visibility = View.VISIBLE
+
+           // connectionStatus.text = parentActivity.connectionStatus
         }
         etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -107,9 +115,7 @@ class ChatGptFragment : Fragment() {
             false
         })
 
-        voiceSend.setOnClickListener {
-            parentActivity.writeInt()
-        }
+
 
         chatSend.setOnClickListener {
             if(etMessage.text.trim().isNotEmpty()){
@@ -133,7 +139,7 @@ class ChatGptFragment : Fragment() {
     }
     fun updatechatList( type : String , msg : String){
         activity?.runOnUiThread {
-            val singleChat = ChatModel(1, type, msg)
+            val singleChat = ChatModel(1, type, msg.trim())
             chatMessages.add(singleChat)
             scrollToBottom()
             chatAdapter.notifyDataSetChanged()

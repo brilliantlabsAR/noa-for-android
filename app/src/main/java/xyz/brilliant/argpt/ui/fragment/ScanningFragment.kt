@@ -3,6 +3,7 @@ package xyz.brilliant.argpt.ui.fragment
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -78,8 +79,9 @@ class ScanningFragment : Fragment() {
         val view = inflater.inflate(R.layout.activity_pairing_screen, container, false)
 
         val nextPageButton = view.findViewById<Button>(R.id.btnStartScan)
+        val privacy_policy = view.findViewById<TextView>(R.id.privacyPolicy)
 
-
+        privacy_policy.setMovementMethod(LinkMovementMethod.getInstance());
 
 
 //        view.findViewById<TextView>(R.id.searching).setOnClickListener {

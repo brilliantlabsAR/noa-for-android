@@ -1,11 +1,7 @@
 package xyz.brilliant.argpt.ui.activity
 
 import android.Manifest
-import android.Manifest.permission.RECORD_AUDIO
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
@@ -16,34 +12,27 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.AudioTrack
-import android.media.MediaRecorder
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
 import android.provider.Settings
 import android.util.Log
-import android.view.Window
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.os.postDelayed
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -66,14 +55,10 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.adapter.DevicesAdapter
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
-import xyz.brilliant.argpt.ui.model.ChatModel
-import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
@@ -87,6 +72,7 @@ class BaseActivity : AppCompatActivity() {
         private const val REQUEST_FINE_LOCATION = 1001
         private const val PERMISSION_REQUEST_CODE = 5001
         private val REQUEST_ENABLE_BLUETOOTH = 1002
+        private val REQUEST_ENABLE_GPS = 1003
         private val SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         private const val RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
         private const val TX_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
@@ -112,8 +98,6 @@ class BaseActivity : AppCompatActivity() {
             }
             ft.commit()
         }
-
-
     }
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
@@ -231,7 +215,7 @@ class BaseActivity : AppCompatActivity() {
             } else {
                 // All permissions are already granted. You can proceed with your operation here.
                 Log.d(TAG, "getAllPermission: 12")
-                startBluetoothOperation()
+               // checkBluetoothAndGps()
 
             }
         }catch (ex:Exception){
@@ -239,27 +223,93 @@ class BaseActivity : AppCompatActivity() {
         }
 
     }
-    private fun startBluetoothOperation() {
-        // Enable Bluetooth if it's not already enabled
-            val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-
-                return
+    @SuppressLint("MissingPermission")
+    private fun showBluetoothAlertDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("Bluetooth is disabled. Do you want to enable it?")
+            .setPositiveButton("Yes") { _, _ ->
+                val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH)
             }
-            startActivityForResult(enableBluetoothIntent, REQUEST_ENABLE_BLUETOOTH)
-
+            .setNegativeButton("No") { dialog: DialogInterface, _ ->
+                dialog.dismiss()
+                checkBluetoothAndGps()
+            }
+        builder.create().show()
     }
+
+    private fun showGpsAlertDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("GPS is disabled. Do you want to enable it?")
+            .setPositiveButton("Yes") { _, _ ->
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivityForResult(intent, REQUEST_ENABLE_GPS)
+            }
+            .setNegativeButton("No") { dialog: DialogInterface, _ ->
+                dialog.dismiss()
+                checkBluetoothAndGps()
+            }
+        builder.create().show()
+    }
+
+
+    private fun isGpsEnabled(): Boolean {
+
+        try {
+            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+            var resultl = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                var result3 = locationManager.isLocationEnabled
+                return locationManager.isLocationEnabled
+            }
+            else
+            {
+                return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            }
+
+        }
+    catch ( ex : Exception){
+       var exception = ex.message
+        return false
+    }
+    }
+    private fun isBluetoothEnabled(): Boolean {
+        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+        return bluetoothAdapter?.isEnabled == true
+    }
+
+    private fun checkBluetoothAndGps() {
+        val bluetoothEnabled = isBluetoothEnabled()
+        val gpsEnabled = isGpsEnabled()
+
+        if (bluetoothEnabled && gpsEnabled) {
+            // Both Bluetooth and GPS are enabled, execute your first code
+            firstCodeExecute()
+        } else {
+
+            if (!bluetoothEnabled) {
+                showBluetoothAlertDialog()
+               // showGpsAlertDialog()
+            }
+           else if (!gpsEnabled) {
+                showGpsAlertDialog()
+            }
+        }
+    }
+
+
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode== REQUEST_ENABLE_BLUETOOTH){
             if(resultCode== RESULT_OK){
-                firstCodeExecute()
+
+                checkBluetoothAndGps()
+
             }else{
-                startBluetoothOperation()
+                checkBluetoothAndGps()
                 Toast.makeText(
                     this,
                     "Please turn on bluetooth!",
@@ -267,9 +317,28 @@ class BaseActivity : AppCompatActivity() {
                 ).show()
             }
         }
+        else if (requestCode == REQUEST_ENABLE_GPS) {
+            if (resultCode == RESULT_OK) {
+                checkBluetoothAndGps()
+            } else {
+
+                checkBluetoothAndGps()
+                Toast.makeText(
+                    this,
+                    "Please turn on GPS!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                // User didn't enable GPS, handle as needed
+            }
+        }
+
+
         else if(requestCode==PERMISSION_REQUEST_CODE){
             if(resultCode== RESULT_OK){
-                startBluetoothOperation()
+
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivityForResult(intent, REQUEST_ENABLE_GPS)
+                checkBluetoothAndGps()
             }else{
                 getAllPermission()
             }
@@ -292,6 +361,7 @@ class BaseActivity : AppCompatActivity() {
             }
 
             if (allPermissionsGranted) {
+                checkBluetoothAndGps()
                 // All permissions are granted. You can proceed with your operation here.
                 Log.d(TAG, "onRequestPermissionsResult: ")
                // firstCodeExecute()
@@ -368,41 +438,7 @@ var connectionStatus = ""
     private lateinit var deviceCloseTextView: TextView
     private lateinit var popUpbtn: TextView
     private lateinit var searchBox: RelativeLayout
-//    fun showProgressDialog(deviceCloseText: String, callback: (Boolean) -> Unit) {
-//        // Rest of the code remains the same
-//        // Replace the hardcoded text with the passed deviceCloseText value
-//        // startScan()
-//        dialog = Dialog(this)
-//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-//        dialog.setCancelable(false)
-//        dialog.setContentView(R.layout.custom_progress_dialog)
-//
-//        deviceCloseTextView = dialog.findViewById<TextView>(R.id.deviceClose)
-//        deviceCloseTextView.text = deviceCloseText
-//        popUpbtn = dialog.findViewById<TextView>(R.id.popUpbtn)
-//        searchBox = dialog.findViewById<RelativeLayout>(R.id.searchBox)
-//        searchBox.setOnClickListener {
-//            if (popUpbtn.text == "Connect") {
-//                val firstItem: ScanResult? = if (mArrayList.size == 1) {
-//                    mArrayList[0]
-//                } else if (mArrayList.size > 1) {
-//                    mArrayList.minByOrNull { it.rssi }
-//                } else {
-//                    null
-//                }
-//                if (firstItem != null) {
-//                    stopScan()
-//                    connectDevice(firstItem.device.address)
-//                }
-//            } else if (popUpbtn.text == "Continue") {
-//                fileUploadOne()
-//            }
-//
-//            //dialog.dismiss()
-//            callback(true) // Invoke the callback function with the desired value
-//        }
-//        dialog.show()
-//    }
+
     fun connectDevice(){
         try {
             val firstItem: ScanResult? = if (mArrayList.size == 1) {
@@ -707,30 +743,6 @@ var connectionStatus = ""
                 } else if (receivedData.contains("checkFile")) {
                     filesUploadStr = receivedData
 
-                    // Temprory for test on nrf52dk
-//                    bleWrite(byteArrayOf(0x03, 0x04))
-//                    val storedDeviceAddress = getStoredDeviceAddress()
-//                    if(storedDeviceAddress.isNullOrBlank()){
-//                        val fragment = ChatGptFragment()
-//                        dialog.dismiss()
-//                        if(!fragmentManager.fragments.contains(fragment)){
-//                            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
-//                        }
-//                        val apikeyStored =  getStoredApiKey()
-//                        handler.postDelayed({
-//                            if(apikeyStored.isNullOrBlank()){
-//                                fragment.openChangeApiKey()
-//                            }
-//                            updateConnectionStatus("connected")
-//                        },1000)
-//
-//
-//
-//
-//                    }
-//                    filesUploadStr = ""
-//                    storeDeviceAddress(gatt.device.address)
-                    // end block
 
                 }
                 if (filesUploadStr.contains("checkFile")) {
@@ -927,7 +939,7 @@ var connectionStatus = ""
     val byteCallback = object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             // Handle request failure
-            updatechatList("S","Whisper GPT failure... try again!!")
+            updatechatList("S",e.message.toString())
             e.printStackTrace()
         }
 
@@ -946,9 +958,12 @@ var connectionStatus = ""
                 val textResult = jsonObject.getString("text")
                 if(textResult.isNullOrEmpty()){
 //                    Toast.makeText(this@BaseActivity,"blank text", Toast.LENGTH_SHORT).show()
-                    updatechatList("S","Text not readable... try again!!")
+                   // updatechatList("S","Text not readable... try again!!")
+
+                    updatechatList("S"," ")
+                    getResponse(" ")
                 }else{
-                    updatechatList("S",textResult)
+                    updatechatList("S",textResult.trim())
                     getResponse(textResult)
                 }
 
@@ -987,7 +1002,7 @@ var connectionStatus = ""
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.e("error","API failed",e)
-                    updatechatList("R","Chat GPT failure... try again!!")
+                    updatechatList("R",e.message.toString())
 
                 }
 
@@ -1013,20 +1028,12 @@ var connectionStatus = ""
                         val msg:String=error.getString("message")
 
                         sendChatGptResponce(msg,"err:")
-                        runOnUiThread(Runnable {
-                            //  Toast.makeText(this@ChatGptActivity,msg, Toast.LENGTH_SHORT).show()
-//                            txtResponse.text = msg
-                            val singleChat = ChatModel(1,"R",msg)
-//                            chatMessages.add(singleChat)
-//                            scrollToBottom()
-//                            chatAdapter.notifyDataSetChanged()
 
-                        })
                     }
                 }
             })
         }catch (ex:Exception){
-          sendChatGptResponce("getResponse: $ex","err:")
+          sendChatGptResponce("getResponse: ${ex.message}","err:")
             Log.d("ChatGpt", "getResponse: $ex")
         }
     }
@@ -1040,18 +1047,10 @@ var connectionStatus = ""
 
     @SuppressLint("MissingPermission")
     fun sendChatGptResponce(data: String ,prefix : String) {
-        updatechatList("R",prefix+data)
+        updatechatList("R",data)
         val data = prefix+data //err:
         rawBleWrite(data.toByteArray())
     }
-
-
-
-
-
-
-
-
 
     @SuppressLint("MissingPermission")
     private fun rawBleWrite(data: ByteArray){
@@ -1079,6 +1078,9 @@ var connectionStatus = ""
         }
 
     }
+
+
+
     @SuppressLint("MissingPermission")
     private fun bleWrite( data : ByteArray){
         thread() {
@@ -1159,183 +1161,6 @@ var connectionStatus = ""
             output.write(value[i].code)
         }
     }
-    @SuppressLint("MissingPermission")
-    fun fromMonoInt8Data(data: ByteArray): ByteArray{
-/// Allocate a data buffer that is twice as large to hold output 16-bit samples
-        val data16 = ByteArray(2 * data.size)
-
-// Convert signed 8-bit samples to signed 16-bit samples
-        val bufferPtr = ByteBuffer.wrap(data16).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-        for (i in data.indices) {
-// Interpret each byte as a signed 8-bit value and shift left 8 bits for Int16
-            val sample = data[i].toInt()
-            val sample16 = (sample shl 8).toShort()
-            bufferPtr.put(i, sample16)
-        }
-        return data16
-    }
-
-
-
-
-
-
-
-    //For testing...
-    val RQS_RECORDING = 1
-    lateinit var mediaRecorder: MediaRecorder
-    private lateinit var audioSavePathInDevice: String
-    private var audioRecord: Boolean = false
-    fun checkPermission(): Boolean {
-        val result = ContextCompat.checkSelfPermission(
-            applicationContext,
-            WRITE_EXTERNAL_STORAGE
-        )
-        val result1 = ContextCompat.checkSelfPermission(
-            applicationContext,
-            RECORD_AUDIO
-        )
-        return result1 == PackageManager.PERMISSION_GRANTED
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun uploadLocalAudioFile(audioFilePath: String, byteCallback: Callback) {
-        val client = OkHttpClient()
-
-        // Replace 'YOUR_API_KEY' with your actual OpenAI API key
-
-        //       val apiKey = "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"
-        val byteArray = audioToByteArray(audioFilePath)
-        Log.d("TAG", "uploadAudioFile:BYTE ARRAY  "+byteArray.contentToString())
-        var byteArrayAudioSavePathInDevice =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_AUDIOBOOKS).absolutePath + "/" +
-                    "_MonocleBYTEARRAYRecording.mp3"
-        val success = byteArray?.let { byteArrayToMp3File(it, byteArrayAudioSavePathInDevice) }
-        if (success == true) {
-            // File was successfully written as an MP3 file
-            Log.d("TAG", "uploadAudioFile: Success")
-        } else {
-
-            // File writing failed
-            return
-        }
-        val file = File(byteArrayAudioSavePathInDevice)
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "audio.mp3", file.asRequestBody())
-            .addFormDataPart("model", "whisper-1")
-            // Add additional parameters if required
-            .build()
-
-
-        Log.d("TAG", "uploadAudioFile: "+requestBody.toString())
-
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/audio/translations")
-            //.addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .post(requestBody)
-            .build()
-
-
-
-        client.newCall(request).enqueue(byteCallback)
-    }
-
-    fun byteArrayToMp3File(byteArray: ByteArray, filePath: String): Boolean {
-        try {
-            val file = File(filePath)
-            val fileOutputStream = FileOutputStream(file)
-            fileOutputStream.write(byteArray)
-            fileOutputStream.close()
-            return true
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return false
-    }
-    fun audioToByteArray(filePath: String): ByteArray? {
-        val file = FileInputStream(filePath)
-        val byteArrayOutputStream = ByteArrayOutputStream()
-
-        try {
-            val buffer = ByteArray(1024)
-            var length: Int
-            while (file.read(buffer).also { length = it } != -1) {
-                byteArrayOutputStream.write(buffer, 0, length)
-            }
-            byteArrayOutputStream.flush()
-            return byteArrayOutputStream.toByteArray()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } finally {
-            try {
-                file.close()
-                byteArrayOutputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-
-        return null
-    }
-    fun mediaRecorderReady() {
-        mediaRecorder = MediaRecorder()
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-        mediaRecorder.setOutputFile(audioSavePathInDevice)
-    }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun writeInt() {
-        if (checkPermission()) {
-            if (!audioRecord) {
-                audioRecord = true
-                audioSavePathInDevice =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_AUDIOBOOKS).absolutePath + "/" +
-                             "_MonocleRecording.mp3"
-
-                mediaRecorderReady()
-
-                try {
-                    mediaRecorder.prepare()
-                    mediaRecorder.start()
-                } catch (e: IllegalStateException) {
-                    e.printStackTrace()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-
-//                buttonStart.isEnabled = false
-//                buttonStop.isEnabled = true
-                //voiceSend.setImageResource(R.drawable.ic_stop)
-                Toast.makeText(this, "Recording started", Toast.LENGTH_LONG).show()
-            } else {
-                mediaRecorder.stop()
-                audioRecord = false
-//                buttonStop.isEnabled = false
-//                buttonStart.isEnabled = true
-               // voiceSend.setImageResource(R.drawable.ic_mic)
-                Toast.makeText(this, "Recording Completed", Toast.LENGTH_LONG).show()
-                Log.d("CHAT GPT RECODING", "onCreate: " + audioSavePathInDevice)
-                val returnIntent = Intent()
-                returnIntent.putExtra("result", audioSavePathInDevice)
-                setResult(Activity.RESULT_OK, returnIntent)
-                uploadLocalAudioFile(audioSavePathInDevice, byteCallback)
-
-            }
-        } else {
-            //requestPermission()
-        }
-
-
-    }
-
-
-
-
-
-
 
 
 }
