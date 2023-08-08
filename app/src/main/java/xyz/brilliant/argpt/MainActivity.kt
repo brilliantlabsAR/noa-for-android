@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_PERMISSION_LOCATION = 2
     private fun startBluetoothOperation() {
         // Enable Bluetooth if it's not already enabled
-        if (!bluetoothAdapter!!.isEnabled) {
+        if (!bluetoothAdapter.isEnabled) {
             val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -356,7 +356,7 @@ class DeviceAdapter(context: Context, resource: Int, private val devices: ArrayL
         disConnect.visibility = View.VISIBLE
         disConnect.setOnClickListener {
           //  device.dis(this, false, gattCallback)
-            bluetoothGatt?.disconnect()
+            bluetoothGatt.disconnect()
         }
 
         // Connect to the BLE device
@@ -382,7 +382,7 @@ class DeviceAdapter(context: Context, resource: Int, private val devices: ArrayL
 
    @SuppressLint("MissingPermission")
    fun connectDeviceOld(selectedDevice: BluetoothDevice) {
-       val selectedDevice: BluetoothDevice? = selectedDevice// Get the selected device from user interaction
+       val selectedDevice: BluetoothDevice = selectedDevice// Get the selected device from user interaction
 
        val gattCallback = object : BluetoothGattCallback() {
            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {

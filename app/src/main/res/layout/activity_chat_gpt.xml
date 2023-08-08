@@ -12,7 +12,8 @@
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="@dimen/_15pxh">
 
         <TextView
             android:id="@+id/argpt"
@@ -23,17 +24,17 @@
             android:text="@string/argpt"
             android:lineSpacingExtra="-16sp"
             android:textSize="20sp"
+            android:layout_marginBottom="@dimen/_10pxh"
             android:textColor="@color/black"
             />
         <ImageView
             android:id="@+id/settingBtn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_settings"/>
+            android:src="@drawable/settings"/>
 
     </RelativeLayout>
     <LinearLayout
@@ -87,8 +88,6 @@
         android:layout_height="wrap_content"
         android:padding="7dp"
         android:layout_marginBottom="15dp"
-        android:layout_marginRight="15dp"
-        android:layout_marginLeft="15dp"
         android:layout_alignParentBottom="true"
         android:background="@drawable/round_white_background">
 
@@ -97,6 +96,8 @@
             android:id="@+id/etMessage"
             android:layout_marginStart="10dp"
             android:layout_width="match_parent"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_toStartOf="@+id/chatSend"
@@ -109,8 +110,8 @@
 
         <ImageView
             android:id="@+id/chatSend"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:scaleType="centerCrop"
             android:padding="2dp"
 

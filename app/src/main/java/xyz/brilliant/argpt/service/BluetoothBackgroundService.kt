@@ -52,11 +52,4 @@ class BluetoothBackgroundService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onDestroy() {
-        // Cleanup tasks can be performed here
-        super.onDestroy()
-
-        // Stop the runnable when the service is destroyed
-//        handler.removeCallbacks(runnable)
-    }
 }

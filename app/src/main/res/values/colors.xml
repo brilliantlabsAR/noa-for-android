@@ -18,7 +18,7 @@
     <color name="white_one">#F5F5F5</color>
     <color name="gray">#BDBDBD</color>
     <color name="red">#FF0000</color>
-
+    <color name="teal_300">#57c7a9</color>
     <color name="white_background">#F9F9F9</color>
     <color name="teal_background">#57C7AA</color>
     <color name="sender_background">#E9E9EB</color>

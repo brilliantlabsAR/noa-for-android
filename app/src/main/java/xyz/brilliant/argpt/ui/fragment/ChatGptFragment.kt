@@ -35,7 +35,7 @@ class ChatGptFragment : Fragment() {
 //    lateinit var idTVQuestion: TextView
     lateinit var etMessage: EditText
     lateinit var chatSend: ImageView
-
+    private lateinit var popupWindow: PopupWindow
     lateinit var voiceSend : ImageView
     lateinit var settingBtn: ImageView
     lateinit var mainView: RelativeLayout
@@ -63,7 +63,7 @@ class ChatGptFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         mView= inflater.inflate(R.layout.activity_chat_gpt, container, false)
 
@@ -76,7 +76,7 @@ class ChatGptFragment : Fragment() {
         chatView=mView.findViewById(R.id.chatView)
         //voiceSend=mView.findViewById(R.id.voiceSend)
         layoutManager = LinearLayoutManager(activity)
-        layoutManager.stackFromEnd = true;
+        layoutManager.stackFromEnd = true
         //layoutManager.reverseLayout = true;
         chatView.layoutManager = layoutManager
         connectionStatus=mView.findViewById<ImageView>(R.id.connectionStatus)
@@ -145,7 +145,6 @@ class ChatGptFragment : Fragment() {
             chatAdapter.notifyDataSetChanged()
         }
     }
-    private lateinit var popupWindow: PopupWindow
 
     private fun showPopup() {
         val inflater = LayoutInflater.from(activity)
@@ -166,19 +165,24 @@ class ChatGptFragment : Fragment() {
         }
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
         unpairMonocle.setOnClickListener {
-            parentActivity.unpairMonocle();
+            popupWindow.dismiss()
+            parentActivity.unpairMonocle()
         }
         // Set up any additional settings for the popup window
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
 
         // Show the popup below the icon
-        popupWindow.showAtLocation(settingBtn,  Gravity.NO_GRAVITY, 220, 280)
+        val location = IntArray(2)
+        settingBtn.getLocationOnScreen(location)
+        val x = location[0] + settingBtn.width - popupWindow.width // Adjust the space here
+        val y = location[1] - popupWindow.height
+        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y+10)
 
         //popupWindow.showAsDropDown(settingBtn)
     }
-    lateinit var dialog: Dialog;
-    public fun openChangeApiKey() {
+    lateinit var dialog: Dialog
+    fun openChangeApiKey() {
         dialog = Dialog(requireActivity(),R.style.TransparentDialog)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setCancelable(false)

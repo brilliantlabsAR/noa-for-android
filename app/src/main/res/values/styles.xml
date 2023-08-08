@@ -17,4 +17,7 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowNoTitle">true</item>
     </style>
+    <style name="groupStyleteal_300cornerRadius">
+        <item name="android:background">@drawable/rectangle_bg_teal_300_radius_18</item>
+    </style>
 </resources>

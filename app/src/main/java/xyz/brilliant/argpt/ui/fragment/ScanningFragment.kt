@@ -35,6 +35,7 @@ class ScanningFragment : Fragment() {
         parentActivity.runOnUiThread {
             deviceCloseTextView.text = deviceCloseText
             popUpbtn.text = buttonText
+            popUpbtn.isClickable=false
         }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -60,10 +61,8 @@ class ScanningFragment : Fragment() {
 
         searchBox.setOnClickListener {
             try {
-                if (popUpbtn.text == "Connect") {
+                if (popUpbtn.text == "Monocle. Connect") {
                     parentActivity.connectDevice()
-                }else if (popUpbtn.text == "Continue"){
-                    parentActivity.fileUploadOne()
                 }
             }catch (ex:Exception){
                 ex.printStackTrace()
@@ -81,7 +80,7 @@ class ScanningFragment : Fragment() {
         val nextPageButton = view.findViewById<Button>(R.id.btnStartScan)
         val privacy_policy = view.findViewById<TextView>(R.id.privacyPolicy)
 
-        privacy_policy.setMovementMethod(LinkMovementMethod.getInstance());
+        privacy_policy.movementMethod = LinkMovementMethod.getInstance()
 
 
 //        view.findViewById<TextView>(R.id.searching).setOnClickListener {

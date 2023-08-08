@@ -58,22 +58,22 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     class LeftChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-        var time: TextView
+//        var time: TextView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
-            time = itemView.findViewById<View>(R.id.timeText) as TextView
+//            time = itemView.findViewById<View>(R.id.timeText) as TextView
         }
     }
 
 
     class RightChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-        var time: TextView
+//        var time: TextView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
-            time = itemView.findViewById<View>(R.id.timeText) as TextView
+//            time = itemView.findViewById<View>(R.id.timeText) as TextView
         }
     }
 }

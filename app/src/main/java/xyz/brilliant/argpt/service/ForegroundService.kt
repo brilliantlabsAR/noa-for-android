@@ -17,6 +17,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import xyz.brilliant.argpt.MainActivity
 import xyz.brilliant.argpt.R
+import xyz.brilliant.argpt.ui.activity.BaseActivity
 
 class ForegroundService : Service() {
 
@@ -29,7 +30,10 @@ class ForegroundService : Service() {
         val notification: Notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
     }
-
+    private fun triggerScan() {
+        val intent = Intent("ACTION_START_SCAN")
+        sendBroadcast(intent)
+    }
     override fun onBind(intent: Intent): IBinder? {
         // Return null if you don't need to bind the service
         return null
@@ -64,9 +68,12 @@ class ForegroundService : Service() {
 
     private fun createNotification(): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Foreground Service")
-            .setContentText("Running...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("arGPT Service")
+            .setContentText("Listening...")
+            .setSmallIcon(R.drawable.logo_button)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_LARGE)
+            .setColor(R.color.argpt_launcher_icon_background.toInt())
+
             // Customize the notification as needed
             // Set the priority to PRIORITY_LOW or PRIORITY_MIN to make it less intrusive
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -80,10 +87,6 @@ class ForegroundService : Service() {
 
 class ForegroundService2 : Service() {
 
-
-    override fun onCreate() {
-        super.onCreate()
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -116,21 +119,12 @@ class ForegroundService2 : Service() {
         return START_NOT_STICKY
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 }
 
 class BaseApplication : Application(), LifecycleEventObserver {
-
-    override fun onCreate() {
-        super.onCreate()
-      //  ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-    }
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when (event) {

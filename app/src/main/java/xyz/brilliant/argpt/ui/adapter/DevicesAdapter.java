@@ -46,15 +46,15 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         ViewHolder(View view) {
 
             super(view);
-            mDeviceNameView = (TextView) view.findViewById(R.id.device_name);
-            mDeviceNameAddressView = (TextView) view.findViewById(R.id.device_address);
+            mDeviceNameView = view.findViewById(R.id.device_name);
+            mDeviceNameAddressView = view.findViewById(R.id.device_address);
         }
 
     }
 
     //private ArrayList<Temp> mArrayList;
-    private ArrayList<ScanResult> mArrayList;
-    private DevicesAdapterListener mListener;
+    private final ArrayList<ScanResult> mArrayList;
+    private final DevicesAdapterListener mListener;
 
 
     public DevicesAdapter(DevicesAdapterListener listener) {
