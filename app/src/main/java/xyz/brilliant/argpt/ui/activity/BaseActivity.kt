@@ -3,7 +3,6 @@ package xyz.brilliant.argpt.ui.activity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import android.app.appsearch.AppSearchSchema
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -11,7 +10,6 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -33,15 +31,11 @@ import android.os.ParcelUuid
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import android.widget.RelativeLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.text.capitalize
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.os.postDelayed
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -55,9 +49,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -68,7 +62,6 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import xyz.brilliant.argpt.R
-import xyz.brilliant.argpt.service.BluetoothBackgroundService
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
@@ -76,7 +69,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Math.ceil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -111,11 +103,14 @@ class BaseActivity  : AppCompatActivity()  {
         private const val sampleRate = 8000
         private const val bitPerSample = 16
         private const val channels = 1
+
         private val client = OkHttpClient()
 // For Debugging
-        private val NRFKIT = false
-        private val FIRMWARE_TEST = false
-        private val FPGA_TEST = false
+        private const  val NRFKIT = true
+        private const val FIRMWARE_TEST = false
+        private const val FPGA_TEST = false
+        private const val BACKEND_URL = ""
+        private const val USE_CUSTOM_SERVER = false
         fun pushFragmentsStatic(
             fragmentManager: FragmentManager,
             fragment: Fragment,
@@ -170,6 +165,7 @@ class BaseActivity  : AppCompatActivity()  {
     private var currentScannedDevice:BluetoothDevice?=null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
+    private var currentConnectionStatus = false
     private fun getStoredDeviceAddress(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_KEY_DEVICE_ADDRESS, "") ?: ""
@@ -177,8 +173,14 @@ class BaseActivity  : AppCompatActivity()  {
     private val scanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "ACTION_START_SCAN") {
-                println("[in backgrounddd]")
-                startScan()
+                if(bluetoothGatt == null ) {
+                    val storedDeviceAddress  = getStoredDeviceAddress()
+                    if(!storedDeviceAddress.isNullOrEmpty()){
+                        connectDevice(storedDeviceAddress)
+                        println("[trying to connect in background]")
+                    }
+
+                }
             }
         }
     }
@@ -245,19 +247,18 @@ class BaseActivity  : AppCompatActivity()  {
                 finish()
                 return
             }
-            val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(foregroundServiceIntent)
-            } else {
-                   startService(foregroundServiceIntent)
-            }
 
             if (currentAppState == AppState.FIRST_PAIR) {
                 updateProgressDialog("Bring your device close.", "Searching")
                 startScan()
             } else if (currentAppState == AppState.SCRIPT_UPDATE || currentAppState == AppState.RUNNING){
+                startBluetoothBackground()
                 connectDevice(storedDeviceAddress)
+               if(bluetoothGatt != null){
+                   updateConnectionStatus("not connected")
+               }else{
+                   updateConnectionStatus("")
+               }
             }
 //            val serviceIntent = Intent(this, BluetoothBackgroundService::class.java)
 //            startService(serviceIntent)
@@ -265,13 +266,22 @@ class BaseActivity  : AppCompatActivity()  {
             ex.printStackTrace()
         }
     }
+    private fun startBluetoothBackground(){
+        val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(foregroundServiceIntent)
+        } else {
+            startService(foregroundServiceIntent)
+        }
+    }
     private val permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.BLUETOOTH_CONNECT,
         Manifest.permission.BLUETOOTH_SCAN,
         Manifest.permission.FOREGROUND_SERVICE,
+        Manifest.permission.POST_NOTIFICATIONS
     )
     private fun getAllPermission(){
         try {
@@ -306,8 +316,12 @@ class BaseActivity  : AppCompatActivity()  {
             }
             .setNegativeButton("No") { dialog: DialogInterface, _ ->
                 dialog.dismiss()
-                checkBluetoothAndGps()
+
+
+                finish()
+              //  checkBluetoothAndGps()
             }
+        builder.setCancelable(false)
         builder.create().show()
     }
 
@@ -320,8 +334,10 @@ class BaseActivity  : AppCompatActivity()  {
             }
             .setNegativeButton("No") { dialog: DialogInterface, _ ->
                 dialog.dismiss()
-                checkBluetoothAndGps()
+                finish()
+               // checkBluetoothAndGps()
             }
+        builder.setCancelable(false)
         builder.create().show()
     }
 
@@ -578,7 +594,9 @@ var connectionStatus = ""
 }
     @SuppressLint("MissingPermission")
     private fun startScan() {
-
+        if(scanning){
+            return
+        }
         if (hasLocationPermission()) {
             val serviceUuids = listOf(
                 ScanFilter.Builder()
@@ -670,18 +688,21 @@ var connectionStatus = ""
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 writingREPLProgress = false
                 currentScannedDevice = null
-
+                currentConnectionStatus = true
+                val intent = Intent("ACTION_CONNECTION_STATUS")
+                intent.putExtra("EXTRA_CONNECTION_STATUS", true)
+                sendBroadcast(intent)
                 gatt.requestMtu(GATT_MAX_MTU_SIZE)
                 // Handler(Looper.getMainLooper()).post {
                 if(currentAppState == AppState.FIRST_PAIR ){
                     updateProgressDialog("Checking sofware update.", "Keep the app open")
 
-                    runOnUiThread {
-
-                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
-                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+//                    runOnUiThread {
+//
+//                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
+//                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
+//                            .show()
+//                    }
                 }
                 if( currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.FPGA_UPDATE){
                     updateProgressDialog("Updating software $overlallSoftwareProgress%", "Keep the app open")
@@ -689,12 +710,12 @@ var connectionStatus = ""
                 if(currentAppState == AppState.RUNNING){
                     updateConnectionStatus("")
 
-                    runOnUiThread {
-
-                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
-                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+//                    runOnUiThread {
+//
+//                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
+//                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
+//                            .show()
+//                    }
                 }
                 // }
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
@@ -703,14 +724,14 @@ var connectionStatus = ""
                 if(currentAppState == AppState.FIRST_PAIR || currentAppState ==AppState.RUNNING){
 
                     updateProgressDialog("Bring your device close.", "Searching")
-                    runOnUiThread {
-                        //  logTextView.text = "Disconnected"
-                        Toast.makeText(
-                            this@BaseActivity,
-                            "Disconnected from device",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+//                    runOnUiThread {
+//                        //  logTextView.text = "Disconnected"
+//                        Toast.makeText(
+//                            this@BaseActivity,
+//                            "Disconnected from device",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
                 }
 
                 if(currentAppState == AppState.RUNNING){
@@ -721,9 +742,17 @@ var connectionStatus = ""
                 if(isAppInBackground(applicationContext)){
                     val triggerIntent = Intent("ACTION_START_SCAN")
                     sendBroadcast(triggerIntent)
+
                 }else{
                     startScan()
                 }
+                if(currentConnectionStatus){
+                    val intent = Intent("ACTION_CONNECTION_STATUS")
+                    intent.putExtra("EXTRA_CONNECTION_STATUS", false)
+                    sendBroadcast(intent)
+                }
+
+                currentConnectionStatus = false
 
 
             }
@@ -917,7 +946,12 @@ var connectionStatus = ""
                         rawToWave(signed8ToUnsigned16(audioBuffer), f2, sampleRate, bitPerSample, channels){success->
                             if (success) {
                                 println("[AUDIO PARSED SENDING TO CHATGPT]\n")
-                                uploadAudioFile(f2, byteCallback)
+                                if(USE_CUSTOM_SERVER){
+                                    getGPTResult(f2)
+                                }else{
+                                    uploadAudioFile(f2, byteCallback)
+                                }
+
                             }
                         }
 
@@ -1295,8 +1329,10 @@ var connectionStatus = ""
             if(!NRFKIT && fpgaCheckUpdate() != "Updated"){
                 return
             }
+
             currentDevice =""
             currentAppState = AppState.SCRIPT_UPDATE
+            startBluetoothBackground()
 //            updateProgressDialog("Checking Sofware Update...", "Keep the app open")
             println("[FIRMWARE STABLE]\n")
 
@@ -1310,11 +1346,11 @@ var connectionStatus = ""
             startFileUpload()
         }
         replSendBle(byteArrayOf(0x3,0x4))
-        if(currentAppState == AppState.SCRIPT_UPDATE){
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment !is ChatGptFragment) {
             val fragment = ChatGptFragment()
-            if(!fragmentManager.fragments.contains(fragment)){
-                pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
-            }
+            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
+
             val apikeyStored =  getStoredApiKey()
             if(!apikeyStored.isNullOrEmpty()){
                 apiKey = apikeyStored
@@ -1322,8 +1358,12 @@ var connectionStatus = ""
             updateConnectionStatus("")
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
-            storeDeviceAddress(bluetoothGatt!!.device.address)
+            if(bluetoothGatt != null){
+                storeDeviceAddress(bluetoothGatt!!.device.address)
+            }
+
         }
+        currentAppState = AppState.RUNNING
     }
     // SCRIPTS UPLOAD
     private fun readScriptFileFromAssets(fileName: String): String {
@@ -1801,5 +1841,54 @@ var connectionStatus = ""
         return crc32.value
     }
 
+
+    // for server api
+    private fun getGPTResult(file:File){
+        var client = OkHttpClient()
+        val mediaType = "application/octet-stream".toMediaType()
+        println("[SERVER GPT: start]")
+        val body = MultipartBody.Builder().setType((MultipartBody.FORM))
+            .addFormDataPart("audio",file.absolutePath,file.asRequestBody(mediaType))
+            .addFormDataPart("apiKey",apiKey)
+            .build()
+        val req = Request.Builder().url(BACKEND_URL).post(body).build()
+        val response = client.newCall(req).execute()
+        println("[SERVER GPT: complete]")
+        if (response.isSuccessful && response.body !=null){
+
+            val jsonResponse: String = response.body!!.string()
+            if(jsonResponse !=null){
+                val jsonObject = JSONObject(jsonResponse)
+                if(jsonObject.has("message")){
+                    sendChatGptResponce(jsonObject.get("message").toString(),"err:")
+                }
+                if(jsonObject.has("transcript")){
+                    updatechatList("S",jsonObject.get("transcript").toString())
+                }
+                if(jsonObject.has("reply")){
+                    sendChatGptResponce(jsonObject.get("reply").toString(),"res:")
+                }
+            }
+        }else{
+            val jsonResponse: String = response.body!!.string()
+            if(jsonResponse !=null){
+                val jsonObject = JSONObject(jsonResponse)
+                if(jsonObject.has("message")){
+                    var msg  = jsonObject.get("message")
+                    try {
+                        // Code that might throw an exception
+                         msg  = JSONObject(jsonObject.get("message").toString()).get("message")
+
+                    } catch (e: Exception) {
+                        // Code to handle the exception
+                    } finally {
+                        sendChatGptResponce(msg.toString(),"err:")
+                        // Code that will be executed regardless of whether an exception occurred or not
+                    }
+
+                }
+            }
+        }
+    }
 
 }

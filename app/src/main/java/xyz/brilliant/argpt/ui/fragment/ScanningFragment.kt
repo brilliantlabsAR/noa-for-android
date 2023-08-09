@@ -1,9 +1,18 @@
 package xyz.brilliant.argpt.ui.fragment
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
+import android.text.Html
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,6 +56,11 @@ class ScanningFragment : Fragment() {
         searchBox = view.findViewById(R.id.searchBox)
 
 
+
+
+
+
+
         myCardView.translationY = myCardView.height.toFloat()
 
         val preDrawListener = object : ViewTreeObserver.OnPreDrawListener {
@@ -78,18 +92,59 @@ class ScanningFragment : Fragment() {
         val view = inflater.inflate(R.layout.activity_pairing_screen, container, false)
 
         val nextPageButton = view.findViewById<Button>(R.id.btnStartScan)
-        val privacy_policy = view.findViewById<TextView>(R.id.privacyPolicy)
 
-        privacy_policy.movementMethod = LinkMovementMethod.getInstance()
+        val privacyPolicyTextView: TextView = view.findViewById(R.id.privacyPolicy)
+
+        val myString =
+            SpannableString(getString(R.string.privecy_txt))
+
+        val clickableSpan: ClickableSpan = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+                //var d = "click1";
+                gotoTerms("privacy");
+            }
+        }
+
+        val clickableSpan1: ClickableSpan = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+                gotoTerms("terms");
+            }
+        }
+
+        myString.setSpan(clickableSpan, 20, 34, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(clickableSpan1, 48, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(
+            ForegroundColorSpan(Color.parseColor("#F15d36")),
+            20,
+            34,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        myString.setSpan(
+            ForegroundColorSpan(Color.parseColor("#F15d36")),
+            48,
+            68,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        privacyPolicyTextView.movementMethod = LinkMovementMethod.getInstance()
+        privacyPolicyTextView.text = myString
 
 
-//        view.findViewById<TextView>(R.id.searching).setOnClickListener {
-//            // Navigate to PageTwoFragment
-//            requireActivity().supportFragmentManager.beginTransaction()
-//                .replace(R.id.fragmentContainer, PageTwoFragment())
-//                .commit()
-//        }
+
 
         return view
+    }
+
+    private fun gotoTerms(url: String) {
+
+        if(url=="terms") {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://brilliant.xyz/pages/terms-conditions"))
+            startActivity(intent)
+        }
+        else
+        {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://brilliant.xyz/pages/privacy-policy"))
+            startActivity(intent)
+        }
+
     }
 }

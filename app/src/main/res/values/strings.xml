@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">arGPT</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
@@ -46,4 +46,7 @@
     <string name="ask_question">Ask a question</string>
     <string name="privacy_policy">Be sure to read our<font color='#E82E87'> Privacy Policy</font>, as well as\n <font color='#E82E87'>Terms and Conditions</font> before using arGPT</string>
     <string name="privacy_policy2">Be sure to read our <![CDATA[<a href="https://brilliant.xyz/pages/privacy-policy" style="color:#E82E87">Privacy Policy</a>]]>, as well as <![CDATA[<a href="https://brilliant.xyz/pages/terms-conditions" style="color:#E82E87">Terms and Conditions</a>]]> before using arGPT</string>
+
+    <string name="privecy_txt" >Be sure to read our<a href="privacy"><font color="#E82E87"> Privacy Policy</font></a>, as well as\n <a href="terms"><font color="#E82E87">Terms and Conditions</font></a> before using arGPT</string>
+
 </resources>

@@ -6,9 +6,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
+import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -17,7 +18,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import xyz.brilliant.argpt.MainActivity
 import xyz.brilliant.argpt.R
-import xyz.brilliant.argpt.ui.activity.BaseActivity
+
 
 class ForegroundService : Service() {
 
@@ -27,30 +28,48 @@ class ForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        val notification: Notification = createNotification()
+        val notification: Notification = createNotification(true)
         startForeground(NOTIFICATION_ID, notification)
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(connectionStatusReceiver);
+        super.onDestroy()
     }
     private fun triggerScan() {
         val intent = Intent("ACTION_START_SCAN")
         sendBroadcast(intent)
     }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val filter = IntentFilter("ACTION_CONNECTION_STATUS")
+        registerReceiver(connectionStatusReceiver, filter)
+        Thread {
+            while (true) {
+                triggerScan()
+                try {
+                    Thread.sleep(5000)
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+            }
+        }.start()
+        return super.onStartCommand(intent, flags, startId)
+    }
+    private val connectionStatusReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            println("working")
+            if (intent?.action == "ACTION_CONNECTION_STATUS") {
+                val isConnected = intent.getBooleanExtra("EXTRA_CONNECTION_STATUS", false)
+                val notification: Notification = createNotification(isConnected)
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        }
+    }
+
     override fun onBind(intent: Intent): IBinder? {
         // Return null if you don't need to bind the service
         return null
     }
-
-//    private fun createNotificationChannel() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channel = NotificationChannel(
-//                CHANNEL_ID,
-//                "Foreground Service Channel",
-//                NotificationManager.IMPORTANCE_DEFAULT
-//            )
-//            channel.lightColor = Color.BLUE
-//            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            manager.createNotificationChannel(channel)
-//        }
-//    }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -66,13 +85,12 @@ class ForegroundService : Service() {
         }
     }
 
-    private fun createNotification(): Notification {
+    private fun createNotification(isConnected:Boolean): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("arGPT Service")
-            .setContentText("Listening...")
+            .setContentText(if (isConnected) "Listening.." else "Disconnected! Trying to connect.")
             .setSmallIcon(R.drawable.logo_button)
-            .setBadgeIconType(NotificationCompat.BADGE_ICON_LARGE)
-            .setColor(R.color.argpt_launcher_icon_background.toInt())
+//            .setColor("#E82E87".toInt())
 
             // Customize the notification as needed
             // Set the priority to PRIORITY_LOW or PRIORITY_MIN to make it less intrusive
@@ -81,67 +99,5 @@ class ForegroundService : Service() {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
         return notificationBuilder.build()
-    }
-}
-
-
-class ForegroundService2 : Service() {
-
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                "myServiceChannel",
-                "My Service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager?.createNotificationChannel(serviceChannel)
-        }
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(this, "myServiceChannel")
-            .setContentTitle("foregroundServiceNotificationTitle")
-            .setContentText("input")
-            // .setSmallIcon(R.drawable.ic_launcher_nav)
-            .setContentIntent(pendingIntent)
-            // todo don't wait for 10 seconds
-            //.setForegroundServiceBehavior(FOREGROUND_SERVICE_IMMEDIATE)
-            .build()
-        startForeground(1, notification)
-        return START_NOT_STICKY
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-}
-
-class BaseApplication : Application(), LifecycleEventObserver {
-
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-        when (event) {
-            Lifecycle.Event.ON_STOP -> {
-                Thread.sleep(5000)
-                when {
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
-                        this.startForegroundService(Intent(this, ForegroundService2::class.java))
-                    }
-                    else -> {
-                        this.startService(Intent(this, ForegroundService2::class.java))
-                    }
-                }
-            }
-            else -> {
-                // do nothing
-            }
-        }
     }
 }
