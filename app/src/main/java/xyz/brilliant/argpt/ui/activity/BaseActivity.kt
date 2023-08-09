@@ -281,7 +281,7 @@ class BaseActivity  : AppCompatActivity()  {
         Manifest.permission.BLUETOOTH_CONNECT,
         Manifest.permission.BLUETOOTH_SCAN,
         Manifest.permission.FOREGROUND_SERVICE,
-        Manifest.permission.POST_NOTIFICATIONS
+
     )
     private fun getAllPermission(){
         try {
