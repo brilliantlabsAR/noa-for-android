@@ -51,6 +51,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -1043,10 +1044,70 @@ var connectionStatus = ""
             .post(requestBody)
             .build()
 
+        client.newCall(request).enqueue(byteCallback)
+    }
 
+
+    private fun transcribeAndTranslate(audioFile: File, apiKey: String, byteCallback: Callback) {
+        val client = OkHttpClient()
+
+        // Step 1: Transcribe spoken content to text using Whisper ASR
+        val whisperRequestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
+            .addFormDataPart("model", "whisper")
+            .build()
+
+        val whisperRequest = Request.Builder()
+            .url("https://api.openai.com/v1/whisper/interpretations")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .post(whisperRequestBody)
+            .build()
+
+        client.newCall(whisperRequest).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                // Step 2: Translate the transcribed text to English using translation API
+                val transcribedText = response.body?.string() ?: ""
+                val translateRequestBody = FormBody.Builder()
+                    .add("text", transcribedText)
+                    .add("target_language", "en") // Translate to English
+                    .build()
+
+                val translateRequest = Request.Builder()
+                    .url("https://api.openai.com/v1/language/translate")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .post(translateRequestBody)
+                    .build()
+
+                client.newCall(translateRequest).enqueue(byteCallback)
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle failure
+            }
+        })
+    }
+
+
+    private fun translateAudioToEnglish(audioFile: File,  byteCallback: Callback) {
+        val client = OkHttpClient()
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
+            .addFormDataPart("model", "whisper")
+            .addFormDataPart("language", "es") // Replace 'es' with the appropriate language code
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/whisper/interpretations")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .post(requestBody)
+            .build()
 
         client.newCall(request).enqueue(byteCallback)
     }
+
 
     val byteCallback = object : Callback {
         override fun onFailure(call: Call, e: IOException) {
@@ -1156,6 +1217,7 @@ var connectionStatus = ""
 
 
     // MONOCLE COMMUNICATION
+    @SuppressLint("MissingPermission")
     private fun rawBleWrite(data: ByteArray){
         val characteristic = rawRxCharacteristic
         if (bluetoothGatt != null && characteristic != null) {
@@ -1163,20 +1225,6 @@ var connectionStatus = ""
             characteristic.value = data
             if(bluetoothGatt != null){
 
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return
-                }
                 bluetoothGatt!!.writeCharacteristic(characteristic)
             }
         }
@@ -1201,7 +1249,11 @@ var connectionStatus = ""
             }
         }
 
+
     }
+
+
+
     @SuppressLint("MissingPermission")
     private fun replWrite( data : ByteArray,resultDeferred: CompletableDeferred<String>){
 

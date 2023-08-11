@@ -228,15 +228,9 @@ class ChatGptFragment : Fragment() {
     fun getResponse(question: String, callback: (String) -> Unit){
         try {
 
-
-            // setting text on for question on below line.
-//            idTVQuestion.text = question
             etMessage.setText("")
 
-            //  val apiKey="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"
-            //  val apiKey="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"
-      //      val apiKey="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"
-            // val apiKey="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"
+
             val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
 
             val requestBody="""
