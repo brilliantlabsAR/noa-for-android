@@ -318,13 +318,13 @@ class DeviceAdapter(context: Context, resource: Int, private val devices: ArrayL
 
                     text_home.text = "Connected "
 
-                    Toast.makeText(this@MainActivity,"Connected",Toast.LENGTH_LONG).show()
+                 //   Toast.makeText(this@MainActivity,"Connected",Toast.LENGTH_LONG).show()
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     // Disconnected from the device
                     // You can handle the disconnection event here
                     disConnect.visibility = View.GONE
                     text_home.text = "Disconnected"
-                    Toast.makeText(this@MainActivity,"DisConnected",Toast.LENGTH_LONG).show()
+                   // Toast.makeText(this@MainActivity,"DisConnected",Toast.LENGTH_LONG).show()
                     Log.d("TAG", "Connected: ")
 
 
@@ -337,13 +337,13 @@ class DeviceAdapter(context: Context, resource: Int, private val devices: ArrayL
                 if (status == BluetoothGatt.GATT_SUCCESS) {
 
                     Log.d("TAG", "Connected: Discovered")
-                    Toast.makeText(this@MainActivity,"Discovered",Toast.LENGTH_LONG).show()
+                  //  Toast.makeText(this@MainActivity,"Discovered",Toast.LENGTH_LONG).show()
                     // Services discovered successfully
                     // You can now access the services and characteristics of the device
                     // For example, get a reference to a specific characteristic using gatt.getService(serviceUuid)?.getCharacteristic(characteristicUuid)
                 } else {
                     Log.d("TAG", "Connected: ")
-                    Toast.makeText(this@MainActivity,"Not Discovered",Toast.LENGTH_LONG).show()
+                   // Toast.makeText(this@MainActivity,"Not Discovered",Toast.LENGTH_LONG).show()
                     // Failed to discover services
                     // You can handle the failure here
                 }

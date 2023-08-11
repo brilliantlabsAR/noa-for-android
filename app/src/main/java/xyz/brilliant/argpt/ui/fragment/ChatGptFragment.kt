@@ -2,6 +2,8 @@ package xyz.brilliant.argpt.ui.fragment
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -101,7 +103,7 @@ class ChatGptFragment : Fragment() {
 
                 // validating text
                 val question = etMessage.text.toString().trim()
-                Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
+              //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
 
                     getResponse(question) { response ->
@@ -181,6 +183,12 @@ class ChatGptFragment : Fragment() {
 
         //popupWindow.showAsDropDown(settingBtn)
     }
+    private fun gotoOpenApi() {
+
+
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
+            startActivity(intent)
+    }
     lateinit var dialog: Dialog
     fun openChangeApiKey() {
         dialog = Dialog(requireActivity(),R.style.TransparentDialog)
@@ -194,6 +202,7 @@ class ChatGptFragment : Fragment() {
         apiKeyText.setText(apiKeyOld)
         closeButton.setOnClickListener {
             dialog.dismiss()
+            gotoOpenApi()
         }
 
 
@@ -206,7 +215,7 @@ class ChatGptFragment : Fragment() {
                 parentActivity.apiKey  = apiKeyValue
             }else{
 
-                Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
+              //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
 
             }
         }

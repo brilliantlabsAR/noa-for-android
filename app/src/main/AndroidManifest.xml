@@ -30,10 +30,22 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.DEFAULT" />
+
+            </intent-filter>
+            <!-- Intent filter for custom scheme "terms" -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="terms"/>
-                <data android:scheme="privacy"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="terms" />
+            </intent-filter>
+
+            <!-- Intent filter for custom scheme "privacy" -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="privacy" />
             </intent-filter>
         </activity>
         <activity

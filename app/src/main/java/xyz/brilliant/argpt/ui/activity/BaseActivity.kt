@@ -106,7 +106,7 @@ class BaseActivity  : AppCompatActivity()  {
 
         private val client = OkHttpClient()
 // For Debugging
-        private const  val NRFKIT = true
+        private const  val NRFKIT = false
         private const val FIRMWARE_TEST = false
         private const val FPGA_TEST = false
         private const val BACKEND_URL = ""
@@ -238,12 +238,7 @@ class BaseActivity  : AppCompatActivity()  {
 
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             if (bluetoothAdapter == null) {
-                Toast.makeText(
-                    this,
-                    "Bluetooth is not supported on this device",
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
+
                 finish()
                 return
             }
@@ -260,8 +255,7 @@ class BaseActivity  : AppCompatActivity()  {
                    updateConnectionStatus("")
                }
             }
-//            val serviceIntent = Intent(this, BluetoothBackgroundService::class.java)
-//            startService(serviceIntent)
+
         }catch (ex:Exception){
             ex.printStackTrace()
         }
@@ -399,11 +393,11 @@ class BaseActivity  : AppCompatActivity()  {
 
             }else{
                 checkBluetoothAndGps()
-                Toast.makeText(
-                    this,
-                    "Please turn on bluetooth!",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(
+//                    this,
+//                    "Please turn on bluetooth!",
+//                    Toast.LENGTH_SHORT
+//                ).show()
             }
         }
         else if (requestCode == REQUEST_ENABLE_GPS) {
@@ -412,11 +406,11 @@ class BaseActivity  : AppCompatActivity()  {
             } else {
 
                 checkBluetoothAndGps()
-                Toast.makeText(
-                    this,
-                    "Please turn on GPS!",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(
+//                    this,
+//                    "Please turn on GPS!",
+//                    Toast.LENGTH_SHORT
+//                ).show()
                 // User didn't enable GPS, handle as needed
             }
         }
@@ -540,7 +534,7 @@ var connectionStatus = ""
     }
     @SuppressLint("MissingPermission")
     override fun onDestroy() {
-//        disconnectGatt()
+       disconnectGatt()
         val stopServiceIntent = Intent(this, ForegroundService::class.java)
         stopService(stopServiceIntent)
         unregisterReceiver(scanReceiver)
@@ -666,6 +660,10 @@ var connectionStatus = ""
 
     @SuppressLint("MissingPermission")
     private fun connectDevice(deviceAddress: String) {
+
+        if(currentConnectionStatus){
+            return
+        }
         val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
 
         // Check if the device is already connected
@@ -679,6 +677,7 @@ var connectionStatus = ""
             println("Device is already connected")
         }
     }
+
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -696,13 +695,6 @@ var connectionStatus = ""
                 // Handler(Looper.getMainLooper()).post {
                 if(currentAppState == AppState.FIRST_PAIR ){
                     updateProgressDialog("Checking sofware update.", "Keep the app open")
-
-//                    runOnUiThread {
-//
-//                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
-//                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
-//                            .show()
-//                    }
                 }
                 if( currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.FPGA_UPDATE){
                     updateProgressDialog("Updating software $overlallSoftwareProgress%", "Keep the app open")
@@ -710,28 +702,17 @@ var connectionStatus = ""
                 if(currentAppState == AppState.RUNNING){
                     updateConnectionStatus("")
 
-//                    runOnUiThread {
-//
-//                        // logTextView.text = "Connected: ${gatt.device.name} ${gatt.device.address}"
-//                        Toast.makeText(this@BaseActivity, "Connected to device", Toast.LENGTH_SHORT)
-//                            .show()
-//                    }
+
                 }
                 // }
-            } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+            }
+            else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
 
                 disconnectGatt()
                 if(currentAppState == AppState.FIRST_PAIR || currentAppState ==AppState.RUNNING){
 
                     updateProgressDialog("Bring your device close.", "Searching")
-//                    runOnUiThread {
-//                        //  logTextView.text = "Disconnected"
-//                        Toast.makeText(
-//                            this@BaseActivity,
-//                            "Disconnected from device",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
+
                 }
 
                 if(currentAppState == AppState.RUNNING){
@@ -905,17 +886,19 @@ var connectionStatus = ""
 
     @SuppressLint("MissingPermission")
     private fun disconnectGatt() {
-        bluetoothGatt?.disconnect()
-        bluetoothGatt?.close()
-        bluetoothGatt = null
-        rxCharacteristic = null
-        txCharacteristic = null
-        rawTxCharacteristic = null
-        rawRxCharacteristic = null
-        nordicControlCharacteristic = null
-        nordicPacketCharacteristic = null
-        writingREPLProgress = false
-        currentScannedDevice = null
+        if (bluetoothGatt != null) {
+            bluetoothGatt?.disconnect()
+            bluetoothGatt?.close()
+            bluetoothGatt = null
+            rxCharacteristic = null
+            txCharacteristic = null
+            rawTxCharacteristic = null
+            rawRxCharacteristic = null
+            nordicControlCharacteristic = null
+            nordicPacketCharacteristic = null
+            writingREPLProgress = false
+            currentScannedDevice = null
+        }
     }
 
     //   MONOCLE AUDIO
@@ -1173,39 +1156,51 @@ var connectionStatus = ""
 
 
     // MONOCLE COMMUNICATION
-    @SuppressLint("MissingPermission")
     private fun rawBleWrite(data: ByteArray){
-        thread {
-            val characteristic = rawRxCharacteristic
-            if (bluetoothGatt != null && characteristic != null) {
-                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                var offset = 0
-                val chunkSize = 100
-                while (offset < data.size) {
-                    if (writingREPLProgress) {
-                        continue
-                    }
-                    val length = minOf(chunkSize, data.size - offset)
-                    val chunkData = data.slice(offset until offset + length)
+        val characteristic = rawRxCharacteristic
+        if (bluetoothGatt != null && characteristic != null) {
+            characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            characteristic.value = data
+            if(bluetoothGatt != null){
 
-                    characteristic.value = chunkData.toByteArray()
-                    writingREPLProgress = true
-                    if(bluetoothGatt != null){
-
-                        bluetoothGatt!!.writeCharacteristic(characteristic)
-                    }else{
-                        break
-                    }
-                    offset += length
-
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return
                 }
-
+                bluetoothGatt!!.writeCharacteristic(characteristic)
+            }
+        }
+    }
+    private fun dataSendBle(data:String){
+        thread {
+            val chunkSize = 90
+            var offset = 0
+            var actualData =  data.substring(4)
+            var command = data.substring(0,4)
+            println(actualData)
+            writingREPLProgress = false
+            while (offset < actualData.length) {
+                if (writingREPLProgress) {
+                    continue
+                }
+                val length = kotlin.math.min(chunkSize, actualData.length - offset)
+                val chunk = command + actualData.substring(offset, offset + length)
+                rawBleWrite(chunk.toByteArray())
+                offset += length
+                writingREPLProgress = true
             }
         }
 
-    }
-    private fun dataSendBle(data:String){
-        rawBleWrite(data.toByteArray())
     }
     @SuppressLint("MissingPermission")
     private fun replWrite( data : ByteArray,resultDeferred: CompletableDeferred<String>){
