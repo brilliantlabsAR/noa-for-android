@@ -1169,13 +1169,18 @@ var connectionStatus = ""
 //                    Toast.makeText(this@BaseActivity,"blank text", Toast.LENGTH_SHORT).show()
                    // updatechatList("S","Text not readable... try again!!")
 
-                    updatechatList("S"," ")
-                    getResponse(" ")
+                    if(translateEnabled) {
+                        sendTranslatedResponce("Couldn't translate....try again!","err:")
+                    }
+                    else{
+                        updatechatList("S", " ")
+                        getResponse(" ")
+                    }
                 }else{
                     if(translateEnabled){
 
                        // updatechatList("S",textResult.trim())
-                        sendTranslatedResponce(textResult.trim(),"res")
+                        sendTranslatedResponce(textResult.trim(),"res:")
                     }
                     else
                     {
