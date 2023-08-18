@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">arGPT</string>
+    <string name="app_name">Noa</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
@@ -37,7 +37,7 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="top_name"><font color='#9C27B0'> > </font><font color='#000000'>Brilliant</font><font color='#9C27B0'> (Labs) </font> </string>
-    <string name="argpt">arGPT</string>
+    <string name="argpt">Noa</string>
     <string name="let_s_pair_">Let\'s pair your device. Take your Monocle out of the case, and bring it close.</string>
     <string name="device_close">Bring your device close.</string>
     <string name="searching">Searching</string>

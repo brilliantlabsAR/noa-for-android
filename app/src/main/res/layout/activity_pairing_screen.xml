@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/topLogo"
-            android:text="@string/argpt"
+            android:text="@string/app_name"
             android:lineSpacingExtra="-16sp"
             android:textSize="32sp"
             android:textColor="@color/black"

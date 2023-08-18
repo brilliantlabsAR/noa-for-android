@@ -1490,7 +1490,7 @@ var connectionStatus = ""
         val version = generateProgramVersionString(files)
         //        first version check if not matched then upload
         println("[VERSION]: $version\n")
-        val response = replSendBle("'ARGPT_VERSION' in globals() and print(ARGPT_VERSION)")
+        val response = replSendBle("'NOA_VERSION' in globals() and print(NOA_VERSION)")
 
         if (!response.contains(version)) {
             println("[FILE  UPLOADING]\n")
@@ -1511,7 +1511,7 @@ var connectionStatus = ""
                 val deferItem = async {
                     var dataSend = "f=open('${file.first}','w');f.write('''${file.second}''');f.close();"
                     if(file.first=="main.py"){
-                        dataSend = "f=open('${file.first}','w');f.write('''ARGPT_VERSION='$version'\n${file.second}''');f.close();"
+                        dataSend = "f=open('${file.first}','w');f.write('''NOA_VERSION='$version'\n${file.second}''');f.close();"
                     }
                     println("[FILE  UPLOADING] ${file.first}\n")
                     var response = replSendBle(dataSend)

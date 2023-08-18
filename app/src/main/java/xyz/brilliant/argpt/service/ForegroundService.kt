@@ -13,10 +13,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import xyz.brilliant.argpt.MainActivity
 import xyz.brilliant.argpt.R
 
 
@@ -87,7 +83,7 @@ class ForegroundService : Service() {
 
     private fun createNotification(isConnected:Boolean): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("arGPT Service")
+            .setContentTitle("Noa Service")
             .setContentText(if (isConnected) "Listening.." else "Disconnected! Trying to connect.")
             .setSmallIcon(R.drawable.logo_button)
 //            .setColor("#E82E87".toInt())
