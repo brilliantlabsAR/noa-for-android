@@ -31,9 +31,11 @@ import android.os.ParcelUuid
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.Snackbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -270,7 +272,7 @@ class BaseActivity  : AppCompatActivity()  {
             startService(foregroundServiceIntent)
         }
     }
-    private val permissions = arrayOf(
+    private val permissionsSDK33 = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.BLUETOOTH_CONNECT,
@@ -278,8 +280,36 @@ class BaseActivity  : AppCompatActivity()  {
         Manifest.permission.FOREGROUND_SERVICE,
 
     )
+
+
+    private val permissionsSDK29 = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.BLUETOOTH,
+        Manifest.permission.BLUETOOTH_ADMIN,
+        Manifest.permission.FOREGROUND_SERVICE,
+
+        )
+
+
     private fun getAllPermission(){
         try {
+
+            var permissions : Array<String> ;
+            val androidVersion = android.os.Build.VERSION.SDK_INT
+
+            if (androidVersion <= android.os.Build.VERSION_CODES.R) {
+                // Targeting Android 11 or lower
+                // Use permissionsSDK29 array
+                permissions = permissionsSDK29
+            } else {
+                // Targeting Android 12 or higher
+                // Use permissions array
+                permissions = permissionsSDK33
+            }
+
+
+
             val permissionsToRequest = mutableListOf<String>()
             for (permission in permissions) {
                 val result = ContextCompat.checkSelfPermission(this, permission)
@@ -293,6 +323,9 @@ class BaseActivity  : AppCompatActivity()  {
             } else {
                 // All permissions are already granted. You can proceed with your operation here.
                 Log.d(TAG, "getAllPermission: 12")
+
+
+
                 checkBluetoothAndGps()
 
             }
@@ -364,6 +397,8 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
     private fun checkBluetoothAndGps() {
+
+
         val bluetoothEnabled = isBluetoothEnabled()
         val gpsEnabled = isGpsEnabled()
 
