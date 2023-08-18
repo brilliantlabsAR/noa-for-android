@@ -142,6 +142,7 @@ class BaseActivity  : AppCompatActivity()  {
     private var txCharacteristic: BluetoothGattCharacteristic? = null
     private var writingREPLProgress: Boolean = false
     val fragmentManager = supportFragmentManager
+    var translateEnabled : Boolean = false
 
     private var rawRxCharacteristic: BluetoothGattCharacteristic? = null
     private var rawTxCharacteristic: BluetoothGattCharacteristic? = null
@@ -1171,8 +1172,17 @@ var connectionStatus = ""
                     updatechatList("S"," ")
                     getResponse(" ")
                 }else{
-                    updatechatList("S",textResult.trim())
-                    getResponse(textResult)
+                    if(translateEnabled){
+
+                       // updatechatList("S",textResult.trim())
+                        sendTranslatedResponce(textResult.trim(),"res")
+                    }
+                    else
+                    {
+                        updatechatList("S",textResult.trim())
+                        getResponse(textResult)
+                    }
+
                 }
 
             }else{
@@ -1246,6 +1256,13 @@ var connectionStatus = ""
 
     fun sendChatGptResponce(data: String ,prefix : String) {
         updatechatList("R",data)
+        val data = prefix+data //err:
+        dataSendBle(data)
+    }
+
+
+    fun sendTranslatedResponce(data: String ,prefix : String) {
+        updatechatList("S",data)
         val data = prefix+data //err:
         dataSendBle(data)
     }

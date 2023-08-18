@@ -22,5 +22,8 @@
     <color name="white_background">#F9F9F9</color>
     <color name="teal_background">#57C7AA</color>
     <color name="sender_background">#E9E9EB</color>
+    <color name="sender_translated">#575BC7</color>
+
+
 
 </resources>

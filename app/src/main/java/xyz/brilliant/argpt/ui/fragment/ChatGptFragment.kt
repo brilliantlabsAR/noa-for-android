@@ -15,7 +15,6 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
-import androidx.core.text.set
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -88,11 +87,7 @@ class ChatGptFragment : Fragment() {
             openChangeApiKey()
         }
         if(parentActivity.connectionStatus.isNotEmpty()){
-
-
-
             connectionStatus.visibility = View.VISIBLE
-
            // connectionStatus.text = parentActivity.connectionStatus
         }
         etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
@@ -141,8 +136,19 @@ class ChatGptFragment : Fragment() {
     }
     fun updatechatList( type : String , msg : String){
         activity?.runOnUiThread {
-            val singleChat = ChatModel(1, type, msg.trim())
-            chatMessages.add(singleChat)
+
+            if(parentActivity.translateEnabled)
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),true)
+                chatMessages.add(singleChat)
+            }
+            else
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),false)
+                chatMessages.add(singleChat)
+            }
+
+
             scrollToBottom()
             chatAdapter.notifyDataSetChanged()
         }
@@ -166,6 +172,22 @@ class ChatGptFragment : Fragment() {
             popupWindow.dismiss()
         }
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
+
+
+        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+
+        switchButton.isChecked = parentActivity.translateEnabled
+
+        switchButton.setOnClickListener {
+            // Access the parent activity
+
+           // if (parentActivity != null) {
+                // Modify the boolean value in the parent activity
+                parentActivity.translateEnabled =switchButton.isChecked
+            popupWindow.dismiss()
+           // }
+        }
+
         unpairMonocle.setOnClickListener {
             popupWindow.dismiss()
             parentActivity.unpairMonocle()

@@ -13,9 +13,18 @@ import xyz.brilliant.argpt.ui.model.ChatModel
 class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ITEM_LEFT = 1
     private val ITEM_RIGHT = 2
-
+    private val ITEM_CENTER = 3
     override fun getItemViewType(position: Int): Int {
-        return if (messages[position].userInfo === "S") 2 else 1
+
+
+        if(messages[position].translateEnabled)
+        {
+            return  3
+        }
+
+        else {
+            return if (messages[position].userInfo === "S") 2 else 1
+        }
     }
 
 
@@ -29,6 +38,9 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
             ITEM_RIGHT -> return RightChatViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_right, parent, false)
             )
+           ITEM_CENTER-> return RightChatViewHolder(
+               LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_center, parent, false)
+           )
            else -> {
                throw Exception("Error reading holder type")
            }
@@ -39,14 +51,27 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val chatMessage: ChatModel = messages[position]
 
-        if (holder.itemViewType === ITEM_LEFT) {
+        if (holder.itemViewType === ITEM_CENTER) {
+            val viewHolder: CenterChatViewHolder = holder as CenterChatViewHolder
+            viewHolder.contents.text = chatMessage.message
+
+        } else if (holder.itemViewType === ITEM_LEFT) {
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
             viewHolder.contents.text = chatMessage.message
+
+
             //timeStampStr = chatMessage.getTime()
             //viewHolder.time.setText(timeStampStr)
         } else {
             val viewHolder: RightChatViewHolder = holder as RightChatViewHolder
             viewHolder.contents.text=chatMessage.message
+//            if(chatMessage.translateEnabled) {
+//                viewHolder.contents.setBackgroundResource(R.drawable.rounded_translated)
+//            }
+//            else
+//            {
+//                viewHolder.contents.setBackgroundResource(R.drawable.rounded_rectangle_primary)
+//            }
            // timeStampStr = chatMessage.getTime()
            //viewHolder.time.setText(timeStampStr)
         }
@@ -68,6 +93,16 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
 
     class RightChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var contents: TextView
+//        var time: TextView
+
+        init {
+            contents = itemView.findViewById<View>(R.id.messageText) as TextView
+//            time = itemView.findViewById<View>(R.id.timeText) as TextView
+        }
+    }
+
+    class CenterChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
 //        var time: TextView
 
