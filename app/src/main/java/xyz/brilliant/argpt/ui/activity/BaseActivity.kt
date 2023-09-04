@@ -1300,9 +1300,10 @@ var connectionStatus = ""
                 }
                 val length = kotlin.math.min(chunkSize, actualData.length - offset)
                 val chunk = command + actualData.substring(offset, offset + length)
+                writingREPLProgress = true
                 rawBleWrite(chunk.toByteArray())
                 offset += length
-                writingREPLProgress = true
+
             }
         }
 

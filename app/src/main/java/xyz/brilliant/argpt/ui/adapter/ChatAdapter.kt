@@ -38,7 +38,7 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
             ITEM_RIGHT -> return RightChatViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_right, parent, false)
             )
-           ITEM_CENTER-> return RightChatViewHolder(
+           ITEM_CENTER-> return CenterChatViewHolder(
                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_center, parent, false)
            )
            else -> {

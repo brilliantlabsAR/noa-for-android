@@ -24,6 +24,9 @@
     <color name="sender_background">#E9E9EB</color>
     <color name="sender_translated">#575BC7</color>
 
+    <color name="switch_checked_color">#57C7AA</color>
+    <color name="switch_default_color">#787880</color>
+
 
 
 </resources>
