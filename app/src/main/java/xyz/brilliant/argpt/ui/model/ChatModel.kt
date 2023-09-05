@@ -4,5 +4,6 @@ data class ChatModel(
     val id: Int,
     val userInfo: String,
     val message: String,
-    val translateEnabled : Boolean = false
+    val translateEnabled : Boolean = false,
+    val image : String = ""
 )

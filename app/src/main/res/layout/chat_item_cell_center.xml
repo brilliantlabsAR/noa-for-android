@@ -22,6 +22,20 @@
             android:visibility="gone"
             android:textSize="12sp"
             tools:text="11:40" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:maxWidth="@dimen/_500sp"
+            android:paddingLeft="25dp"
+            android:paddingTop="6dp"
+            android:paddingRight="25dp"
+            android:paddingBottom="6dp"
+            android:id="@+id/cht_image"
+            android:visibility="gone"
+            />
 
         <TextView
             android:id="@+id/messageText"

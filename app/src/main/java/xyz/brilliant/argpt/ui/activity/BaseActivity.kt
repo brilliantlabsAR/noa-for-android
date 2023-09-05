@@ -68,6 +68,7 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
+import java.io.ByteArrayInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -160,6 +161,7 @@ class BaseActivity  : AppCompatActivity()  {
     private val mArrayList = ArrayList<ScanResult>()
     private var currentDevice:String =""
     private var audioBuffer: ByteArray = byteArrayOf(0)
+    private var imageBuffer: ByteArray = byteArrayOf(0)
     var audioJob:Job? = null
     var lastResponse:String = ""
     private val PREFS_FILE_NAME = "MyPrefs"
@@ -534,6 +536,13 @@ var connectionStatus = ""
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
             fragment.updatechatList( type, msg)
+        }
+    }
+
+    fun updatechatList( type : String , msg : String,image : String) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList( type, msg,image)
         }
     }
 
@@ -939,8 +948,57 @@ var connectionStatus = ""
     }
 
     //   MONOCLE AUDIO
+    private var globalJpegFilePath: String? = null
     suspend fun monocleRecieved(data:ByteArray){
         val status = String(data.slice(0 until 4).toByteArray())
+
+
+        if(status=="ist:")
+        {
+            println("[NEW_Image Starting to come]\n")
+        }
+        if(status=="idt:")
+        {
+            println("[NEW_Image RECEIVING]\n")
+            imageBuffer += data.slice(4 until data.size).toByteArray()
+        }
+        if(status=="ien:"){
+            println("[NEW_Image RECEIVED]\n")
+
+
+            // create jpeg file .... Then ---
+            val outputPath = "output.jpg" // The desired output file path
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Call the function to create the JPEG image
+                    val jpegFile = createJpegFromByteArray(imageBuffer, outputPath)
+
+                    // Set the resulting JPEG file in the global variable
+                    globalJpegFilePath = jpegFile
+
+                    // Update UI elements on the main thread
+                    runOnUiThread {
+
+                        updatechatList("S","", globalJpegFilePath!!)
+                        // Access the global JPEG file and update UI elements if needed
+                        // For example, set an ImageView's image to the loaded JPEG
+                      //  updateUI(globalJpegFile)
+                    }
+
+                    println("JPEG image processing successful.")
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+
+
+            var responseData = "ick:"
+
+            dataSendBle(responseData)
+        }
+
+
         if(status=="ast:"){
 //            new audio buffer start, delete old one
             println("[NEW_AUDIO STARTS]\n")
@@ -987,6 +1045,22 @@ var connectionStatus = ""
 //            dataSendBle(responseData)
         }
     }
+
+
+
+    @Throws(IOException::class)
+    private fun createJpegFromByteArray(imageBytes: ByteArray, outputPath: String): String {
+        val jpegFile = File(cacheDir, outputPath)
+
+        val fos = FileOutputStream(jpegFile)
+        fos.write(imageBytes)
+        fos.close()
+
+        println("JPEG image saved to: ${jpegFile.absolutePath}")
+        return jpegFile.absolutePath
+    }
+
+
     @Throws(IOException::class)
     private fun rawToWave( rawPCMBytes:ByteArray,waveFile: File,sample_rate:Int,bit_per_sample:Int,channel:Int, callback: (Boolean) -> Unit) {
         var output: DataOutputStream? = null
@@ -1421,13 +1495,13 @@ var connectionStatus = ""
     suspend fun startBleProcess(){
         replSendBle(byteArrayOf(0x3,0x3,0x1))
         //   firmware check and update
-        if(currentAppState == AppState.FIRST_PAIR || currentAppState == AppState.FPGA_UPDATE) {
-            if(currentAppState != AppState.FPGA_UPDATE && firmwareCheckUpdate() != "Updated"){
-                currentAppState = AppState.SOFTWARE_UPDATE
+        if(currentAppState == BaseActivity.AppState.FIRST_PAIR || currentAppState == BaseActivity.AppState.FPGA_UPDATE) {
+            if(currentAppState != BaseActivity.AppState.FPGA_UPDATE && firmwareCheckUpdate() != "Updated"){
+                currentAppState = BaseActivity.AppState.SOFTWARE_UPDATE
                 println("[STARTED FIRMWARE UPDATE]\n")
                 return
             }
-            if(currentAppState != AppState.FPGA_UPDATE){
+            if(currentAppState != BaseActivity.AppState.FPGA_UPDATE){
                 updateProgressDialog("Checking sofware update..", "Keep the app open")
             }
 
@@ -1436,7 +1510,7 @@ var connectionStatus = ""
             }
 
             currentDevice =""
-            currentAppState = AppState.SCRIPT_UPDATE
+            currentAppState = BaseActivity.AppState.SCRIPT_UPDATE
             startBluetoothBackground()
 //            updateProgressDialog("Checking Sofware Update...", "Keep the app open")
             println("[FIRMWARE STABLE]\n")
@@ -1445,7 +1519,7 @@ var connectionStatus = ""
         //    file upload
 
         if(NRFKIT){
-            currentAppState =  if (currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE ) AppState.SCRIPT_UPDATE  else AppState.RUNNING
+            currentAppState =  if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE ) AppState.SCRIPT_UPDATE  else AppState.RUNNING
 
         }else{
             startFileUpload()

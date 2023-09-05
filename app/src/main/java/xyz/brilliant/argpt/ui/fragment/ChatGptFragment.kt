@@ -154,6 +154,27 @@ class ChatGptFragment : Fragment() {
         }
     }
 
+    fun updatechatList(type : String,msg : String, image :String){
+        activity?.runOnUiThread {
+
+            if(parentActivity.translateEnabled)
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),true,image)
+                chatMessages.add(singleChat)
+            }
+            else
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),false,image)
+                chatMessages.add(singleChat)
+            }
+
+
+            scrollToBottom()
+            chatAdapter.notifyDataSetChanged()
+        }
+    }
+
+
     private fun showPopup() {
         val inflater = LayoutInflater.from(activity)
         val popupView = inflater.inflate(R.layout.popup_layout, null)

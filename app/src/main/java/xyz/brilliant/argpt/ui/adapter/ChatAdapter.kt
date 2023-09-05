@@ -3,11 +3,14 @@ package xyz.brilliant.argpt.ui.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.model.ChatModel
+import java.io.File
 
 
 class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -50,6 +53,7 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val chatMessage: ChatModel = messages[position]
+        val context = holder.itemView.context
 
         if (holder.itemViewType === ITEM_CENTER) {
             val viewHolder: CenterChatViewHolder = holder as CenterChatViewHolder
@@ -59,12 +63,35 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
             viewHolder.contents.text = chatMessage.message
 
+            if(chatMessage.image.isNotEmpty())
+            {
+                viewHolder.chtImage.visibility = View.VISIBLE
+                Glide.with(context)
+                    .load(File(chatMessage.image))
+                    .into(viewHolder.chtImage)
+
+            }
+            else{
+                viewHolder.chtImage.visibility = View.GONE
+            }
+
 
             //timeStampStr = chatMessage.getTime()
             //viewHolder.time.setText(timeStampStr)
         } else {
             val viewHolder: RightChatViewHolder = holder as RightChatViewHolder
             viewHolder.contents.text=chatMessage.message
+            if(chatMessage.image.isNotEmpty())
+            {
+                viewHolder.chtImage.visibility = View.VISIBLE
+                Glide.with(context)
+                    .load(File(chatMessage.image))
+                    .into(viewHolder.chtImage)
+
+            }
+            else{
+                viewHolder.chtImage.visibility = View.GONE
+            }
 //            if(chatMessage.translateEnabled) {
 //                viewHolder.contents.setBackgroundResource(R.drawable.rounded_translated)
 //            }
@@ -83,10 +110,12 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     class LeftChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
+         lateinit var chtImage: ImageView
 //        var time: TextView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
+            chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
 //            time = itemView.findViewById<View>(R.id.timeText) as TextView
         }
     }
@@ -94,21 +123,25 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     class RightChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
+        lateinit var chtImage: ImageView
 //        var time: TextView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
+            chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
 //            time = itemView.findViewById<View>(R.id.timeText) as TextView
         }
     }
 
     class CenterChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
+        lateinit var chtImage: ImageView
 //        var time: TextView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
 //            time = itemView.findViewById<View>(R.id.timeText) as TextView
+            chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
         }
     }
 }

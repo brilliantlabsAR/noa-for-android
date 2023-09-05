@@ -23,6 +23,16 @@
 
 <!--            tools:text="11:40" />-->
 
+        <ImageView
+            android:layout_width="@dimen/_150sp"
+            android:layout_height="@dimen/_150sp"
+            android:paddingLeft="12dp"
+            android:paddingTop="6dp"
+            android:layout_marginStart="12dp"
+            android:id="@+id/cht_image"
+            android:visibility="gone"
+            />
+
         <TextView
             android:id="@+id/messageText"
             android:layout_width="wrap_content"
