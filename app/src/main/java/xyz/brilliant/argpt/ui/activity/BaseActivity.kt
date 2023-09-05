@@ -1537,6 +1537,9 @@ var connectionStatus = ""
             updateConnectionStatus("")
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
+
+
+            showIntroMessages()
             if(bluetoothGatt != null){
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
@@ -1544,6 +1547,24 @@ var connectionStatus = ""
         }
         currentAppState = AppState.RUNNING
     }
+
+    private fun showIntroMessages() {
+        val coroutineScope = CoroutineScope(Dispatchers.Default)
+
+        // Define a list of messages you want to pass to updateChatList
+        val messages = listOf("Hi, I’m Noa. Let’s show you around 🙂", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.", "To use the camera capture feature, you’ll\n" +
+                "need a Stable Diffusion key. Get one\n" +
+                "here: https://key.stabediffusion.com")
+
+        // Call updateChatList three times with different messages
+        coroutineScope.launch {
+            for (message in messages) {
+               updatechatList("S",message)
+                delay(1000) // Delay for 1 second between calls
+            }
+        }
+    }
+
     // SCRIPTS UPLOAD
     private fun readScriptFileFromAssets(fileName: String): String {
         val assetManager: AssetManager = applicationContext.assets
