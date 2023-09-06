@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.model.ChatModel
@@ -63,12 +62,13 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
             viewHolder.contents.text = chatMessage.message
 
-            if(chatMessage.image.isNotEmpty())
+            if(chatMessage.bitmap != null)
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
-                Glide.with(context)
-                    .load(File(chatMessage.image))
-                    .into(viewHolder.chtImage)
+                viewHolder.chtImage.setImageBitmap(chatMessage.bitmap)
+//                Glide.with(context)
+//                    .load(File(chatMessage.image))
+//                    .into(viewHolder.chtImage)
 
             }
             else{
@@ -81,12 +81,13 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
         } else {
             val viewHolder: RightChatViewHolder = holder as RightChatViewHolder
             viewHolder.contents.text=chatMessage.message
-            if(chatMessage.image.isNotEmpty())
+            if(chatMessage.bitmap != null)
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
-                Glide.with(context)
-                    .load(File(chatMessage.image))
-                    .into(viewHolder.chtImage)
+                viewHolder.chtImage.setImageBitmap(chatMessage.bitmap)
+//                Glide.with(context)
+//                    .load(File(chatMessage.image))
+//                    .into(viewHolder.chtImage)
 
             }
             else{

@@ -3,6 +3,7 @@ package xyz.brilliant.argpt.ui.fragment
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -174,6 +175,25 @@ class ChatGptFragment : Fragment() {
         }
     }
 
+    fun updatechatList(type : String,msg : String, image :Bitmap){
+        activity?.runOnUiThread {
+
+            if(parentActivity.translateEnabled)
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),true,"",image)
+                chatMessages.add(singleChat)
+            }
+            else
+            {
+                val singleChat = ChatModel(1, type, msg.trim(),false,"",image)
+                chatMessages.add(singleChat)
+            }
+
+
+            scrollToBottom()
+            chatAdapter.notifyDataSetChanged()
+        }
+    }
 
     private fun showPopup() {
         val inflater = LayoutInflater.from(activity)

@@ -21,6 +21,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -31,11 +34,8 @@ import android.os.ParcelUuid
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.Snackbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -53,7 +53,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -68,7 +67,6 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
-import java.io.ByteArrayInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -81,6 +79,7 @@ import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.concurrent.thread
+import kotlin.math.ceil
 
 
 class BaseActivity  : AppCompatActivity()  {
@@ -102,7 +101,7 @@ class BaseActivity  : AppCompatActivity()  {
         private  val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
         private const val NORDIC_CONTROL_UUID = "8ec90001-f315-4f60-9fb8-838830daea50"
         private const val NORDIC_PACKET_UUID = "8ec90002-f315-4f60-9fb8-838830daea50"
-        private  val FILES = arrayListOf<String>("states.py","graphics.py","main.py")
+        private  val FILES = arrayListOf<String>("states.py","graphics.py","main.py","audio.py","photo.py")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
         private const val bitPerSample = 16
@@ -949,12 +948,18 @@ var connectionStatus = ""
 
     //   MONOCLE AUDIO
     private var globalJpegFilePath: String? = null
+    private var bitmap:Bitmap? = null
     suspend fun monocleRecieved(data:ByteArray){
+        if(data.size<4){
+            println("Received on data "+String(data))
+            return
+        }
         val status = String(data.slice(0 until 4).toByteArray())
 
 
         if(status=="ist:")
         {
+            imageBuffer = byteArrayOf(0)
             println("[NEW_Image Starting to come]\n")
         }
         if(status=="idt:")
@@ -965,25 +970,31 @@ var connectionStatus = ""
         if(status=="ien:"){
             println("[NEW_Image RECEIVED]\n")
 
-
             // create jpeg file .... Then ---
             val outputPath = "output.jpg" // The desired output file path
-
+            bitmap = BitmapFactory.decodeByteArray (imageBuffer, 1, imageBuffer.size-1)
+            bitmap = resizeBitmapToMultipleOf64(bitmap!!)
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     // Call the function to create the JPEG image
-                    val jpegFile = createJpegFromByteArray(imageBuffer, outputPath)
+                   // val jpegFile = createJpegFromByteArray(imageBuffer.slice(1 until imageBuffer.size).toByteArray(), outputPath)
+
+
+                    val jpegFile =  saveBitmapAsJPEG(bitmap!!)
+                    if (jpegFile != null) {
+                        globalJpegFilePath = jpegFile.absolutePath
+                    }
 
                     // Set the resulting JPEG file in the global variable
-                    globalJpegFilePath = jpegFile
+
 
                     // Update UI elements on the main thread
                     runOnUiThread {
 
-                        updatechatList("S","", globalJpegFilePath!!)
-                        // Access the global JPEG file and update UI elements if needed
-                        // For example, set an ImageView's image to the loaded JPEG
-                      //  updateUI(globalJpegFile)
+            updatechatList("S","", bitmap!!)
+                      //   Access the global JPEG file and update UI elements if needed
+                       //  For example, set an ImageView's image to the loaded JPEG
+                       // updateUI(globalJpegFile)
                     }
 
                     println("JPEG image processing successful.")
@@ -1027,7 +1038,11 @@ var connectionStatus = ""
                                 if(USE_CUSTOM_SERVER){
                                     getGPTResult(f2)
                                 }else{
-                                    uploadAudioFile(f2, byteCallback)
+
+
+                                        uploadAudioFile(f2, byteCallback)
+
+
                                 }
 
                             }
@@ -1046,8 +1061,74 @@ var connectionStatus = ""
         }
     }
 
+    fun saveBitmapAsJPEG(bitmap: Bitmap, quality: Int = 100): File? {
+        try {
+            // Create a directory for saving the JPEG file (you can change the directory path as needed)
+//            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyAppImages")
+//            if (!directory.exists()) {
+//                directory.mkdirs()
+//            }
+
+            // Generate a unique file name using a timestamp
+
+            val fileName = "Output.jpg"
+
+            // Create the JPEG file
+            val file = File(cacheDir, fileName)
+            val fileOutputStream = FileOutputStream(file)
+
+            // Compress the Bitmap to JPEG format and save it to the file
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, fileOutputStream)
+
+            // Close the FileOutputStream
+            fileOutputStream.close()
+
+            return file
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+    }
 
 
+
+
+
+
+
+
+    private fun updatechatList(type: String, msg: String, image: Bitmap) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList( type, msg,image)
+        }
+    }
+
+    private fun resizeBitmapToMultipleOf64(bitmap: Bitmap): Bitmap {
+// Get the original width and height of the bitmap
+        val oldWidth = bitmap.width
+        val oldHeight = bitmap.height
+
+// Calculate the new width and height that are multiples of 64
+        val newWidth = ceil(oldWidth / 64.0).toInt() * 64
+        val newHeight = ceil(oldHeight / 64.0).toInt() * 64
+
+// Create a new bitmap with the new dimensions
+        val newBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+
+// Create a canvas with the new bitmap as its target
+        val canvas = Canvas(newBitmap)
+
+// Calculate the x and y coordinates of the original bitmap on the new bitmap
+        val x = (newWidth - oldWidth) / 2
+        val y = (newHeight - oldHeight) / 2
+
+// Draw the original bitmap on the new bitmap
+        canvas.drawBitmap(bitmap, x.toFloat(), y.toFloat(), null)
+
+// Return or use the new bitmap as needed
+        return newBitmap
+    }
     @Throws(IOException::class)
     private fun createJpegFromByteArray(imageBytes: ByteArray, outputPath: String): String {
         val jpegFile = File(cacheDir, outputPath)
@@ -1158,65 +1239,7 @@ var connectionStatus = ""
     }
 
 
-    private fun transcribeAndTranslate(audioFile: File, apiKey: String, byteCallback: Callback) {
-        val client = OkHttpClient()
 
-        // Step 1: Transcribe spoken content to text using Whisper ASR
-        val whisperRequestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "whisper")
-            .build()
-
-        val whisperRequest = Request.Builder()
-            .url("https://api.openai.com/v1/whisper/interpretations")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .post(whisperRequestBody)
-            .build()
-
-        client.newCall(whisperRequest).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-                // Step 2: Translate the transcribed text to English using translation API
-                val transcribedText = response.body?.string() ?: ""
-                val translateRequestBody = FormBody.Builder()
-                    .add("text", transcribedText)
-                    .add("target_language", "en") // Translate to English
-                    .build()
-
-                val translateRequest = Request.Builder()
-                    .url("https://api.openai.com/v1/language/translate")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .post(translateRequestBody)
-                    .build()
-
-                client.newCall(translateRequest).enqueue(byteCallback)
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                // Handle failure
-            }
-        })
-    }
-
-
-    private fun translateAudioToEnglish(audioFile: File,  byteCallback: Callback) {
-        val client = OkHttpClient()
-
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "whisper")
-            .addFormDataPart("language", "es") // Replace 'es' with the appropriate language code
-            .build()
-
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/whisper/interpretations")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).enqueue(byteCallback)
-    }
 
 
     val byteCallback = object : Callback {
@@ -1259,7 +1282,15 @@ var connectionStatus = ""
                     else
                     {
                         updatechatList("S",textResult.trim())
-                        getResponse(textResult)
+
+
+                        if(globalJpegFilePath.isNullOrEmpty()) {
+                            getResponse(textResult)
+                        }
+                        else
+                        {
+                            callStabilityAiImagetoImage(textResult.trim())
+                        }
                     }
 
                 }
@@ -1272,6 +1303,71 @@ var connectionStatus = ""
 
             }
         }
+    }
+
+    private fun callStabilityAiImagetoImage(prompt: String) {
+        val apiKey = "sk-LHyGg9MYZMUuV6mC0MzcHNYlqRv4YrLEhNWu0Xj0Tw2YYbxL"
+
+        val imageFilePath = globalJpegFilePath // Replace with the actual path to your image file
+        val prompt = prompt
+        val strength = 0.5f
+        val guidance = 1
+
+        val client = OkHttpClient()
+
+        // Create a request body with multipart form data
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "init_image",
+                "Output.jpg",
+                File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull())
+            )
+            .addFormDataPart("text_prompts[0][text]", prompt)
+            .addFormDataPart("init_image_mode", "IMAGE_STRENGTH")
+            .addFormDataPart("image_strength", strength.toString())
+            .addFormDataPart("cfg_scale", guidance.toString())
+            .addFormDataPart("samples", "1")
+            .build()
+
+        // Create a request with headers and the prepared request body
+        val request = Request.Builder()
+            .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Stability-Client-ID", "Noa/Android")
+            .post(requestBody)
+            .build()
+
+        // Make the network request asynchronously
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                val responseData = response.body?.bytes()
+                if (response.isSuccessful && responseData != null) {
+                    // Handle the response data here, e.g., convert it to an image
+                    // and update your UI with the generated image.
+                    // You may want to use a library like Glide or Picasso for image loading.
+
+                    // Example of updating an ImageView (assuming you have one in your layout):
+                     val generatedImageBitmap = BitmapFactory.decodeByteArray(responseData, 0, responseData.size)
+                     runOnUiThread {
+
+                         bitmap = resizeBitmapToMultipleOf64(generatedImageBitmap!!)
+
+                         updatechatList("R","This is your Image" ,bitmap!!)
+
+                    //     imageView.setImageBitmap(generatedImageBitmap)
+                     }
+                } else {
+                    // Handle the API error here
+                    // Log error or show an error message to the user
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the network error here
+                // Log error or show an error message to the user
+            }
+        })
     }
 
     fun getResponse(question: String){
