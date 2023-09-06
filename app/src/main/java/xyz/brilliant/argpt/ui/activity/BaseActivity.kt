@@ -1655,7 +1655,7 @@ var connectionStatus = ""
         // Call updateChatList three times with different messages
         coroutineScope.launch {
             for (message in messages) {
-               updatechatList("S",message)
+               updatechatList("R",message)
                 delay(1000) // Delay for 1 second between calls
             }
         }
