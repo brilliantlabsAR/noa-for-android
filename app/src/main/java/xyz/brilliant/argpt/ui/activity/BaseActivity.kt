@@ -1692,7 +1692,7 @@ var connectionStatus = ""
         }
 
         // Return null if no thumbnail URL found or an error occurred
-        return getThumbnailUrl("www.google.com");
+        return "";
     }
     private fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
