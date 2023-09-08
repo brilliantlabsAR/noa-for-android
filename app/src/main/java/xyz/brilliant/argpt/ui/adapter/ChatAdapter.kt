@@ -68,6 +68,10 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
         if (holder.itemViewType === ITEM_CENTER) {
             val viewHolder: CenterChatViewHolder = holder as CenterChatViewHolder
             viewHolder.contents.text = chatMessage.message
+            if(chatMessage.message.isNullOrEmpty())
+            {viewHolder.contents.visibility = View.GONE}
+            else
+            {viewHolder.contents.visibility = View.VISIBLE}
 
         } else if (holder.itemViewType === ITEM_LEFT) {
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
@@ -157,6 +161,11 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
             else{
                 viewHolder.chtImage.visibility = View.GONE
             }
+
+            if(chatMessage.message.isNullOrEmpty())
+            {viewHolder.contents.visibility = View.GONE}
+            else
+            {viewHolder.contents.visibility = View.VISIBLE}
 //            if(chatMessage.translateEnabled) {
 //                viewHolder.contents.setBackgroundResource(R.drawable.rounded_translated)
 //            }
