@@ -30,7 +30,7 @@ import xyz.brilliant.argpt.ui.adapter.ChatAdapter
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
 
-class ChatGptFragment : Fragment() {
+class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private val client = OkHttpClient()
     // creating variables on below line.
 //    lateinit var txtResponse: TextView
@@ -82,7 +82,7 @@ class ChatGptFragment : Fragment() {
         //layoutManager.reverseLayout = true;
         chatView.layoutManager = layoutManager
         connectionStatus=mView.findViewById<ImageView>(R.id.connectionStatus)
-        chatAdapter = ChatAdapter(chatMessages)
+        chatAdapter = ChatAdapter(chatMessages,this)
         chatView.adapter = chatAdapter
         if(parentActivity.apiKey.isNullOrEmpty()){
             openChangeApiKey()
@@ -155,17 +155,17 @@ class ChatGptFragment : Fragment() {
         }
     }
 
-    fun updatechatList(type : String,msg : String, image :String){
+    fun updatechatList(id : Int ,type : String,msg : String, image :String){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
             {
-                val singleChat = ChatModel(1, type, msg.trim(),true,image)
+                val singleChat = ChatModel(id, type, msg.trim(),true,image)
                 chatMessages.add(singleChat)
             }
             else
             {
-                val singleChat = ChatModel(1, type, msg.trim(),false,image)
+                val singleChat = ChatModel(id, type, msg.trim(),false,image)
                 chatMessages.add(singleChat)
             }
 
@@ -175,17 +175,17 @@ class ChatGptFragment : Fragment() {
         }
     }
 
-    fun updatechatList(type : String,msg : String, image :Bitmap){
+    fun updatechatList(id : Int ,type : String,msg : String, image :Bitmap){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
             {
-                val singleChat = ChatModel(1, type, msg.trim(),true,"",image)
+                val singleChat = ChatModel(id, type, msg.trim(),true,"",image)
                 chatMessages.add(singleChat)
             }
             else
             {
-                val singleChat = ChatModel(1, type, msg.trim(),false,"",image)
+                val singleChat = ChatModel(id, type, msg.trim(),false,"",image)
                 chatMessages.add(singleChat)
             }
 
@@ -252,6 +252,14 @@ class ChatGptFragment : Fragment() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
             startActivity(intent)
     }
+
+    private fun gotoStabilityApi() {
+
+
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://key.stabediffusion.com"))
+        startActivity(intent)
+    }
+
     lateinit var dialog: Dialog
     fun openChangeApiKey() {
         dialog = Dialog(requireActivity(),R.style.TransparentDialog)
@@ -284,6 +292,39 @@ class ChatGptFragment : Fragment() {
         }
         dialog.show()
     }
+
+    fun stabilityChangeApiKey() {
+        dialog = Dialog(requireActivity(),R.style.TransparentDialog)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.stability_api_key_change)
+        val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
+        val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
+        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
+        val apiKeyOld =  parentActivity.getStoredStabilityApiKey()
+        apiKeyText.setText(apiKeyOld)
+        closeButton.setOnClickListener {
+            dialog.dismiss()
+            //gotoStabilityApi()
+        }
+
+
+        doneButton.setOnClickListener {
+            val apiKeyValue = apiKeyText.text.toString().trim()
+            if (apiKeyValue.isNotEmpty()){
+                // API key not null
+                dialog.dismiss()
+                parentActivity.storeStabilityApiKey(apiKeyValue)
+                parentActivity.stabilityApiKey  = apiKeyValue
+            }else{
+
+                //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
+
+            }
+        }
+        dialog.show()
+    }
+
     fun scrollToBottom() {
         chatView.scrollToPosition(chatMessages.size-1)
     }
@@ -354,6 +395,25 @@ class ChatGptFragment : Fragment() {
             parentActivity.sendChatGptResponce("getResponse: $ex","err:")
             Log.d("ChatGpt", "getResponse: $ex")
         }
+    }
+
+    override fun onUrlClick(position: Int, url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        startActivity(intent)
+    }
+
+    override fun onImageClick(position: Int, url: String, bitmap: Bitmap?) {
+        val fullScreenPopup = FullScreenPopup(parentActivity, url,bitmap)
+        fullScreenPopup.show()
+    }
+
+    override fun onStabilityApiClick(position: Int, chatModel: ChatModel) {
+        gotoStabilityApi()
+        stabilityChangeApiKey()
+    }
+
+    override fun onOpenApiClick(position: Int, chatModel: ChatModel) {
+        openChangeApiKey()
     }
 
 

@@ -3,6 +3,8 @@ package xyz.brilliant.argpt.ui.activity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -31,6 +33,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
+import android.provider.DocumentsContract
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
@@ -67,6 +70,7 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
+import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -135,6 +139,7 @@ class BaseActivity  : AppCompatActivity()  {
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var recyclerView: RecyclerView
     var apiKey = ""
+    var stabilityApiKey = ""
     private val handler = Handler(Looper.getMainLooper())
     private var scanning: Boolean = false
     private var bluetoothGatt: BluetoothGatt? = null
@@ -166,7 +171,8 @@ class BaseActivity  : AppCompatActivity()  {
     private val PREFS_FILE_NAME = "MyPrefs"
     private val PREFS_FILE_NAME2 = "ApiKey"
     private val PREFS_KEY_DEVICE_ADDRESS = "DeviceAddress"
-    private val PREFS_KEY_API_KEY = "DeviceAddress"
+    private val PREFS_OPEN_API_KEY = "OpenAi"
+    private val PREFS_STABILITY_API_KEY = "stability"
     private var currentScannedDevice:BluetoothDevice?=null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
@@ -192,7 +198,12 @@ class BaseActivity  : AppCompatActivity()  {
 
     fun getStoredApiKey(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_KEY_API_KEY, "") ?: ""
+        return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
+    }
+
+    fun getStoredStabilityApiKey(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_STABILITY_API_KEY, "") ?: ""
     }
 
     private fun storeDeviceAddress(deviceAddress: String) {
@@ -214,9 +225,19 @@ class BaseActivity  : AppCompatActivity()  {
      fun storeApiKey(_apiKey: String) {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         val editor = prefs.edit()
-        editor.putString(PREFS_KEY_API_KEY, _apiKey)
+        editor.putString(PREFS_OPEN_API_KEY, _apiKey)
         editor.apply()
     }
+
+
+    fun storeStabilityApiKey(_apiKey: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_STABILITY_API_KEY, _apiKey)
+        editor.apply()
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val intentFilter = IntentFilter("ACTION_START_SCAN")
@@ -538,10 +559,10 @@ var connectionStatus = ""
         }
     }
 
-    fun updatechatList( type : String , msg : String,image : String) {
+    fun updatechatList(id: Int, type : String , msg : String,image : String) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
-            fragment.updatechatList( type, msg,image)
+            fragment.updatechatList(id, type, msg,image)
         }
     }
 
@@ -973,36 +994,15 @@ var connectionStatus = ""
             // create jpeg file .... Then ---
             val outputPath = "output.jpg" // The desired output file path
             bitmap = BitmapFactory.decodeByteArray (imageBuffer, 1, imageBuffer.size-1)
-            bitmap = resizeBitmapToMultipleOf64(bitmap!!)
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Call the function to create the JPEG image
-                   // val jpegFile = createJpegFromByteArray(imageBuffer.slice(1 until imageBuffer.size).toByteArray(), outputPath)
 
-
-                    val jpegFile =  saveBitmapAsJPEG(bitmap!!)
-                    if (jpegFile != null) {
-                        globalJpegFilePath = jpegFile.absolutePath
-                    }
-
-                    // Set the resulting JPEG file in the global variable
-
-
-                    // Update UI elements on the main thread
-                    runOnUiThread {
-
-            updatechatList("S","", bitmap!!)
-                      //   Access the global JPEG file and update UI elements if needed
-                       //  For example, set an ImageView's image to the loaded JPEG
-                       // updateUI(globalJpegFile)
-                    }
-
-                    println("JPEG image processing successful.")
-                } catch (e: IOException) {
-                    e.printStackTrace()
+            if(bitmap!=null){
+                bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+                val jpegFile =  saveBitmapAsJPEG(bitmap!!)
+                if (jpegFile != null) {
+                    globalJpegFilePath = jpegFile.absolutePath
                 }
+                updatechatList(1,"S","", bitmap!!)
             }
-
 
             var responseData = "ick:"
 
@@ -1097,10 +1097,10 @@ var connectionStatus = ""
 
 
 
-    private fun updatechatList(type: String, msg: String, image: Bitmap) {
+    private fun updatechatList(id: Int,type: String, msg: String, image: Bitmap) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
-            fragment.updatechatList( type, msg,image)
+            fragment.updatechatList(id, type, msg,image)
         }
     }
 
@@ -1306,7 +1306,7 @@ var connectionStatus = ""
     }
 
     private fun callStabilityAiImagetoImage(prompt: String) {
-        val apiKey = "sk-LHyGg9MYZMUuV6mC0MzcHNYlqRv4YrLEhNWu0Xj0Tw2YYbxL"
+        val apiKey = stabilityApiKey//"sk-sb1h86seqfVQrvwIT6MNX4Y82SFmiurrhBSwXLlaFPCbt4cb"
 
         val imageFilePath = globalJpegFilePath // Replace with the actual path to your image file
         val prompt = prompt
@@ -1341,29 +1341,45 @@ var connectionStatus = ""
         // Make the network request asynchronously
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val responseData = response.body?.bytes()
-                if (response.isSuccessful && responseData != null) {
-                    // Handle the response data here, e.g., convert it to an image
-                    // and update your UI with the generated image.
-                    // You may want to use a library like Glide or Picasso for image loading.
 
-                    // Example of updating an ImageView (assuming you have one in your layout):
-                     val generatedImageBitmap = BitmapFactory.decodeByteArray(responseData, 0, responseData.size)
-                     runOnUiThread {
+//                val responseData = response.body?.bytes()
+                println("response styability")
+                println(response.body)
+                if (response.isSuccessful) {
+                        val responseData = response.body?.string()
 
-                         bitmap = resizeBitmapToMultipleOf64(generatedImageBitmap!!)
 
-                         updatechatList("R","This is your Image" ,bitmap!!)
+                        val jsonObject = JSONObject(responseData)
+                        val artifactsArray = jsonObject.getJSONArray("artifacts")
+                        if (artifactsArray.length() > 0) {
+                            val base64Value = artifactsArray.getJSONObject(0).getString("base64")
 
-                    //     imageView.setImageBitmap(generatedImageBitmap)
-                     }
+                            // Now you have the base64Value, which you can decode if needed
+                            val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
+                            println("decoded bytes")
+                            bitmap = BitmapFactory.decodeByteArray (decodedBytes, 0, decodedBytes.size)
+                            println(bitmap)
+                            updatechatList(1,"R","", bitmap!!)
+                        } else {
+                            // Handle the API error here
+                            // Log error or show an error message to the user
+                        }
+
                 } else {
+                    val responseData = response.body?.string()
+
+
+                    val jsonObject = JSONObject(responseData)
+                    if(jsonObject.has("message")){
+                        println(jsonObject.get("message"))
+                    }
                     // Handle the API error here
                     // Log error or show an error message to the user
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
+                println(e)
                 // Handle the network error here
                 // Log error or show an error message to the user
             }
@@ -1643,7 +1659,41 @@ var connectionStatus = ""
         }
         currentAppState = AppState.RUNNING
     }
+    fun getThumbnailUrl(url: String): String {
+        try {
+            val document: Document = Jsoup.connect(url).get()
 
+            // Try to extract Open Graph Protocol image
+            val ogImageUrl = document.select("meta[property=og:image]").attr("content")
+            if (ogImageUrl.isNotEmpty()) {
+                return ogImageUrl
+            }
+
+            // Try to extract Twitter Card image
+            val twitterImageUrl = document.select("meta[name=twitter:image]").attr("content")
+            if (twitterImageUrl.isNotEmpty()) {
+                return twitterImageUrl
+            }
+
+            // Try to extract other common meta tags for images
+            val commonImageUrls = document.select("meta[name=image], meta[itemprop=image]")
+            for (element in commonImageUrls) {
+                val imageUrl = element.attr("content")
+                if (imageUrl.isNotEmpty()) {
+                    return imageUrl
+                }
+            }
+
+            // If no suitable metadata found, you might want to fallback to a default image
+            // return a default URL here
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // Return null if no thumbnail URL found or an error occurred
+        return getThumbnailUrl("www.google.com");
+    }
     private fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
@@ -1652,10 +1702,18 @@ var connectionStatus = ""
                 "need a Stable Diffusion key. Get one\n" +
                 "here: https://key.stabediffusion.com")
 
+
+        val messagelist =listOf( ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂",false,""),
+            ChatModel(2, "R", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",false,getThumbnailUrl("https://platform.openai.com")),
+            ChatModel(3, "R", "To use the camera capture feature, you’ll\n" +
+                    "need a Stable Diffusion key. Get one\n" +
+                    "here: https://key.stabediffusion.com",false,getThumbnailUrl("https://key.stabediffusion.com")))
+
+
         // Call updateChatList three times with different messages
         coroutineScope.launch {
-            for (message in messages) {
-               updatechatList("R",message)
+            for (message in messagelist) {
+               updatechatList(message.id,"R",message.message,message.image)
                 delay(1000) // Delay for 1 second between calls
             }
         }

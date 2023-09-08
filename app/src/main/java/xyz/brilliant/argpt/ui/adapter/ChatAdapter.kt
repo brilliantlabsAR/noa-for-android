@@ -1,21 +1,32 @@
 package xyz.brilliant.argpt.ui.adapter
 
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.model.ChatModel
-import java.io.File
 
 
-class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ITEM_LEFT = 1
     private val ITEM_RIGHT = 2
     private val ITEM_CENTER = 3
+
+    interface OnItemClickListener {
+        fun onUrlClick(position: Int, url: String)
+        fun onImageClick(position: Int, url: String, bitmap: Bitmap?)
+        fun onStabilityApiClick(position: Int, chatModel: ChatModel)
+        fun onOpenApiClick(position: Int, chatModel: ChatModel)
+    }
     override fun getItemViewType(position: Int): Int {
 
 
@@ -71,9 +82,44 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 //                    .into(viewHolder.chtImage)
 
             }
+            else if(!chatMessage.image.isNullOrEmpty())
+            {
+                viewHolder.chtImage.visibility = View.VISIBLE
+                val requestOptions = RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
+                    .placeholder(R.drawable.round_white_background) // Placeholder image while loading
+                    .error(R.drawable.round_white_background) // Image to display if loading fails
+
+                Glide.with(context)
+                    .load(chatMessage.image)
+                    .apply(requestOptions)
+                    .into(holder.chtImage)
+            }
             else{
                 viewHolder.chtImage.visibility = View.GONE
             }
+
+
+            if(chatMessage.id==2)
+            {
+                viewHolder.layoutMsg.setOnClickListener {
+                    onItemClickListener.onOpenApiClick(position,chatMessage)
+                }
+            }
+            else if(chatMessage.id==3)
+            {
+                viewHolder.layoutMsg.setOnClickListener{
+                    onItemClickListener.onStabilityApiClick(position,chatMessage)
+                }
+            }
+            else if(chatMessage.id==1)
+            {
+                viewHolder.chtImage.setOnClickListener {
+                    onItemClickListener.onImageClick(position,"",chatMessage.bitmap)
+                }
+            }
+
+
 
 
             //timeStampStr = chatMessage.getTime()
@@ -89,6 +135,19 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 //                    .load(File(chatMessage.image))
 //                    .into(viewHolder.chtImage)
 
+            }
+            else if(!chatMessage.image.isNullOrEmpty())
+            {
+                viewHolder.chtImage.visibility = View.VISIBLE
+                val requestOptions = RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
+                    .placeholder(R.drawable.round_white_background) // Placeholder image while loading
+                    .error(R.drawable.round_white_background) // Image to display if loading fails
+
+                Glide.with(context)
+                    .load(chatMessage.image)
+                    .apply(requestOptions)
+                    .into(holder.chtImage)
             }
             else{
                 viewHolder.chtImage.visibility = View.GONE
@@ -111,10 +170,12 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     class LeftChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-         lateinit var chtImage: ImageView
+         var chtImage: ImageView
+        var layoutMsg : LinearLayout
 //        var time: TextView
 
         init {
+            layoutMsg = itemView.findViewById<View>(R.id.layoutMsg) as LinearLayout
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
             chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
 //            time = itemView.findViewById<View>(R.id.timeText) as TextView
@@ -124,10 +185,12 @@ class ChatAdapter(private val messages: List<ChatModel>) : RecyclerView.Adapter<
 
     class RightChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-        lateinit var chtImage: ImageView
+        var layoutMsg : LinearLayout
+        var chtImage: ImageView
 //        var time: TextView
 
         init {
+            layoutMsg = itemView.findViewById<View>(R.id.layoutMsg) as LinearLayout
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
             chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
 //            time = itemView.findViewById<View>(R.id.timeText) as TextView
