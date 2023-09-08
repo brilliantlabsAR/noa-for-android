@@ -1384,6 +1384,17 @@ var connectionStatus = ""
                 // Log error or show an error message to the user
             }
         })
+
+        val fileName = "Output.jpg"
+
+// Create the JPEG file
+        val file = File(cacheDir, fileName)
+        val fileOutputStream = FileOutputStream(file)
+
+// Delete the file
+        if (file.exists()) {
+            file.delete()
+        }
     }
 
     fun getResponse(question: String){
