@@ -99,6 +99,11 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
                 viewHolder.chtImage.visibility = View.GONE
             }
 
+            if(chatMessage.message.isNullOrEmpty())
+            {viewHolder.contents.visibility = View.GONE}
+            else
+            {viewHolder.contents.visibility = View.VISIBLE}
+
 
             if(chatMessage.id==2)
             {
