@@ -212,17 +212,17 @@ class BaseActivity  : AppCompatActivity()  {
         editor.putString(PREFS_KEY_DEVICE_ADDRESS, deviceAddress)
         editor.apply()
     }
-     fun unpairMonocle(){
+    fun unpairMonocle(){
         storeDeviceAddress("")
         disconnectGatt()
         currentAppState = AppState.FIRST_PAIR
         currentDevice = ""
-         currentScannedDevice = null
-         overlallSoftwareProgress = 0
-         finish()
+        currentScannedDevice = null
+        overlallSoftwareProgress = 0
+        finish()
         startActivity(intent)
     }
-     fun storeApiKey(_apiKey: String) {
+    fun storeApiKey(_apiKey: String) {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         val editor = prefs.edit()
         editor.putString(PREFS_OPEN_API_KEY, _apiKey)
@@ -386,7 +386,7 @@ class BaseActivity  : AppCompatActivity()  {
             .setNegativeButton("No") { dialog: DialogInterface, _ ->
                 dialog.dismiss()
                 finish()
-               // checkBluetoothAndGps()
+                // checkBluetoothAndGps()
             }
         builder.setCancelable(false)
         builder.create().show()
@@ -544,7 +544,7 @@ class BaseActivity  : AppCompatActivity()  {
         }
         startActivity(intent)
     }
-var connectionStatus = ""
+    var connectionStatus = ""
     fun updateConnectionStatus(status: String) {
         connectionStatus = status
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
@@ -1536,7 +1536,7 @@ var connectionStatus = ""
                         offset += length
                     }
 
-                }
+        }
         resultDeferred.complete("Done")
     }
 
@@ -1705,7 +1705,9 @@ var connectionStatus = ""
         // Return null if no thumbnail URL found or an error occurred
         return "";
     }
-    private fun showIntroMessages() {
+
+    /// Changes done private to public for test by ayan
+    public fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
         // Define a list of messages you want to pass to updateChatList
@@ -1713,18 +1715,36 @@ var connectionStatus = ""
                 "need a Stable Diffusion key. Get one\n" +
                 "here: https://key.stabediffusion.com")
 
+        Log.d("Drawable Image====>>>>>",
+            BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_long_press).toString()
+        )
 
         val messagelist =listOf( ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂",false,""),
-            ChatModel(2, "R", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",false,getThumbnailUrl("https://platform.openai.com")),
+            ChatModel(2, "R", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",false,getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.openai_website)),
             ChatModel(3, "R", "To use the camera capture feature, you’ll\n" +
                     "need a Stable Diffusion key. Get one\n" +
-                    "here: https://key.stabediffusion.com",false,getThumbnailUrl("https://key.stabediffusion.com")))
+                    "here: https://key.stabediffusion.com",false,getThumbnailUrl("https://key.stabediffusion.com")),
+            ChatModel(1, "R", "Tap either of the touch pads and speak.\n" +
+                    "I’ll then respond directly back to your\n" +
+                    "Monocle.",false,getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_single_tap)),
+            ChatModel(1, "R", "Double tap if you’d like to also include\n" +
+                    "a photo. I’ll then combine it with your \n" +
+                    "question, and return back an image.",false,getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_long_press)),
+            ChatModel(1, "R", "I can translate too. Enable translate\n" +
+                    "mode from the menu, and everything\n" +
+                    "I hear, I’ll translate to English.",false,getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_translate)),
+
+            )
 
 
         // Call updateChatList three times with different messages
         coroutineScope.launch {
             for (message in messagelist) {
-               updatechatList(message.id,"R",message.message,message.image)
+                updatechatList(message.id,"R",message.message,message.bitmap!!)
                 delay(1000) // Delay for 1 second between calls
             }
         }
@@ -1760,7 +1780,7 @@ var connectionStatus = ""
 
         if (!response.contains(version)) {
             println("[FILE  UPLOADING]\n")
-             return fileUpload( files,version)  //  TO WORK WITH nrf52DK comment this line
+            return fileUpload( files,version)  //  TO WORK WITH nrf52DK comment this line
         }
         println("[FILE ALREADY UPLOADED]\n")
         currentAppState = AppState.SCRIPT_UPDATE
@@ -2242,7 +2262,7 @@ var connectionStatus = ""
                     var msg  = jsonObject.get("message")
                     try {
                         // Code that might throw an exception
-                         msg  = JSONObject(jsonObject.get("message").toString()).get("message")
+                        msg  = JSONObject(jsonObject.get("message").toString()).get("message")
 
                     } catch (e: Exception) {
                         // Code to handle the exception

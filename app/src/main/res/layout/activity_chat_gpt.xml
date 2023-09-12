@@ -37,7 +37,7 @@
             android:src="@drawable/settings"/>
 
     </RelativeLayout>
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/topPanel"
@@ -45,10 +45,11 @@
         android:id="@+id/scrollView"
         android:layout_above="@id/connectivityRegion">
         <androidx.recyclerview.widget.RecyclerView
+            android:layout_alignParentBottom="true"
             android:id="@+id/chatView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-    </LinearLayout>
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/connectivityRegion"

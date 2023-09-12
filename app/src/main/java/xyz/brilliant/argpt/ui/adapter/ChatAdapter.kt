@@ -46,10 +46,10 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 
        return when (viewType) {
             ITEM_LEFT -> return LeftChatViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_left, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_left_with_corner, parent, false)
             )
             ITEM_RIGHT -> return RightChatViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_right, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_right_with_corner, parent, false)
             )
            ITEM_CENTER-> return CenterChatViewHolder(
                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_center, parent, false)
@@ -86,6 +86,7 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 //                    .into(viewHolder.chtImage)
 
             }
+
             else if(!chatMessage.image.isNullOrEmpty())
             {
                 viewHolder.chtImage.visibility = View.VISIBLE

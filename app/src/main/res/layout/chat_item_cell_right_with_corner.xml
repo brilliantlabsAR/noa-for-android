@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/layoutMsg"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white_background"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:background="@color/white_background"
+        android:layout_marginBottom="5dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_40sp"
+            android:layout_marginEnd="@dimen/_25sp"
+            android:background="@drawable/chat_right"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/timeText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:visibility="gone"
+                android:textSize="12sp"
+                tools:text="11:40" />
+            <ImageView
+                android:id="@+id/cht_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/_12sp"
+                android:paddingVertical="@dimen/_10sp"
+                android:scaleType="fitXY"
+                android:src="@drawable/openai_website"
+                android:visibility="visible" />
+
+
+
+                <TextView
+                    android:id="@+id/messageText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="12dp"
+                    android:autoLink="all"
+                    android:linksClickable="true"
+                    android:maxWidth="@dimen/_300sp"
+                    android:paddingLeft="@dimen/_20sp"
+                    android:paddingTop="6dp"
+                    android:paddingRight="12dp"
+                    android:paddingBottom="@dimen/_10sp"
+                    android:textColorLink="#E85DA0"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    tools:text="This is a message" />
+
+
+
+
+        </LinearLayout>
+        <ImageView
+            android:layout_marginTop="-5dp"
+            android:layout_marginRight="@dimen/_20sp"
+            android:layout_marginEnd="@dimen/_18sp"
+            android:layout_width="@dimen/_12sp"
+            android:layout_height="16dp"
+            android:layout_gravity="end"
+            android:background="@drawable/corner_green"
+            />
+    </LinearLayout>
+</LinearLayout>

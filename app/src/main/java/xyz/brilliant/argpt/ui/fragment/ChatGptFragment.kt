@@ -175,7 +175,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
-    fun updatechatList(id : Int ,type : String,msg : String, image :Bitmap){
+    fun updatechatList(id : Int ,type : String,msg : String, image :Bitmap?){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
