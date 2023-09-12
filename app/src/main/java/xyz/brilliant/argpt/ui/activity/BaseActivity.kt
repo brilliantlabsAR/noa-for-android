@@ -301,6 +301,7 @@ class BaseActivity  : AppCompatActivity()  {
         Manifest.permission.BLUETOOTH_CONNECT,
         Manifest.permission.BLUETOOTH_SCAN,
         Manifest.permission.FOREGROUND_SERVICE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
 
     )
 
@@ -311,6 +312,7 @@ class BaseActivity  : AppCompatActivity()  {
         Manifest.permission.BLUETOOTH,
         Manifest.permission.BLUETOOTH_ADMIN,
         Manifest.permission.FOREGROUND_SERVICE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
 
         )
 
@@ -1312,6 +1314,8 @@ class BaseActivity  : AppCompatActivity()  {
         val prompt = prompt
         val strength = 0.5f
         val guidance = 1
+
+        globalJpegFilePath = null
 
         val client = OkHttpClient()
 
