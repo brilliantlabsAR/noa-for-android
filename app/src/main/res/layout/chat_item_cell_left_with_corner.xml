@@ -31,14 +31,14 @@
 
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="start"
             android:layout_marginStart="@dimen/_10sp"
             android:layout_marginEnd="@dimen/_5sp"
             android:orientation="vertical">
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@drawable/chat_left"
                 android:orientation="vertical">
@@ -51,7 +51,7 @@
                     android:paddingVertical="@dimen/_10sp"
                     android:scaleType="fitXY"
                     android:src="@drawable/openai_website"
-                    android:visibility="visible" />
+                    android:visibility="gone" />
 
                 <TextView
             android:id="@+id/messageText"
@@ -63,7 +63,6 @@
             android:paddingTop="6dp"
             android:paddingRight="12dp"
             android:autoLink="web"
-            android:linksClickable="true"
             android:textColorLink="#E85DA0"
             android:paddingBottom="6dp"
             android:textColor="@android:color/black"

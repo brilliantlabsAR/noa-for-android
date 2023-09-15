@@ -1,6 +1,7 @@
 package xyz.brilliant.argpt.ui.adapter
 
 import android.graphics.Bitmap
+import android.text.util.Linkify
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,9 +74,12 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
             else
             {viewHolder.contents.visibility = View.VISIBLE}
 
-        } else if (holder.itemViewType === ITEM_LEFT) {
+        }
+        else if (holder.itemViewType === ITEM_LEFT) {
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
             viewHolder.contents.text = chatMessage.message
+            //For Click..
+            Linkify.addLinks(viewHolder.contents,Linkify.WEB_URLS)
 
             if(chatMessage.bitmap != null)
             {
@@ -115,28 +119,41 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
                 viewHolder.layoutMsg.setOnClickListener {
                     onItemClickListener.onOpenApiClick(position,chatMessage)
                 }
+                viewHolder.contents.setOnClickListener {
+                    //Open api key dialog
+                    onItemClickListener.onOpenApiClick(position,chatMessage)
+                }
             }
             else if(chatMessage.id==3)
             {
                 viewHolder.layoutMsg.setOnClickListener{
-                    onItemClickListener.onStabilityApiClick(position,chatMessage)
+//                    onItemClickListener.onStabilityApiClick(position,chatMessage)
+
+                    //Open api key dialog
+                    onItemClickListener.onOpenApiClick(position,chatMessage)
+                }
+                viewHolder.contents.setOnClickListener {
+                    //Open api key dialog
+                    onItemClickListener.onOpenApiClick(position,chatMessage)
                 }
             }
             else if(chatMessage.id==1)
             {
                 viewHolder.chtImage.setOnClickListener {
-                    onItemClickListener.onImageClick(position,"",chatMessage.bitmap)
+                    onItemClickListener.onImageClick(position,chatMessage.image,chatMessage.bitmap)
+                }
+                viewHolder.contents.setOnClickListener {
+                    //Do nothing
                 }
             }
-
-
-
 
             //timeStampStr = chatMessage.getTime()
             //viewHolder.time.setText(timeStampStr)
         } else {
             val viewHolder: RightChatViewHolder = holder as RightChatViewHolder
             viewHolder.contents.text=chatMessage.message
+            viewHolder.contents.setOnClickListener {
+            }
             if(chatMessage.bitmap != null)
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
@@ -174,11 +191,17 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 //            {
 //                viewHolder.contents.setBackgroundResource(R.drawable.rounded_rectangle_primary)
 //            }
-           // timeStampStr = chatMessage.getTime()
-           //viewHolder.time.setText(timeStampStr)
+            // timeStampStr = chatMessage.getTime()
+            //viewHolder.time.setText(timeStampStr)
+
+            if(chatMessage.id==1)
+            {
+                viewHolder.chtImage.setOnClickListener {
+                    onItemClickListener.onImageClick(position,chatMessage.image,chatMessage.bitmap)
+                }
+            }
         }
     }
-
     override fun getItemCount(): Int {
         return messages.size
     }

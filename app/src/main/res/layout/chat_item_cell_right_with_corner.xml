@@ -16,9 +16,9 @@
         android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="end"
             android:layout_marginStart="@dimen/_40sp"
             android:layout_marginEnd="@dimen/_25sp"
             android:background="@drawable/chat_right"
@@ -39,7 +39,7 @@
                 android:paddingVertical="@dimen/_10sp"
                 android:scaleType="fitXY"
                 android:src="@drawable/openai_website"
-                android:visibility="visible" />
+                android:visibility="gone" />
 
 
 
@@ -50,7 +50,6 @@
                     android:layout_gravity="end"
                     android:layout_marginEnd="12dp"
                     android:autoLink="all"
-                    android:linksClickable="true"
                     android:maxWidth="@dimen/_300sp"
                     android:paddingLeft="@dimen/_20sp"
                     android:paddingTop="6dp"
@@ -67,8 +66,7 @@
         </LinearLayout>
         <ImageView
             android:layout_marginTop="-5dp"
-            android:layout_marginRight="@dimen/_20sp"
-            android:layout_marginEnd="@dimen/_18sp"
+            android:layout_marginEnd="@dimen/_25sp"
             android:layout_width="@dimen/_12sp"
             android:layout_height="16dp"
             android:layout_gravity="end"

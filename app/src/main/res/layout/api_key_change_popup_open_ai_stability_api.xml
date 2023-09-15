@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/square_gray_background">
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your OpenAI API key"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp" />
+    <TextView
+        android:id="@+id/shortDescriptionTextView"
+        android:layout_below="@+id/descriptionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:gravity="center"
+        android:text="Create your keys on platform.openai.com"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp" />
+
+
+    <RelativeLayout
+        android:id="@+id/keyBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shortDescriptionTextView"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/square_white_background_edittext">
+        <TextView
+            android:id="@+id/prefixKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="sk- "
+            android:textSize="14sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="5dp"
+            android:textColor="@color/gray" />
+
+        <EditText
+            android:id="@+id/apiKeyText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="OpenAI: sk-... "
+            android:layout_toRightOf="@+id/prefixKey"
+            android:textColor="@color/black"
+            android:background="@null"
+            android:textSize="14sp"
+            android:paddingVertical="5dp"
+            android:paddingHorizontal="10dp"
+            android:textColorHint="@color/gray"
+            android:paddingBottom="5dp" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/stabilityApiShortDescriptionTextView"
+        android:layout_below="@+id/keyBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:gravity="center"
+        android:text="Create your keys on platform.stability.ai"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp" />
+
+    <RelativeLayout
+        android:id="@+id/keyBoxStabilityApi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/stabilityApiShortDescriptionTextView"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="@dimen/_10sp"
+        android:background="@drawable/square_white_background_edittext">
+        <TextView
+            android:id="@+id/prefixKeyStabilityApi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="sk- "
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="5dp"
+            android:textColor="@color/gray" />
+
+        <EditText
+            android:id="@+id/apiKeyTextStabilityApi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Stability: sk-... (Optional)"
+            android:layout_toRightOf="@+id/prefixKeyStabilityApi"
+            android:textColor="@color/black"
+            android:background="@null"
+            android:textSize="14sp"
+            android:paddingVertical="5dp"
+            android:paddingHorizontal="10dp"
+            android:textColorHint="@color/gray"
+            android:paddingBottom="5dp" />
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/viewLine"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/keyBoxStabilityApi"
+        android:background="@color/gray"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/viewLine"
+        android:weightSum="100">
+        <LinearLayout
+            android:id="@+id/doneButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="100">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Done"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingTop="@dimen/_10sp"
+                android:paddingBottom="@dimen/_10sp"
+                android:textColor="#2196F3" />
+
+        </LinearLayout>
+    </LinearLayout>
+<!--    <Button-->
+<!--        android:id="@+id/cancelButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Cancel"-->
+<!--        android:layout_below="@id/inputEditText"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_marginStart="16dp"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="16dp" />-->
+
+<!--    <Button-->
+<!--        android:id="@+id/confirmButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Confirm"-->
+<!--        android:layout_below="@id/inputEditText"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="16dp" />-->
+
+</RelativeLayout>

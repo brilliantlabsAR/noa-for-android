@@ -86,7 +86,7 @@ import kotlin.concurrent.thread
 import kotlin.math.ceil
 
 
-class BaseActivity  : AppCompatActivity()  {
+class BaseActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "BaseActivity"
@@ -102,18 +102,20 @@ class BaseActivity  : AppCompatActivity()  {
         private const val RAW_RX_UUID = "e5700002-7bac-429a-b4ce-57ff900f479d"
         private const val RAW_TX_UUID = "e5700003-7bac-429a-b4ce-57ff900f479d"
 
-        private  val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
+        private val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
         private const val NORDIC_CONTROL_UUID = "8ec90001-f315-4f60-9fb8-838830daea50"
         private const val NORDIC_PACKET_UUID = "8ec90002-f315-4f60-9fb8-838830daea50"
-        private  val FILES = arrayListOf<String>("states.py","graphics.py","main.py","audio.py","photo.py")
+        private val FILES =
+            arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
         private const val bitPerSample = 16
         private const val channels = 1
 
         private val client = OkHttpClient()
-// For Debugging
-        private const  val NRFKIT = false
+
+        // For Debugging
+        private const val NRFKIT = false
         private const val FIRMWARE_TEST = false
         private const val FPGA_TEST = false
         private const val BACKEND_URL = ""
@@ -147,33 +149,40 @@ class BaseActivity  : AppCompatActivity()  {
     private var txCharacteristic: BluetoothGattCharacteristic? = null
     private var writingREPLProgress: Boolean = false
     val fragmentManager = supportFragmentManager
-    var translateEnabled : Boolean = false
+    var translateEnabled: Boolean = false
 
     private var rawRxCharacteristic: BluetoothGattCharacteristic? = null
     private var rawTxCharacteristic: BluetoothGattCharacteristic? = null
 
-    private var nordicControlCharacteristic: BluetoothGattCharacteristic? =null
-    private var nordicPacketCharacteristic: BluetoothGattCharacteristic? =null
+    private var nordicControlCharacteristic: BluetoothGattCharacteristic? = null
+    private var nordicPacketCharacteristic: BluetoothGattCharacteristic? = null
     var rawReplResponseCallback: ((String) -> Unit)? = null
     var controlResponseCallback: ((ByteArray) -> Unit)? = null
+
     data class Fpga(val bin: ByteArray?, val version: String?)
-    data class ExtractedData(val datBytes: ByteArray?, val binBytes: ByteArray?, val version: String?)
+    data class ExtractedData(
+        val datBytes: ByteArray?,
+        val binBytes: ByteArray?,
+        val version: String?
+    )
+
     enum class AppState {
-        FIRST_PAIR, SOFTWARE_UPDATE,FPGA_UPDATE, SCRIPT_UPDATE,RUNNING
+        FIRST_PAIR, SOFTWARE_UPDATE, FPGA_UPDATE, SCRIPT_UPDATE, RUNNING
     }
+
     var currentAppState = AppState.FIRST_PAIR
     private val mArrayList = ArrayList<ScanResult>()
-    private var currentDevice:String =""
+    private var currentDevice: String = ""
     private var audioBuffer: ByteArray = byteArrayOf(0)
     private var imageBuffer: ByteArray = byteArrayOf(0)
-    var audioJob:Job? = null
-    var lastResponse:String = ""
+    var audioJob: Job? = null
+    var lastResponse: String = ""
     private val PREFS_FILE_NAME = "MyPrefs"
     private val PREFS_FILE_NAME2 = "ApiKey"
     private val PREFS_KEY_DEVICE_ADDRESS = "DeviceAddress"
     private val PREFS_OPEN_API_KEY = "OpenAi"
     private val PREFS_STABILITY_API_KEY = "stability"
-    private var currentScannedDevice:BluetoothDevice?=null
+    private var currentScannedDevice: BluetoothDevice? = null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
     private var currentConnectionStatus = false
@@ -181,12 +190,13 @@ class BaseActivity  : AppCompatActivity()  {
         val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_KEY_DEVICE_ADDRESS, "") ?: ""
     }
+
     private val scanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "ACTION_START_SCAN") {
-                if(bluetoothGatt == null ) {
-                    val storedDeviceAddress  = getStoredDeviceAddress()
-                    if(!storedDeviceAddress.isNullOrEmpty()){
+                if (bluetoothGatt == null) {
+                    val storedDeviceAddress = getStoredDeviceAddress()
+                    if (!storedDeviceAddress.isNullOrEmpty()) {
                         connectDevice(storedDeviceAddress)
                         println("[trying to connect in background]")
                     }
@@ -212,7 +222,8 @@ class BaseActivity  : AppCompatActivity()  {
         editor.putString(PREFS_KEY_DEVICE_ADDRESS, deviceAddress)
         editor.apply()
     }
-    fun unpairMonocle(){
+
+    fun unpairMonocle() {
         storeDeviceAddress("")
         disconnectGatt()
         currentAppState = AppState.FIRST_PAIR
@@ -222,6 +233,7 @@ class BaseActivity  : AppCompatActivity()  {
         finish()
         startActivity(intent)
     }
+
     fun storeApiKey(_apiKey: String) {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -246,7 +258,7 @@ class BaseActivity  : AppCompatActivity()  {
         getAllPermission()
     }
 
-    private fun firstCodeExecute(){
+    private fun firstCodeExecute() {
         try {
             val storedDeviceAddress = getStoredDeviceAddress()
             if (apiKey.isEmpty()) {
@@ -272,21 +284,22 @@ class BaseActivity  : AppCompatActivity()  {
             if (currentAppState == AppState.FIRST_PAIR) {
                 updateProgressDialog("Bring your device close.", "Searching")
                 startScan()
-            } else if (currentAppState == AppState.SCRIPT_UPDATE || currentAppState == AppState.RUNNING){
+            } else if (currentAppState == AppState.SCRIPT_UPDATE || currentAppState == AppState.RUNNING) {
                 startBluetoothBackground()
                 connectDevice(storedDeviceAddress)
-               if(bluetoothGatt != null){
-                   updateConnectionStatus("not connected")
-               }else{
-                   updateConnectionStatus("")
-               }
+                if (bluetoothGatt != null) {
+                    updateConnectionStatus("not connected")
+                } else {
+                    updateConnectionStatus("")
+                }
             }
 
-        }catch (ex:Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
         }
     }
-    private fun startBluetoothBackground(){
+
+    private fun startBluetoothBackground() {
         val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -295,6 +308,7 @@ class BaseActivity  : AppCompatActivity()  {
             startService(foregroundServiceIntent)
         }
     }
+
     private val permissionsSDK33 = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -314,13 +328,13 @@ class BaseActivity  : AppCompatActivity()  {
         Manifest.permission.FOREGROUND_SERVICE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
 
-        )
+    )
 
 
-    private fun getAllPermission(){
+    private fun getAllPermission() {
         try {
 
-            var permissions : Array<String> ;
+            var permissions: Array<String>;
             val androidVersion = android.os.Build.VERSION.SDK_INT
 
             if (androidVersion <= android.os.Build.VERSION_CODES.R) {
@@ -334,7 +348,6 @@ class BaseActivity  : AppCompatActivity()  {
             }
 
 
-
             val permissionsToRequest = mutableListOf<String>()
             for (permission in permissions) {
                 val result = ContextCompat.checkSelfPermission(this, permission)
@@ -344,7 +357,11 @@ class BaseActivity  : AppCompatActivity()  {
             }
 
             if (permissionsToRequest.isNotEmpty()) {
-                ActivityCompat.requestPermissions(this, permissionsToRequest.toTypedArray(), PERMISSION_REQUEST_CODE)
+                ActivityCompat.requestPermissions(
+                    this,
+                    permissionsToRequest.toTypedArray(),
+                    PERMISSION_REQUEST_CODE
+                )
             } else {
                 // All permissions are already granted. You can proceed with your operation here.
                 Log.d(TAG, "getAllPermission: 12")
@@ -354,11 +371,12 @@ class BaseActivity  : AppCompatActivity()  {
                 checkBluetoothAndGps()
 
             }
-        }catch (ex:Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
         }
 
     }
+
     @SuppressLint("MissingPermission")
     private fun showBluetoothAlertDialog() {
         val builder = AlertDialog.Builder(this)
@@ -372,7 +390,7 @@ class BaseActivity  : AppCompatActivity()  {
 
 
                 finish()
-              //  checkBluetoothAndGps()
+                //  checkBluetoothAndGps()
             }
         builder.setCancelable(false)
         builder.create().show()
@@ -404,18 +422,16 @@ class BaseActivity  : AppCompatActivity()  {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 var result3 = locationManager.isLocationEnabled
                 return locationManager.isLocationEnabled
-            }
-            else
-            {
+            } else {
                 return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
             }
 
+        } catch (ex: Exception) {
+            var exception = ex.message
+            return false
         }
-    catch ( ex : Exception){
-       var exception = ex.message
-        return false
     }
-    }
+
     private fun isBluetoothEnabled(): Boolean {
         val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
         return bluetoothAdapter?.isEnabled == true
@@ -434,25 +450,22 @@ class BaseActivity  : AppCompatActivity()  {
 
             if (!bluetoothEnabled) {
                 showBluetoothAlertDialog()
-               // showGpsAlertDialog()
-            }
-           else if (!gpsEnabled) {
+                // showGpsAlertDialog()
+            } else if (!gpsEnabled) {
                 showGpsAlertDialog()
             }
         }
     }
 
 
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode== REQUEST_ENABLE_BLUETOOTH){
-            if(resultCode== RESULT_OK){
+        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
+            if (resultCode == RESULT_OK) {
 
                 checkBluetoothAndGps()
 
-            }else{
+            } else {
                 checkBluetoothAndGps()
 //                Toast.makeText(
 //                    this,
@@ -460,8 +473,7 @@ class BaseActivity  : AppCompatActivity()  {
 //                    Toast.LENGTH_SHORT
 //                ).show()
             }
-        }
-        else if (requestCode == REQUEST_ENABLE_GPS) {
+        } else if (requestCode == REQUEST_ENABLE_GPS) {
             if (resultCode == RESULT_OK) {
                 checkBluetoothAndGps()
             } else {
@@ -474,20 +486,18 @@ class BaseActivity  : AppCompatActivity()  {
 //                ).show()
                 // User didn't enable GPS, handle as needed
             }
-        }
-
-
-        else if(requestCode==PERMISSION_REQUEST_CODE){
-            if(resultCode== RESULT_OK){
+        } else if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
 
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivityForResult(intent, REQUEST_ENABLE_GPS)
                 checkBluetoothAndGps()
-            }else{
+            } else {
                 getAllPermission()
             }
         }
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -508,34 +518,35 @@ class BaseActivity  : AppCompatActivity()  {
                 checkBluetoothAndGps()
                 // All permissions are granted. You can proceed with your operation here.
                 Log.d(TAG, "onRequestPermissionsResult: ")
-               // firstCodeExecute()
+                // firstCodeExecute()
             } else {
                 // Handle the case where some permissions are not granted.
                 // You may want to inform the user or handle the missing permissions accordingly.
-                Log.d("BASE ACTIVITY","Permission Not given")
+                Log.d("BASE ACTIVITY", "Permission Not given")
                 showPermissionPopup()
 
             }
         }
     }
 
-    private fun showPermissionPopup(){
-       try {
-           AlertDialog.Builder(this)
-               .setTitle("Permissions Required")
-               .setMessage("Please grant all the required permissions to use this app.")
-               .setPositiveButton("OK") { dialog, which ->
-                   // You can take appropriate action here, such as redirecting the user to the app settings page.
-                   // For example:
+    private fun showPermissionPopup() {
+        try {
+            AlertDialog.Builder(this)
+                .setTitle("Permissions Required")
+                .setMessage("Please grant all the required permissions to use this app.")
+                .setPositiveButton("OK") { dialog, which ->
+                    // You can take appropriate action here, such as redirecting the user to the app settings page.
+                    // For example:
                     openAppSettings()
-               }
-               .setCancelable(false)
-               .show()
-       }catch (ex:Exception){
-           ex.printStackTrace()
-       }
+                }
+                .setCancelable(false)
+                .show()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
 
     }
+
     private fun openAppSettings() {
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -546,6 +557,7 @@ class BaseActivity  : AppCompatActivity()  {
         }
         startActivity(intent)
     }
+
     var connectionStatus = ""
     fun updateConnectionStatus(status: String) {
         connectionStatus = status
@@ -554,23 +566,24 @@ class BaseActivity  : AppCompatActivity()  {
             fragment.updateConnectionStatus(status)
         }
     }
-    fun updatechatList( type : String , msg : String) {
+
+    fun updatechatList(type: String, msg: String) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
-            fragment.updatechatList( type, msg)
+            fragment.updatechatList(type, msg)
         }
     }
 
-    fun updatechatList(id: Int, type : String , msg : String,image : String) {
+    fun updatechatList(id: Int, type: String, msg: String, image: String) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
-            fragment.updatechatList(id, type, msg,image)
+            fragment.updatechatList(id, type, msg, image)
         }
     }
 
-    fun connectDevice(){
+    fun connectDevice() {
         try {
-            if(currentScannedDevice != null){
+            if (currentScannedDevice != null) {
                 connectDevice(currentScannedDevice!!.address)
 //                currentScannedDevice = null
             }
@@ -585,24 +598,26 @@ class BaseActivity  : AppCompatActivity()  {
 //                stopScan()
 //                connectDevice(firstItem.device.address)
 //            }
-        }catch (ex:Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
         }
     }
+
     fun updateProgressDialog(deviceCloseText: String, btnText: String) {
 
         val newDeviceCloseText = deviceCloseText
         runOnUiThread {
             val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
             if (fragment is ScanningFragment) {
-                fragment.updatePopUp(deviceCloseText,btnText)
+                fragment.updatePopUp(deviceCloseText, btnText)
             }
         }
 
     }
+
     @SuppressLint("MissingPermission")
     override fun onDestroy() {
-       disconnectGatt()
+        disconnectGatt()
         val stopServiceIntent = Intent(this, ForegroundService::class.java)
         stopService(stopServiceIntent)
         unregisterReceiver(scanReceiver)
@@ -610,60 +625,65 @@ class BaseActivity  : AppCompatActivity()  {
 
 
     }
+
     private val scanCallback = object : ScanCallback() {
-    @SuppressLint("MissingPermission", "SuspiciousIndentation")
-    override fun onScanResult(callbackType: Int, result: ScanResult) {
+        @SuppressLint("MissingPermission", "SuspiciousIndentation")
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
 
-        val deviceName = result.device.name
-        println(deviceName)
-        if(currentAppState==AppState.SOFTWARE_UPDATE || deviceName=="DfuTarg"){
-            connectDevice(result.device.address)
-            stopScan()
-            return
-        }
-        val storedDeviceAddress = getStoredDeviceAddress()
-        if(currentDevice.isNotEmpty()){
-            if(currentDevice==result.device.address){
+            val deviceName = result.device.name
+            println(deviceName)
+            if (currentAppState == AppState.SOFTWARE_UPDATE || deviceName == "DfuTarg") {
                 connectDevice(result.device.address)
                 stopScan()
+                return
             }
-            return
-        }else if(storedDeviceAddress.isNotEmpty()){
-            if(storedDeviceAddress==result.device.address){
-                connectDevice(result.device.address)
-                stopScan()
+            val storedDeviceAddress = getStoredDeviceAddress()
+            if (currentDevice.isNotEmpty()) {
+                if (currentDevice == result.device.address) {
+                    connectDevice(result.device.address)
+                    stopScan()
+                }
+                return
+            } else if (storedDeviceAddress.isNotEmpty()) {
+                if (storedDeviceAddress == result.device.address) {
+                    connectDevice(result.device.address)
+                    stopScan()
+                }
+                return
             }
-            return
-        }
-        println(result.device.name+result.rssi)
-        if(result.rssi>-65){
-            currentScannedDevice = result.device
-            updateProgressDialog("Bring your device close.", "${currentScannedDevice?.name?.capitalize()}. Connect")
+            println(result.device.name + result.rssi)
+            if (result.rssi > -65) {
+                currentScannedDevice = result.device
+                updateProgressDialog(
+                    "Bring your device close.",
+                    "${currentScannedDevice?.name?.capitalize()}. Connect"
+                )
 
-        }else if(result.rssi<-80){
-            currentScannedDevice = null
-        }
-        if(currentScannedDevice == null ){
-            updateProgressDialog("Bring your device close.", "Searching")
+            } else if (result.rssi < -80) {
+                currentScannedDevice = null
+            }
+            if (currentScannedDevice == null) {
+                updateProgressDialog("Bring your device close.", "Searching")
+            }
+
+            //
         }
 
-        //
+        override fun onScanFailed(errorCode: Int) {
+            Log.e(TAG, "Scan failed with error code: $errorCode")
+        }
     }
 
-    override fun onScanFailed(errorCode: Int) {
-        Log.e(TAG, "Scan failed with error code: $errorCode")
-    }
-}
     @SuppressLint("MissingPermission")
     private fun startScan() {
-        if(scanning){
+        if (scanning) {
             return
         }
         if (hasLocationPermission()) {
             val serviceUuids = listOf(
                 ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid(SERVICE_UUID))
-                .build(),
+                    .setServiceUuid(ParcelUuid(SERVICE_UUID))
+                    .build(),
                 ScanFilter.Builder()
                     .setServiceUuid(ParcelUuid(NORDIC_SERVICE_UUID))
                     .build()
@@ -710,7 +730,7 @@ class BaseActivity  : AppCompatActivity()  {
     var popuptxt: String = "Bring your Device Close."
     var popUpbtntxt = "Searching"
     var showPopUp: Boolean = false
-    var filesUploadStr:String=""
+    var filesUploadStr: String = ""
     fun isAppInBackground(context: Context): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val appProcesses = activityManager.runningAppProcesses
@@ -729,7 +749,7 @@ class BaseActivity  : AppCompatActivity()  {
     @SuppressLint("MissingPermission")
     private fun connectDevice(deviceAddress: String) {
 
-        if(currentConnectionStatus){
+        if (currentConnectionStatus) {
             return
         }
         val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
@@ -761,41 +781,43 @@ class BaseActivity  : AppCompatActivity()  {
                 sendBroadcast(intent)
                 gatt.requestMtu(GATT_MAX_MTU_SIZE)
                 // Handler(Looper.getMainLooper()).post {
-                if(currentAppState == AppState.FIRST_PAIR ){
+                if (currentAppState == AppState.FIRST_PAIR) {
                     updateProgressDialog("Checking sofware update.", "Keep the app open")
                 }
-                if( currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.FPGA_UPDATE){
-                    updateProgressDialog("Updating software $overlallSoftwareProgress%", "Keep the app open")
+                if (currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.FPGA_UPDATE) {
+                    updateProgressDialog(
+                        "Updating software $overlallSoftwareProgress%",
+                        "Keep the app open"
+                    )
                 }
-                if(currentAppState == AppState.RUNNING){
+                if (currentAppState == AppState.RUNNING) {
                     updateConnectionStatus("")
 
 
                 }
                 // }
-            }
-            else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+            } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
 
                 disconnectGatt()
-                if(currentAppState == AppState.FIRST_PAIR || currentAppState ==AppState.RUNNING){
+                if (currentAppState == AppState.FIRST_PAIR || currentAppState == AppState.RUNNING) {
 
                     updateProgressDialog("Bring your device close.", "Searching")
 
                 }
 
-                if(currentAppState == AppState.RUNNING){
+                if (currentAppState == AppState.RUNNING) {
 
                     updateConnectionStatus("not connected")
 
                 }
-                if(isAppInBackground(applicationContext)){
+                if (isAppInBackground(applicationContext)) {
                     val triggerIntent = Intent("ACTION_START_SCAN")
                     sendBroadcast(triggerIntent)
 
-                }else{
+                } else {
                     startScan()
                 }
-                if(currentConnectionStatus){
+                if (currentConnectionStatus) {
                     val intent = Intent("ACTION_CONNECTION_STATUS")
                     intent.putExtra("EXTRA_CONNECTION_STATUS", false)
                     sendBroadcast(intent)
@@ -812,7 +834,7 @@ class BaseActivity  : AppCompatActivity()  {
             super.onServicesDiscovered(gatt, status)
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                lifecycleScope.launch{
+                lifecycleScope.launch {
                     val service = gatt.getService(SERVICE_UUID)
                     val rawService = gatt.getService(RAW_SERVICE_UUID)
                     val nordicService = gatt.getService(NORDIC_SERVICE_UUID)
@@ -820,22 +842,27 @@ class BaseActivity  : AppCompatActivity()  {
                         // for REPL and data of monocle
                         println("[REPL SERVICE DISCOVERED] : ${service.uuid}\n")
                         println("[DATA SERVICE DISCOVERED] :  ${rawService.uuid}\n")
-                        connectMonocleServices(service,rawService,gatt)
+                        connectMonocleServices(service, rawService, gatt)
                         startBleProcess()
                     }
-                    if(nordicService != null){
+                    if (nordicService != null) {
                         // for firmware update
                         println("[NORDIC SERVICE UUID DISCOVERED] : ${nordicService.uuid}\n")
-                        connectNordicService(nordicService,gatt)
+                        connectNordicService(nordicService, gatt)
                         startDfuProcess()
                     }
                 }
-            }else{
+            } else {
                 println("[DISCOVERY FAILED]\n")
             }
         }
+
         @SuppressLint("MissingPermission")
-        suspend  fun connectMonocleServices(service:BluetoothGattService, rawService:BluetoothGattService, gatt:BluetoothGatt){
+        suspend fun connectMonocleServices(
+            service: BluetoothGattService,
+            rawService: BluetoothGattService,
+            gatt: BluetoothGatt
+        ) {
             return coroutineScope {
                 val resultDeferred = async {
 
@@ -846,7 +873,8 @@ class BaseActivity  : AppCompatActivity()  {
                         println("[REPL RX CHARACTERISTICS CONNECTED ] : ${rxCharacteristic!!.uuid}\n")
                         println("[REPL TX CHARACTERISTICS CONNECTED ] : ${txCharacteristic!!.uuid}\n")
                         gatt.setCharacteristicNotification(txCharacteristic, true)
-                        val descriptor =  txCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        val descriptor =
+                            txCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
                         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                         gatt.writeDescriptor(descriptor)
                         println("[REPL TX CHARACTERISTICS NOTIFICATION ENABLED ] : ${txCharacteristic!!.uuid}\n")
@@ -858,7 +886,8 @@ class BaseActivity  : AppCompatActivity()  {
                         println("[DATA RX CHARACTERISTICS CONNECTED ] : ${rawRxCharacteristic!!.uuid}\n")
                         println("[DATA TX CHARACTERISTICS CONNECTED ] : ${rawTxCharacteristic!!.uuid}\n")
                         gatt.setCharacteristicNotification(rawTxCharacteristic, true)
-                        val descriptor = rawTxCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        val descriptor =
+                            rawTxCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
                         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                         gatt.writeDescriptor(descriptor)
                         println("[DATA TX CHARACTERISTICS NOTIFICATION ENABLED ] : ${rawTxCharacteristic!!.uuid}\n")
@@ -869,21 +898,27 @@ class BaseActivity  : AppCompatActivity()  {
                 resultDeferred.await()
             }
         }
+
         @SuppressLint("MissingPermission")
-        suspend  fun connectNordicService(service:BluetoothGattService,  gatt:BluetoothGatt){
+        suspend fun connectNordicService(service: BluetoothGattService, gatt: BluetoothGatt) {
             return coroutineScope {
                 val resultDeferred = async {
-                    nordicControlCharacteristic = service.getCharacteristic(UUID.fromString(
-                        NORDIC_CONTROL_UUID
-                    ))
-                    nordicPacketCharacteristic = service.getCharacteristic(UUID.fromString(
-                        NORDIC_PACKET_UUID
-                    ))
+                    nordicControlCharacteristic = service.getCharacteristic(
+                        UUID.fromString(
+                            NORDIC_CONTROL_UUID
+                        )
+                    )
+                    nordicPacketCharacteristic = service.getCharacteristic(
+                        UUID.fromString(
+                            NORDIC_PACKET_UUID
+                        )
+                    )
                     if (nordicControlCharacteristic != null && nordicPacketCharacteristic != null) {
                         println("[NORDIC CONTROL CHARACTERISTICS CONNECTED ] : ${nordicControlCharacteristic!!.uuid}\n")
                         println("[NORDIC PACKET CHARACTERISTICS CONNECTED ] : ${nordicPacketCharacteristic!!.uuid}\n")
                         gatt.setCharacteristicNotification(nordicControlCharacteristic, true)
-                        val descriptor = nordicControlCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        val descriptor =
+                            nordicControlCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
                         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                         gatt.writeDescriptor(descriptor)
                         println("[NORDIC CONTROL CHARACTERISTICS NOTIFICATION ENABLED ] : ${nordicControlCharacteristic!!.uuid}\n")
@@ -902,7 +937,11 @@ class BaseActivity  : AppCompatActivity()  {
         }
 
 
-        override fun onCharacteristicWrite(gatt: BluetoothGatt,characteristic: BluetoothGattCharacteristic, status: Int ) {
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
             super.onCharacteristicWrite(gatt, characteristic, status)
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -911,17 +950,20 @@ class BaseActivity  : AppCompatActivity()  {
             }
         }
 
-        override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic
+        ) {
             CoroutineScope(Dispatchers.Default).launch {
                 if (characteristic.uuid == rawTxCharacteristic?.uuid) {
                     handleAudioData(characteristic.value)
                     return@launch
                 }
-                if(characteristic.uuid == txCharacteristic?.uuid){
+                if (characteristic.uuid == txCharacteristic?.uuid) {
                     handleReplData(characteristic.value)
                     return@launch
                 }
-                if(characteristic.uuid==nordicControlCharacteristic?.uuid){
+                if (characteristic.uuid == nordicControlCharacteristic?.uuid) {
                     handleNordicControlData(characteristic.value)
                     return@launch
                 }
@@ -929,24 +971,26 @@ class BaseActivity  : AppCompatActivity()  {
 
         }
 
-        suspend fun handleAudioData(value:ByteArray){
+        suspend fun handleAudioData(value: ByteArray) {
             monocleRecieved(value)
         }
-        private fun handleReplData(value:ByteArray){
+
+        private fun handleReplData(value: ByteArray) {
             val receivedData = String(value)
-            if(rawReplResponseCallback != null){
+            if (rawReplResponseCallback != null) {
                 lastResponse += receivedData
-                if(lastResponse.endsWith(">")){
+                if (lastResponse.endsWith(">")) {
                     rawReplResponseCallback!!(lastResponse)
                     lastResponse = ""
-                }else if(receivedData.startsWith("OK")){
+                } else if (receivedData.startsWith("OK")) {
                     lastResponse = receivedData
-                }else{
+                } else {
                     println("$receivedData\n")
                 }
             }
         }
-        private fun handleNordicControlData(value:ByteArray){
+
+        private fun handleNordicControlData(value: ByteArray) {
             controlResponseCallback!!(value)
         }
 
@@ -971,39 +1015,55 @@ class BaseActivity  : AppCompatActivity()  {
 
     //   MONOCLE AUDIO
     private var globalJpegFilePath: String? = null
-    private var bitmap:Bitmap? = null
-    suspend fun monocleRecieved(data:ByteArray){
-        if(data.size<4){
-            println("Received on data "+String(data))
+    private var bitmap: Bitmap? = null
+    suspend fun monocleRecieved(data: ByteArray) {
+        if (data.size < 4) {
+            println("Received on data " + String(data))
             return
         }
         val status = String(data.slice(0 until 4).toByteArray())
 
 
-        if(status=="ist:")
-        {
+        if (status == "ist:") {
             imageBuffer = byteArrayOf(0)
             println("[NEW_Image Starting to come]\n")
         }
-        if(status=="idt:")
-        {
+        if (status == "idt:") {
             println("[NEW_Image RECEIVING]\n")
             imageBuffer += data.slice(4 until data.size).toByteArray()
         }
-        if(status=="ien:"){
+        if (status == "ien:") {
             println("[NEW_Image RECEIVED]\n")
 
             // create jpeg file .... Then ---
             val outputPath = "output.jpg" // The desired output file path
-            bitmap = BitmapFactory.decodeByteArray (imageBuffer, 1, imageBuffer.size-1)
+            bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
 
-            if(bitmap!=null){
+            if (bitmap != null) {
+//                val jpegFile = File(cacheDir, "image.png")
+//
+//                val fos = FileOutputStream(jpegFile)
+
+// compress the bitmap to a PNG file
+//                bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, fos)
+
+// close the stream
+//                fos.close()
                 bitmap = resizeBitmapToMultipleOf64(bitmap!!)
-                val jpegFile =  saveBitmapAsJPEG(bitmap!!)
+                val jpegFile = saveBitmapAsJPEG(bitmap!!)
                 if (jpegFile != null) {
                     globalJpegFilePath = jpegFile.absolutePath
                 }
-                updatechatList(1,"S","", bitmap!!)
+                updatechatList(1, "S", "", bitmap!!)
+                if (stabilityApiKey.isNullOrEmpty()) {
+                    globalJpegFilePath = null
+                    updatechatList(
+                        1,
+                        "R",
+                        "You have to enter stability API key for this feature!",
+                        ""
+                    )
+                }
             }
 
             var responseData = "ick:"
@@ -1012,20 +1072,20 @@ class BaseActivity  : AppCompatActivity()  {
         }
 
 
-        if(status=="ast:"){
+        if (status == "ast:") {
 //            new audio buffer start, delete old one
             println("[NEW_AUDIO STARTS]\n")
             audioBuffer = byteArrayOf(0)
             audioJob?.cancel()
         }
-        if (status=="dat:"){
+        if (status == "dat:") {
 //            audio buffer append
             audioBuffer += data.slice(4 until data.size).toByteArray()
         }
-        if (status=="aen:"){
+        if (status == "aen:") {
             println("[AUDIO RECEIVED]\n")
 //            process audio buffer
-            var responseData = "pin:"+"hello"
+            var responseData = "pin:" + "hello"
 
             dataSendBle(responseData)
             // Start new coroutine
@@ -1034,21 +1094,27 @@ class BaseActivity  : AppCompatActivity()  {
                 val f2 = File(path, "test.wav")
                 f2.absolutePath
                 try {
-                        rawToWave(signed8ToUnsigned16(audioBuffer), f2, sampleRate, bitPerSample, channels){success->
-                            if (success) {
-                                println("[AUDIO PARSED SENDING TO CHATGPT]\n")
-                                if(USE_CUSTOM_SERVER){
-                                    getGPTResult(f2)
-                                }else{
+                    rawToWave(
+                        signed8ToUnsigned16(audioBuffer),
+                        f2,
+                        sampleRate,
+                        bitPerSample,
+                        channels
+                    ) { success ->
+                        if (success) {
+                            println("[AUDIO PARSED SENDING TO CHATGPT]\n")
+                            if (USE_CUSTOM_SERVER) {
+                                getGPTResult(f2)
+                            } else {
 
 
-                                        uploadAudioFile(f2, byteCallback)
+                                uploadAudioFile(f2, byteCallback)
 
-
-                                }
 
                             }
+
                         }
+                    }
 
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -1056,7 +1122,7 @@ class BaseActivity  : AppCompatActivity()  {
             }
 
         }
-        if(status=="pon:"){
+        if (status == "pon:") {
 //            var responseData = "res:"+"Got response"
 //
 //            dataSendBle(responseData)
@@ -1093,16 +1159,10 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
 
-
-
-
-
-
-
-    private fun updatechatList(id: Int,type: String, msg: String, image: Bitmap) {
+    private fun updatechatList(id: Int, type: String, msg: String, image: Bitmap?) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
-            fragment.updatechatList(id, type, msg,image)
+            fragment.updatechatList(id, type, msg, image)
         }
     }
 
@@ -1131,6 +1191,7 @@ class BaseActivity  : AppCompatActivity()  {
 // Return or use the new bitmap as needed
         return newBitmap
     }
+
     @Throws(IOException::class)
     private fun createJpegFromByteArray(imageBytes: ByteArray, outputPath: String): String {
         val jpegFile = File(cacheDir, outputPath)
@@ -1145,8 +1206,16 @@ class BaseActivity  : AppCompatActivity()  {
 
 
     @Throws(IOException::class)
-    private fun rawToWave( rawPCMBytes:ByteArray,waveFile: File,sample_rate:Int,bit_per_sample:Int,channel:Int, callback: (Boolean) -> Unit) {
+    private fun rawToWave(
+        rawPCMBytes: ByteArray,
+        waveFile: File,
+        sample_rate: Int,
+        bit_per_sample: Int,
+        channel: Int,
+        callback: (Boolean) -> Unit
+    ) {
         var output: DataOutputStream? = null
+
         @Throws(IOException::class)
         fun writeIntToWave(output: DataOutputStream, value: Int) {
             output.write(value shr 0)
@@ -1179,8 +1248,14 @@ class BaseActivity  : AppCompatActivity()  {
             writeShort(output, 1.toShort()) // audio format (1 = PCM)
             writeShort(output, channel.toShort()) // number of channels
             writeIntToWave(output, sample_rate) // sample rate
-            writeIntToWave(output, sample_rate * channel * bit_per_sample/8) // byte rate = sample rate * channels * bytes per sample
-            writeShort(output, (channel * bit_per_sample/8).toShort()) // block align = channels * bytes per sample
+            writeIntToWave(
+                output,
+                sample_rate * channel * bit_per_sample / 8
+            ) // byte rate = sample rate * channels * bytes per sample
+            writeShort(
+                output,
+                (channel * bit_per_sample / 8).toShort()
+            ) // block align = channels * bytes per sample
             writeShort(output, bit_per_sample.toShort()) // bits per sample
             writeString(output, "data") // subchunk 2 id
             writeIntToWave(output, rawPCMBytes.size) // subchunk 2 size
@@ -1211,8 +1286,6 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
 
-
-
     // OPEN AI
     private fun uploadAudioFile(audioFile: File, byteCallback: Callback) {
         val client = OkHttpClient()
@@ -1228,7 +1301,7 @@ class BaseActivity  : AppCompatActivity()  {
             .build()
 
 
-        Log.d("TAG", "uploadAudioFile: "+requestBody.toString())
+        Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
 
         val request = Request.Builder()
             .url("https://api.openai.com/v1/audio/translations")
@@ -1241,67 +1314,58 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
 
-
-
-
     val byteCallback = object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             // Handle request failure
-            updatechatList("S",e.message.toString())
+            updatechatList("S", e.message.toString())
             e.printStackTrace()
         }
 
         override fun onResponse(call: Call, response: Response) {
-            val body=response.body?.string()
+            val body = response.body?.string()
             if (body != null) {
-                Log.v("data",body)
+                Log.v("data", body)
+            } else {
+                Log.v("data", "empty")
             }
-            else{
-                Log.v("data","empty")
-            }
-            val jsonObject= JSONObject(body)
-            Log.d("TAG", "onResponse: "+jsonObject)
-            if (jsonObject.has("text")){
+            val jsonObject = JSONObject(body)
+            Log.d("TAG", "onResponse: " + jsonObject)
+            if (jsonObject.has("text")) {
 
                 val textResult = jsonObject.getString("text")
-                if(textResult.isNullOrEmpty()){
+                if (textResult.isNullOrEmpty()) {
 //                    Toast.makeText(this@BaseActivity,"blank text", Toast.LENGTH_SHORT).show()
-                   // updatechatList("S","Text not readable... try again!!")
+                    // updatechatList("S","Text not readable... try again!!")
 
-                    if(translateEnabled) {
-                        sendTranslatedResponce("Couldn't translate....try again!","err:")
-                    }
-                    else{
+                    if (translateEnabled) {
+                        sendTranslatedResponce("Couldn't translate....try again!", "err:")
+                    } else {
                         updatechatList("S", " ")
                         getResponse(" ")
                     }
-                }else{
-                    if(translateEnabled){
+                } else {
+                    if (translateEnabled) {
 
-                       // updatechatList("S",textResult.trim())
-                        sendTranslatedResponce(textResult.trim(),"res:")
-                    }
-                    else
-                    {
-                        updatechatList("S",textResult.trim())
+                        // updatechatList("S",textResult.trim())
+                        sendTranslatedResponce(textResult.trim(), "res:")
+                    } else {
+                        updatechatList("S", textResult.trim())
 
 
-                        if(globalJpegFilePath.isNullOrEmpty()) {
+                        if (globalJpegFilePath.isNullOrEmpty()) {
                             getResponse(textResult)
-                        }
-                        else
-                        {
+                        } else {
                             callStabilityAiImagetoImage(textResult.trim())
                         }
                     }
 
                 }
 
-            }else{
+            } else {
                 val error: JSONObject = jsonObject.getJSONObject("error")
-                val msg:String=error.getString("message")
+                val msg: String = error.getString("message")
 
-                sendChatGptResponce(msg,"err:")
+                sendChatGptResponce(msg, "err:")
 
             }
         }
@@ -1350,33 +1414,38 @@ class BaseActivity  : AppCompatActivity()  {
                 println("response styability")
                 println(response.body)
                 if (response.isSuccessful) {
-                        val responseData = response.body?.string()
-
-
-                        val jsonObject = JSONObject(responseData)
-                        val artifactsArray = jsonObject.getJSONArray("artifacts")
-                        if (artifactsArray.length() > 0) {
-                            val base64Value = artifactsArray.getJSONObject(0).getString("base64")
-
-                            // Now you have the base64Value, which you can decode if needed
-                            val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
-                            println("decoded bytes")
-                            bitmap = BitmapFactory.decodeByteArray (decodedBytes, 0, decodedBytes.size)
-                            println(bitmap)
-                            updatechatList(1,"R","", bitmap!!)
-                        } else {
-                            // Handle the API error here
-                            // Log error or show an error message to the user
-                        }
-
-                } else {
                     val responseData = response.body?.string()
 
 
                     val jsonObject = JSONObject(responseData)
-                    if(jsonObject.has("message")){
-                        println(jsonObject.get("message"))
+                    val artifactsArray = jsonObject.getJSONArray("artifacts")
+                    if (artifactsArray.length() > 0) {
+                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
+
+                        // Now you have the base64Value, which you can decode if needed
+                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
+                        println("decoded bytes")
+                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                        println(bitmap)
+                        updatechatList(1, "R", "", bitmap!!)
+                    } else {
+                        // Handle the API error here
+                        // Log error or show an error message to the user
                     }
+
+                } else {
+                    val responseData = response.body?.string()
+
+                    try {
+                        val jsonObject = JSONObject(responseData)
+                        if (jsonObject.has("message")) {
+                            println(jsonObject.get("message"))
+                        }
+                    } catch (e: java.lang.Exception) {
+                        println(responseData)
+                        println(e.printStackTrace())
+                    }
+
                     // Handle the API error here
                     // Log error or show an error message to the user
                 }
@@ -1389,24 +1458,14 @@ class BaseActivity  : AppCompatActivity()  {
             }
         })
 
-        val fileName = "Output.jpg"
-
-// Create the JPEG file
-        val file = File(cacheDir, fileName)
-        val fileOutputStream = FileOutputStream(file)
-
-// Delete the file
-        if (file.exists()) {
-            file.delete()
-        }
     }
 
-    fun getResponse(question: String){
+    fun getResponse(question: String) {
         try {
 
-            val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
+            val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
 
-            val requestBody="""
+            val requestBody = """
             {
             "prompt": "$question",
             "max_tokens": 500,
@@ -1423,76 +1482,76 @@ class BaseActivity  : AppCompatActivity()  {
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e("error","API failed",e)
-                    updatechatList("R",e.message.toString())
+                    Log.e("error", "API failed", e)
+                    updatechatList("R", e.message.toString())
 
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    val body=response.body?.string()
+                    val body = response.body?.string()
                     if (body != null) {
-                        Log.v("data",body)
+                        Log.v("data", body)
+                    } else {
+                        Log.v("data", "empty")
                     }
-                    else{
-                        Log.v("data","empty")
-                    }
-                    val jsonObject= JSONObject(body)
-                    Log.d("TAG", "onResponse: "+jsonObject)
+                    val jsonObject = JSONObject(body)
+                    Log.d("TAG", "onResponse: " + jsonObject)
 
                     if (jsonObject.has("id")) {
                         val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
                         val textResult = jsonArray.getJSONObject(0).getString("text")
 
-                        sendChatGptResponce(textResult,"res:")
+                        sendChatGptResponce(textResult, "res:")
 //                        callback(textResult)
-                    }else{
+                    } else {
                         val error: JSONObject = jsonObject.getJSONObject("error")
-                        val msg:String=error.getString("message")
+                        val msg: String = error.getString("message")
 
-                        sendChatGptResponce(msg,"err:")
+                        sendChatGptResponce(msg, "err:")
 
                     }
                 }
             })
-        }catch (ex:Exception){
-          sendChatGptResponce("getResponse: ${ex.message}","err:")
+        } catch (ex: Exception) {
+            sendChatGptResponce("getResponse: ${ex.message}", "err:")
             Log.d("ChatGpt", "getResponse: $ex")
         }
     }
 
-    fun sendChatGptResponce(data: String ,prefix : String) {
-        updatechatList("R",data)
-        val data = prefix+data //err:
+    fun sendChatGptResponce(data: String, prefix: String) {
+        updatechatList("R", data)
+        val data = prefix + data //err:
         dataSendBle(data)
     }
 
 
-    fun sendTranslatedResponce(data: String ,prefix : String) {
-        updatechatList("S",data)
-        val data = prefix+data //err:
+    fun sendTranslatedResponce(data: String, prefix: String) {
+        updatechatList("S", data)
+        val data = prefix + data //err:
         dataSendBle(data)
     }
 
 
     // MONOCLE COMMUNICATION
     @SuppressLint("MissingPermission")
-    private fun rawBleWrite(data: ByteArray){
+    private fun rawBleWrite(data: ByteArray) {
         val characteristic = rawRxCharacteristic
         if (bluetoothGatt != null && characteristic != null) {
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             characteristic.value = data
-            if(bluetoothGatt != null){
+            if (bluetoothGatt != null) {
 
                 bluetoothGatt!!.writeCharacteristic(characteristic)
             }
         }
     }
-    private fun dataSendBle(data:String){
+
+    private fun dataSendBle(data: String) {
         thread {
             val chunkSize = 90
             var offset = 0
-            var actualData =  data.substring(4)
-            var command = data.substring(0,4)
+            var actualData = data.substring(4)
+            var command = data.substring(0, 4)
             println(actualData)
             writingREPLProgress = false
             while (offset < actualData.length) {
@@ -1512,46 +1571,45 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
 
-
     @SuppressLint("MissingPermission")
-    private fun replWrite( data : ByteArray,resultDeferred: CompletableDeferred<String>){
+    private fun replWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
 
-                val characteristic = rxCharacteristic
-                if (bluetoothGatt != null && characteristic != null) {
-                    characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                    var offset = 0
-                    val chunkSize = 100
-                    while (offset < data.size) {
-                        if (writingREPLProgress) {
-                            continue
-                        }
-                        val length = minOf(chunkSize, data.size - offset)
-                        val chunkData = data.slice(offset until offset + length)
+        val characteristic = rxCharacteristic
+        if (bluetoothGatt != null && characteristic != null) {
+            characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            var offset = 0
+            val chunkSize = 100
+            while (offset < data.size) {
+                if (writingREPLProgress) {
+                    continue
+                }
+                val length = minOf(chunkSize, data.size - offset)
+                val chunkData = data.slice(offset until offset + length)
 
-                        characteristic.value = chunkData.toByteArray()
-                        writingREPLProgress = true
-                        if(bluetoothGatt != null){
+                characteristic.value = chunkData.toByteArray()
+                writingREPLProgress = true
+                if (bluetoothGatt != null) {
 
-                            bluetoothGatt!!.writeCharacteristic(characteristic)
-                        }else{
-                            break
-                            resultDeferred.complete("Done")
-                        }
-                        offset += length
-                    }
+                    bluetoothGatt!!.writeCharacteristic(characteristic)
+                } else {
+                    break
+                    resultDeferred.complete("Done")
+                }
+                offset += length
+            }
 
         }
         resultDeferred.complete("Done")
     }
 
-    private suspend  fun replSendBle(data: String):String {
+    private suspend fun replSendBle(data: String): String {
         return coroutineScope {
 
 
             val resultDeferred = CompletableDeferred<String>()
             val handler = Handler(Looper.getMainLooper())
             thread {
-                replWrite(data.toByteArray()+byteArrayOf(0x04), resultDeferred)
+                replWrite(data.toByteArray() + byteArrayOf(0x04), resultDeferred)
             }
 
             // Set up the response handler callback
@@ -1567,7 +1625,7 @@ class BaseActivity  : AppCompatActivity()  {
             // Resolve if the response handler callback isn't called
             launch {
                 handler.postDelayed({
-                    if(!resultDeferred.isCompleted){
+                    if (!resultDeferred.isCompleted) {
                         resultDeferred.complete("")
                     }
                     if (!bleWriteComplete.isCompleted) {
@@ -1579,7 +1637,8 @@ class BaseActivity  : AppCompatActivity()  {
             bleWriteComplete.await()
         }
     }
-    private suspend  fun replSendBle(data: ByteArray):String {
+
+    private suspend fun replSendBle(data: ByteArray): String {
         return coroutineScope {
 
 
@@ -1602,7 +1661,7 @@ class BaseActivity  : AppCompatActivity()  {
             // Resolve if the response handler callback isn't called
             launch {
                 handler.postDelayed({
-                    if(!resultDeferred.isCompleted){
+                    if (!resultDeferred.isCompleted) {
                         resultDeferred.complete("")
                     }
                     if (!bleWriteComplete.isCompleted) {
@@ -1616,27 +1675,25 @@ class BaseActivity  : AppCompatActivity()  {
     }
 
 
-
-
     // MAIN FLOW AFTER CONNECTION TO MONOCLE
-    suspend fun startBleProcess(){
-        replSendBle(byteArrayOf(0x3,0x3,0x1))
+    suspend fun startBleProcess() {
+        replSendBle(byteArrayOf(0x3, 0x3, 0x1))
         //   firmware check and update
-        if(currentAppState == BaseActivity.AppState.FIRST_PAIR || currentAppState == BaseActivity.AppState.FPGA_UPDATE) {
-            if(currentAppState != BaseActivity.AppState.FPGA_UPDATE && firmwareCheckUpdate() != "Updated"){
+        if (currentAppState == BaseActivity.AppState.FIRST_PAIR || currentAppState == BaseActivity.AppState.FPGA_UPDATE) {
+            if (currentAppState != BaseActivity.AppState.FPGA_UPDATE && firmwareCheckUpdate() != "Updated") {
                 currentAppState = BaseActivity.AppState.SOFTWARE_UPDATE
                 println("[STARTED FIRMWARE UPDATE]\n")
                 return
             }
-            if(currentAppState != BaseActivity.AppState.FPGA_UPDATE){
+            if (currentAppState != BaseActivity.AppState.FPGA_UPDATE) {
                 updateProgressDialog("Checking sofware update..", "Keep the app open")
             }
 
-            if(!NRFKIT && fpgaCheckUpdate() != "Updated"){
+            if (!NRFKIT && fpgaCheckUpdate() != "Updated") {
                 return
             }
 
-            currentDevice =""
+            currentDevice = ""
             currentAppState = BaseActivity.AppState.SCRIPT_UPDATE
             startBluetoothBackground()
 //            updateProgressDialog("Checking Sofware Update...", "Keep the app open")
@@ -1645,20 +1702,21 @@ class BaseActivity  : AppCompatActivity()  {
         }
         //    file upload
 
-        if(NRFKIT){
-            currentAppState =  if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE ) AppState.SCRIPT_UPDATE  else AppState.RUNNING
+        if (NRFKIT) {
+            currentAppState =
+                if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE) AppState.SCRIPT_UPDATE else AppState.RUNNING
 
-        }else{
+        } else {
             startFileUpload()
         }
-        replSendBle(byteArrayOf(0x3,0x4))
+        replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
             val fragment = ChatGptFragment()
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
-            val apikeyStored =  getStoredApiKey()
-            if(!apikeyStored.isNullOrEmpty()){
+            val apikeyStored = getStoredApiKey()
+            if (!apikeyStored.isNullOrEmpty()) {
                 apiKey = apikeyStored
             }
             updateConnectionStatus("")
@@ -1667,13 +1725,14 @@ class BaseActivity  : AppCompatActivity()  {
 
 
             showIntroMessages()
-            if(bluetoothGatt != null){
+            if (bluetoothGatt != null) {
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
 
         }
         currentAppState = AppState.RUNNING
     }
+
     fun getThumbnailUrl(url: String): String {
         try {
             val document: Document = Jsoup.connect(url).get()
@@ -1715,32 +1774,79 @@ class BaseActivity  : AppCompatActivity()  {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
         // Define a list of messages you want to pass to updateChatList
-        val messages = listOf("Hi, I’m Noa. Let’s show you around 🙂", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.", "To use the camera capture feature, you’ll\n" +
-                "need a Stable Diffusion key. Get one\n" +
-                "here: https://key.stabediffusion.com")
-
-        Log.d("Drawable Image====>>>>>",
-            BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_long_press).toString()
+        val messages = listOf(
+            "Hi, I’m Noa. Let’s show you around 🙂",
+            "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+            "To use the camera capture feature, you’ll\n" +
+                    "need a Stable Diffusion key. Get one\n" +
+                    "here: https://key.stabediffusion.com"
         )
 
-        val messagelist =listOf( ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂",false,""),
-            ChatModel(2, "R", "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",false,getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.openai_website)),
-            ChatModel(3, "R", "To use the camera capture feature, you’ll\n" +
-                    "need a Stable Diffusion key. Get one\n" +
-                    "here: https://key.stabediffusion.com",false,getThumbnailUrl("https://key.stabediffusion.com")),
-            ChatModel(1, "R", "Tap either of the touch pads and speak.\n" +
-                    "I’ll then respond directly back to your\n" +
-                    "Monocle.",false,getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_single_tap)),
-            ChatModel(1, "R", "Double tap if you’d like to also include\n" +
-                    "a photo. I’ll then combine it with your \n" +
-                    "question, and return back an image.",false,getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_long_press)),
-            ChatModel(1, "R", "I can translate too. Enable translate\n" +
-                    "mode from the menu, and everything\n" +
-                    "I hear, I’ll translate to English.",false,getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(this@BaseActivity.getResources(), R.drawable.monocle_translate)),
+        Log.d(
+            "Drawable Image====>>>>>",
+            BitmapFactory.decodeResource(
+                this@BaseActivity.getResources(),
+                R.drawable.monocle_long_press
+            ).toString()
+        )
+
+        val messagelist = listOf(
+            ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false, ""),
+            ChatModel(
+                2,
+                "R",
+                "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+                false,
+                getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.getResources(),
+                    R.drawable.openai_website
+                )
+            ),
+            ChatModel(
+                3,
+                "R",
+                "To use the camera capture feature, you’ll\n" +
+                        "need a Stable Diffusion key. Get one\n" +
+                        "here: https://key.stabediffusion.com",
+                false,
+                getThumbnailUrl("https://key.stabediffusion.com")
+            ),
+            ChatModel(
+                1, "R", "Tap either of the touch pads and speak.\n" +
+                        "I’ll then respond directly back to your\n" +
+                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.getResources(),
+                    R.drawable.monocle_single_tap
+                )
+            ),
+            ChatModel(
+                1,
+                "R",
+                "Double tap if you’d like to also include\n" +
+                        "a photo. I’ll then combine it with your \n" +
+                        "question, and return back an image.",
+                false,
+                getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.getResources(),
+                    R.drawable.monocle_long_press
+                )
+            ),
+            ChatModel(
+                1,
+                "R",
+                "I can translate too. Enable translate\n" +
+                        "mode from the menu, and everything\n" +
+                        "I hear, I’ll translate to English.",
+                false,
+                getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.getResources(),
+                    R.drawable.monocle_translate
+                )
+            ),
 
             )
 
@@ -1748,8 +1854,8 @@ class BaseActivity  : AppCompatActivity()  {
         // Call updateChatList three times with different messages
         coroutineScope.launch {
             for (message in messagelist) {
-                updatechatList(message.id,"R",message.message,message.bitmap!!)
-                delay(1000) // Delay for 1 second between calls
+                updatechatList(message.id, "R", message.message, message.bitmap)
+                delay(3000) // Delay for 1 second between calls
             }
         }
     }
@@ -1761,6 +1867,7 @@ class BaseActivity  : AppCompatActivity()  {
             it.readText()
         }
     }
+
     @SuppressLint("MissingPermission")
     fun fileUploadOne() {
         lifecycleScope.launch {
@@ -1768,7 +1875,7 @@ class BaseActivity  : AppCompatActivity()  {
         }
     }
 
-    private suspend fun  startFileUpload():String {
+    private suspend fun startFileUpload(): String {
 
         val fileNames = FILES
 
@@ -1784,7 +1891,7 @@ class BaseActivity  : AppCompatActivity()  {
 
         if (!response.contains(version)) {
             println("[FILE  UPLOADING]\n")
-            return fileUpload( files,version)  //  TO WORK WITH nrf52DK comment this line
+            return fileUpload(files, version)  //  TO WORK WITH nrf52DK comment this line
         }
         println("[FILE ALREADY UPLOADED]\n")
         currentAppState = AppState.SCRIPT_UPDATE
@@ -1792,24 +1899,33 @@ class BaseActivity  : AppCompatActivity()  {
 
 
     }
+
     @SuppressLint("MissingPermission")
-    private suspend fun fileUpload(files:MutableList<Pair<String, String>>,version:String):String {
+    private suspend fun fileUpload(
+        files: MutableList<Pair<String, String>>,
+        version: String
+    ): String {
 
         val finalResults = mutableListOf<Int>()
         coroutineScope {
-            for( file in files) {
+            for (file in files) {
                 val deferItem = async {
-                    var dataSend = "f=open('${file.first}','w');f.write('''${file.second}''');f.close();"
-                    if(file.first=="main.py"){
-                        dataSend = "f=open('${file.first}','w');f.write('''NOA_VERSION='$version'\n${file.second}''');f.close();"
+                    var dataSend =
+                        "f=open('${file.first}','w');f.write('''${file.second}''');f.close();"
+                    if (file.first == "main.py") {
+                        dataSend =
+                            "f=open('${file.first}','w');f.write('''NOA_VERSION='$version'\n${file.second}''');f.close();"
                     }
                     println("[FILE  UPLOADING] ${file.first}\n")
                     var response = replSendBle(dataSend)
-                    if(response.contains("OK") && !response.contains("Error") &&  !response.contains("Trace")){
+                    if (response.contains("OK") && !response.contains("Error") && !response.contains(
+                            "Trace"
+                        )
+                    ) {
                         println("[FILE  UPLOADED] ${file.first}\n")
                         finalResults.add(1)
                         finalResults.add(1)
-                    }else{
+                    } else {
                         println("[FILE  UPLOAD FAILED] ${file.first}\n")
                         finalResults.add(0)
                     }
@@ -1819,7 +1935,7 @@ class BaseActivity  : AppCompatActivity()  {
             }
         }
 //        println(finalResults)
-        if(finalResults.contains(0)){
+        if (finalResults.contains(0)) {
             println("[FILE  UPLOADING FAILED]\n")
             return "Failed"
         }
@@ -1844,18 +1960,19 @@ class BaseActivity  : AppCompatActivity()  {
 
         return versionString.toString()
     }
-    private suspend fun firmwareCheckUpdate():String {
+
+    private suspend fun firmwareCheckUpdate(): String {
 
         var response = replSendBle("import device;print(device.VERSION)")
 //        check version if not matched update
         val firmwareData = readFirmwareFromAssets()
-        if(firmwareData.binBytes !=null && firmwareData.datBytes !=null){
-            if(response.contains("Error") || !response.contains(firmwareData.version.toString()) || FIRMWARE_TEST) {
+        if (firmwareData.binBytes != null && firmwareData.datBytes != null) {
+            if (response.contains("Error") || !response.contains(firmwareData.version.toString()) || FIRMWARE_TEST) {
                 //            start firmware update
                 currentDevice = bluetoothGatt!!.device.address
                 replSendBle("import update;update.micropython();")
                 return "Failed"
-            }else{
+            } else {
                 return "Updated"
             }
 
@@ -1863,42 +1980,45 @@ class BaseActivity  : AppCompatActivity()  {
 
         return "Updated"
     }
-    private suspend fun fpgaCheckUpdate():String{
+
+    private suspend fun fpgaCheckUpdate(): String {
         val fpga = readFPGAFromAssets()
         val zipData = readFirmwareFromAssets()
         var response = replSendBle("import fpga;print(fpga.read(2,12));del(fpga)")
-        if(fpga.bin != null && fpga.version != null){
-            if(response.contains("Error") || !response.contains(fpga.version.toString()) || FPGA_TEST){
+        if (fpga.bin != null && fpga.version != null) {
+            if (response.contains("Error") || !response.contains(fpga.version.toString()) || FPGA_TEST) {
                 currentAppState = AppState.FPGA_UPDATE
-                val asciiFile = Base64.encodeToString(fpga.bin,Base64.NO_WRAP)
-                var dfuSize =  0
-                if(zipData.binBytes != null && zipData.datBytes != null){
-                    dfuSize =  zipData.binBytes.size + zipData.datBytes.size
+                val asciiFile = Base64.encodeToString(fpga.bin, Base64.NO_WRAP)
+                var dfuSize = 0
+                if (zipData.binBytes != null && zipData.datBytes != null) {
+                    dfuSize = zipData.binBytes.size + zipData.datBytes.size
                     overlallSoftwareSize = dfuSize + asciiFile.length
                 }
                 // perform fpga update
                 println("[UPDATING TO VERSION] : ${fpga.version} [FILE SIZE] : ${asciiFile.length}")
-                return updateFPGA(asciiFile!!,dfuSize)
+                return updateFPGA(asciiFile!!, dfuSize)
             }
         }
         return "Updated"
     }
+
     private fun readFPGAFromAssets(): Fpga {
         val assetManager: AssetManager = applicationContext.assets
         val packageZips = assetManager.list("FPGA/")
-        if(!packageZips.isNullOrEmpty() ){
-            val fileName:String = packageZips.first()
-            val binFile =   assetManager.open("FPGA/${fileName}")
+        if (!packageZips.isNullOrEmpty()) {
+            val fileName: String = packageZips.first()
+            val binFile = assetManager.open("FPGA/${fileName}")
             val pattern = Regex("monocle-fpga-v(\\d+\\.\\d+\\.\\d+)\\.bin")
             val matchResult = pattern.find(fileName)
-            var version: String? =  matchResult?.groupValues?.get(1)
+            var version: String? = matchResult?.groupValues?.get(1)
             val byteData = binFile.readBytes()
             binFile.close()
-            return Fpga(byteData,version)
+            return Fpga(byteData, version)
         }
-        return Fpga(null,null)
+        return Fpga(null, null)
     }
-    suspend fun updateFPGA(asciiFile: String,dfuSize:Int):String {
+
+    suspend fun updateFPGA(asciiFile: String, dfuSize: Int): String {
         println("[Starting FPGA update]")
         replSendBle("import ubinascii, update, device, bluetooth, fpga")
 
@@ -1914,7 +2034,7 @@ class BaseActivity  : AppCompatActivity()  {
         var chk = 0
         while (chk < chunks) {
             // last chunk can be small
-            var thisChunk =  chunkSize
+            var thisChunk = chunkSize
             if (chk == chunks - 1 && asciiFile.length % chunkSize != 0) {
                 thisChunk = asciiFile.length % chunkSize
             }
@@ -1926,7 +2046,7 @@ class BaseActivity  : AppCompatActivity()  {
                 println("Retrying this chunk")
                 continue
             }
-            if(response==""){
+            if (response == "") {
                 break
                 return "Failed"
             }
@@ -1934,7 +2054,7 @@ class BaseActivity  : AppCompatActivity()  {
             chk++
             val perc = (100 / asciiFile.length.toDouble()) * chk * chunkSize
             println("[ PERCENT DONE ]: $perc")
-            firmwareUpdateProgress(perc,dfuSize, chk * chunkSize)
+            firmwareUpdateProgress(perc, dfuSize, chk * chunkSize)
         }
 
         replSendBle("update.Fpga.write(b'done')")
@@ -1948,7 +2068,7 @@ class BaseActivity  : AppCompatActivity()  {
 
     // DFU COMMUNICATION
     @SuppressLint("MissingPermission")
-    private fun nordicControlWrite( data : ByteArray,resultDeferred: CompletableDeferred<String>){
+    private fun nordicControlWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
 
         val characteristic = nordicControlCharacteristic
         if (bluetoothGatt != null && characteristic != null) {
@@ -1964,10 +2084,10 @@ class BaseActivity  : AppCompatActivity()  {
 
                 characteristic.value = chunkData.toByteArray()
                 writingREPLProgress = true
-                if(bluetoothGatt != null){
+                if (bluetoothGatt != null) {
 
                     bluetoothGatt!!.writeCharacteristic(characteristic)
-                }else{
+                } else {
                     break
                     resultDeferred.complete("Done")
                 }
@@ -1977,8 +2097,9 @@ class BaseActivity  : AppCompatActivity()  {
         }
         resultDeferred.complete("Done")
     }
+
     @SuppressLint("MissingPermission")
-    private fun nordicPacketWrite( data : ByteArray,resultDeferred: CompletableDeferred<String>){
+    private fun nordicPacketWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
 
         val characteristic = nordicPacketCharacteristic
         if (bluetoothGatt != null && characteristic != null) {
@@ -1994,10 +2115,10 @@ class BaseActivity  : AppCompatActivity()  {
 
                 characteristic.value = chunkData.toByteArray()
                 writingREPLProgress = true
-                if(bluetoothGatt != null){
+                if (bluetoothGatt != null) {
 
                     bluetoothGatt!!.writeCharacteristic(characteristic)
-                }else{
+                } else {
                     break
                     resultDeferred.complete("Done")
                 }
@@ -2008,7 +2129,7 @@ class BaseActivity  : AppCompatActivity()  {
         resultDeferred.complete("Done")
     }
 
-    private suspend fun nordicControlSend(data: ByteArray):ByteArray{
+    private suspend fun nordicControlSend(data: ByteArray): ByteArray {
         return coroutineScope {
 
 
@@ -2034,7 +2155,7 @@ class BaseActivity  : AppCompatActivity()  {
             // Resolve if the response handler callback isn't called
             launch {
                 handler.postDelayed({
-                    if(!resultDeferred.isCompleted){
+                    if (!resultDeferred.isCompleted) {
                         resultDeferred.complete("")
                     }
                     if (!bleWriteComplete.isCompleted) {
@@ -2046,7 +2167,8 @@ class BaseActivity  : AppCompatActivity()  {
             bleWriteComplete.await()
         }
     }
-    private suspend fun nordicPacketSend(data: ByteArray):String{
+
+    private suspend fun nordicPacketSend(data: ByteArray): String {
         return coroutineScope {
             val resultDeferred = CompletableDeferred<String>()
             val handler = Handler(Looper.getMainLooper())
@@ -2056,7 +2178,7 @@ class BaseActivity  : AppCompatActivity()  {
             // Resolve if the response handler callback isn't called
             launch {
                 handler.postDelayed({
-                    if(!resultDeferred.isCompleted){
+                    if (!resultDeferred.isCompleted) {
                         resultDeferred.complete("")
                     }
                 }, 3000)
@@ -2068,18 +2190,19 @@ class BaseActivity  : AppCompatActivity()  {
 
     // MAIN FLOW AFTER CONNECTION TO DFU
     @SuppressLint("MissingPermission")
-    suspend fun startDfuProcess(){
+    suspend fun startDfuProcess() {
         val zipData = readFirmwareFromAssets()
-        val fpgaData  = readFPGAFromAssets()
+        val fpgaData = readFPGAFromAssets()
 
 //        currentDevice = bluetoothGatt!!.device.address
-        if(zipData.datBytes != null && zipData.binBytes != null){
-            if(fpgaData.bin != null){
-                val asciiFile = Base64.encodeToString(fpgaData.bin,Base64.NO_WRAP)
-                overlallSoftwareSize = zipData.binBytes.size + asciiFile.length + zipData.datBytes.size
+        if (zipData.datBytes != null && zipData.binBytes != null) {
+            if (fpgaData.bin != null) {
+                val asciiFile = Base64.encodeToString(fpgaData.bin, Base64.NO_WRAP)
+                overlallSoftwareSize =
+                    zipData.binBytes.size + asciiFile.length + zipData.datBytes.size
             }
-            transferFile(zipData.datBytes,"init")
-            transferFile(zipData.binBytes,"image")
+            transferFile(zipData.datBytes, "init")
+            transferFile(zipData.binBytes, "image")
             println("[NORDIC FIRMWARE UPDATE COMPLETE]")
 
 //            updateProgressDialog("Monocle Found", "Connect")
@@ -2088,24 +2211,25 @@ class BaseActivity  : AppCompatActivity()  {
         }
     }
 
-    private fun firmwareUpdateProgress(perc:Double,fileSize:Int=0,offset:Int){
-        var chunkComplete = offset+fileSize
-        overlallSoftwareProgress =  ((100.0 / overlallSoftwareSize) * chunkComplete).toInt()
+    private fun firmwareUpdateProgress(perc: Double, fileSize: Int = 0, offset: Int) {
+        var chunkComplete = offset + fileSize
+        overlallSoftwareProgress = ((100.0 / overlallSoftwareSize) * chunkComplete).toInt()
         updateProgressDialog("Updating software ${overlallSoftwareProgress}%", "Keep the app open")
     }
+
     private fun readFirmwareFromAssets(): ExtractedData {
         val assetManager: AssetManager = applicationContext.assets
         val packageZips = assetManager.list("Firmware/")
-        if(!packageZips.isNullOrEmpty() ){
-            val zipFile =   assetManager.open("Firmware/${packageZips.first()}")
+        if (!packageZips.isNullOrEmpty()) {
+            val zipFile = assetManager.open("Firmware/${packageZips.first()}")
             val zipInputStream = ZipInputStream(zipFile)
             var entry: ZipEntry?
             var datBytes: ByteArray? = null
             var binBytes: ByteArray? = null
-            val fileName:String = packageZips.first()
+            val fileName: String = packageZips.first()
             val pattern = Regex("monocle-micropython-v(\\d+\\.\\d+\\.\\d+)\\.zip")
             val matchResult = pattern.find(fileName)
-            var version: String? =  matchResult?.groupValues?.get(1)
+            var version: String? = matchResult?.groupValues?.get(1)
             while (zipInputStream.nextEntry.also { entry = it } != null) {
 
                 when (entry!!.name) {
@@ -2114,14 +2238,17 @@ class BaseActivity  : AppCompatActivity()  {
                         val manifest = String(manifestBytes, Charsets.UTF_8)
                         // Process the manifest JSON string
                     }
+
                     "application.dat" -> {
                         datBytes = zipInputStream.readBytes()
                         // Process the datBytes array
                     }
+
                     "application.bin" -> {
                         binBytes = zipInputStream.readBytes()
                         // Process the binBytes array
                     }
+
                     else -> {
                         // Handle other files if needed
                     }
@@ -2136,7 +2263,7 @@ class BaseActivity  : AppCompatActivity()  {
         return ExtractedData(null, null, null)
     }
 
-    suspend fun transferFile(data:ByteArray,fileType:String){
+    suspend fun transferFile(data: ByteArray, fileType: String) {
         var response: ByteArray
         // Select command
         response = when (fileType) {
@@ -2152,14 +2279,14 @@ class BaseActivity  : AppCompatActivity()  {
 
             else -> return // Invalid file type
         }
-        if(response.isEmpty()){
+        if (response.isEmpty()) {
             println("[TRANSFER FAILED]:$fileType")
             return
         }
         val fileSize = data.size
 
         println("fileSize: $fileSize")
-        val responseBuffer:ByteBuffer = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN)
+        val responseBuffer: ByteBuffer = ByteBuffer.wrap(response).order(ByteOrder.LITTLE_ENDIAN)
         val maxSize = responseBuffer.getInt(3)
         val offset = responseBuffer.getInt(7)
         val crc = responseBuffer.getInt(11)
@@ -2192,8 +2319,8 @@ class BaseActivity  : AppCompatActivity()  {
             )
 
             when (fileType) {
-                "init" -> nordicControlSend(byteArrayOf(0x01, 0x01)+chunkSizeAsBytes)
-                "image" -> nordicControlSend(byteArrayOf(0x01, 0x02)+ chunkSizeAsBytes)
+                "init" -> nordicControlSend(byteArrayOf(0x01, 0x01) + chunkSizeAsBytes)
+                "image" -> nordicControlSend(byteArrayOf(0x01, 0x02) + chunkSizeAsBytes)
             }
 
             val currentOffset = fileOffset
@@ -2202,7 +2329,7 @@ class BaseActivity  : AppCompatActivity()  {
             fileOffset += fileSlice.size
             nordicPacketSend(fileSlice)
             response = nordicControlSend(byteArrayOf(0x03))
-            if(response.isEmpty()){
+            if (response.isEmpty()) {
                 println("[TRANSFER FAILED]:$fileType")
                 return
             }
@@ -2213,17 +2340,18 @@ class BaseActivity  : AppCompatActivity()  {
             println("returnedOffset: $returnedOffset, returnedCrc: $returnedCrc")
 
             if (returnedCrc != chunkCrc) {
-                fileOffset =currentOffset
-            }else{
+                fileOffset = currentOffset
+            } else {
                 val perc = (100.0 / fileSize) * fileOffset
                 println("[ PERCENT DONE ]: $perc")
-                firmwareUpdateProgress(perc,0,fileOffset)
+                firmwareUpdateProgress(perc, 0, fileOffset)
                 chk++
                 nordicControlSend(byteArrayOf(0x04))
             }
             // Execute command
         }
     }
+
     private fun crc32(data: ByteArray): Long {
         val crc32 = CRC32()
         crc32.update(data)
@@ -2232,46 +2360,46 @@ class BaseActivity  : AppCompatActivity()  {
 
 
     // for server api
-    private fun getGPTResult(file:File){
+    private fun getGPTResult(file: File) {
         var client = OkHttpClient()
         val mediaType = "application/octet-stream".toMediaType()
         println("[SERVER GPT: start]")
         val body = MultipartBody.Builder().setType((MultipartBody.FORM))
-            .addFormDataPart("audio",file.absolutePath,file.asRequestBody(mediaType))
-            .addFormDataPart("apiKey",apiKey)
+            .addFormDataPart("audio", file.absolutePath, file.asRequestBody(mediaType))
+            .addFormDataPart("apiKey", apiKey)
             .build()
         val req = Request.Builder().url(BACKEND_URL).post(body).build()
         val response = client.newCall(req).execute()
         println("[SERVER GPT: complete]")
-        if (response.isSuccessful && response.body !=null){
+        if (response.isSuccessful && response.body != null) {
 
             val jsonResponse: String = response.body!!.string()
-            if(jsonResponse !=null){
+            if (jsonResponse != null) {
                 val jsonObject = JSONObject(jsonResponse)
-                if(jsonObject.has("message")){
-                    sendChatGptResponce(jsonObject.get("message").toString(),"err:")
+                if (jsonObject.has("message")) {
+                    sendChatGptResponce(jsonObject.get("message").toString(), "err:")
                 }
-                if(jsonObject.has("transcript")){
-                    updatechatList("S",jsonObject.get("transcript").toString())
+                if (jsonObject.has("transcript")) {
+                    updatechatList("S", jsonObject.get("transcript").toString())
                 }
-                if(jsonObject.has("reply")){
-                    sendChatGptResponce(jsonObject.get("reply").toString(),"res:")
+                if (jsonObject.has("reply")) {
+                    sendChatGptResponce(jsonObject.get("reply").toString(), "res:")
                 }
             }
-        }else{
+        } else {
             val jsonResponse: String = response.body!!.string()
-            if(jsonResponse !=null){
+            if (jsonResponse != null) {
                 val jsonObject = JSONObject(jsonResponse)
-                if(jsonObject.has("message")){
-                    var msg  = jsonObject.get("message")
+                if (jsonObject.has("message")) {
+                    var msg = jsonObject.get("message")
                     try {
                         // Code that might throw an exception
-                        msg  = JSONObject(jsonObject.get("message").toString()).get("message")
+                        msg = JSONObject(jsonObject.get("message").toString()).get("message")
 
                     } catch (e: Exception) {
                         // Code to handle the exception
                     } finally {
-                        sendChatGptResponce(msg.toString(),"err:")
+                        sendChatGptResponce(msg.toString(), "err:")
                         // Code that will be executed regardless of whether an exception occurred or not
                     }
 

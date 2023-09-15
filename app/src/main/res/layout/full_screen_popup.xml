@@ -11,13 +11,29 @@
         android:background="@android:color/transparent"
         android:elevation="0dp">
 
-        <!-- Back Icon -->
-        <ImageView
-            android:id="@+id/backIcon"
-            android:layout_width="@dimen/_35pxh"
-            android:layout_height="@dimen/_35pxh"
-            android:layout_gravity="start"
-            android:src="@drawable/baseline_arrow_back_50" /> <!-- Replace with your back arrow drawable -->
+     <RelativeLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:paddingRight="@dimen/_12sp">
+         <!-- Back Icon -->
+         <ImageView
+             android:id="@+id/backIcon"
+             android:layout_width="@dimen/_35pxh"
+             android:layout_height="@dimen/_35pxh"
+             android:layout_gravity="start"
+             android:layout_alignParentLeft="true"
+             android:src="@drawable/baseline_arrow_back_50" />
+         <!-- Replace with your back arrow drawable -->
+
+         <ImageView
+             android:id="@+id/download"
+             android:layout_width="@dimen/_35pxh"
+             android:layout_height="@dimen/_35pxh"
+             android:layout_gravity="start"
+             android:layout_alignParentRight="true"
+             android:src="@drawable/download_24" />
+
+     </RelativeLayout>
 
     </androidx.appcompat.widget.Toolbar>
 

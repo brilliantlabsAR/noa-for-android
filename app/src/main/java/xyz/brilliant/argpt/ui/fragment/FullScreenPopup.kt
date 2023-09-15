@@ -13,6 +13,9 @@ import android.view.ViewGroup.LayoutParams
 import android.widget.ImageView
 import android.widget.Toast
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import xyz.brilliant.argpt.R
 import java.io.File
 import java.io.FileOutputStream
@@ -34,7 +37,7 @@ class FullScreenPopup(context: Context, private val imageUrl: String,private val
         // Load and display the image using Glide or your preferred image-loading library
         val fullScreenImageView = findViewById<ImageView>(R.id.fullScreenImageView)
         val backIcon = findViewById<ImageView>(R.id.backIcon)
-
+        val downloadButton = findViewById<ImageView>(R.id.download)
         backIcon.setOnClickListener {
             dismiss()
         }
@@ -42,28 +45,70 @@ class FullScreenPopup(context: Context, private val imageUrl: String,private val
         if(imageUrl.isNullOrEmpty())
         {
             fullScreenImageView.setImageBitmap(bitmap)
-
-            downloadAndSaveImage(bitmap!!)
+            downloadButton.setOnClickListener {
+                if(bitmap!=null) downloadAndSaveImage(bitmap)
+            }
         }
         else {
             Glide.with(context)
                 .load(imageUrl)
                 .into(fullScreenImageView)
-            downloadAndSaveImage(imageUrl)
+
+            downloadButton.setOnClickListener {
+
+                val job = GlobalScope.launch(Dispatchers.Default){
+                    downloadAndSaveImage(imageUrl)
+                }
+
+
+            }
+
         }
 
       //  downloadAndSaveImage(fullScreenImageView)
     }
 
 
-    private fun downloadAndSaveImage(imageUrl: String) {
+
+    private fun downloadAndSaveImage(bitmap: Bitmap) {
+        var savedSuccessfully: Boolean = false
         val directory =
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyApp")
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Noa")
         if (!directory.exists()) {
             directory.mkdirs()
         }
 
-        val fileName = "my_image.jpg"
+        val fileName = "IMG_"+System.currentTimeMillis()+".jpg"
+        val file = File(directory, fileName)
+
+        try {
+            val fos = FileOutputStream(file)
+            savedSuccessfully = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+            fos.flush()
+            fos.close()
+
+            // Update the gallery
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(file.toString()),
+                arrayOf("image/jpeg"),
+                null
+            )
+            if(savedSuccessfully) Toast.makeText(context,"Image saved",Toast.LENGTH_SHORT).show()
+            else Toast.makeText(context,"Unable to save the image",Toast.LENGTH_SHORT).show()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun downloadAndSaveImage(imageUrl: String) {
+        val directory =
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Noa")
+        if (!directory.exists()) {
+            directory.mkdirs()
+        }
+
+        val fileName = "IMG_"+System.currentTimeMillis()+".jpg"
         val file = File(directory, fileName)
 
         try {
@@ -87,40 +132,22 @@ class FullScreenPopup(context: Context, private val imageUrl: String,private val
                 arrayOf("image/jpeg"),
                 null
             )
+
+            //For Show the toast from main thread
+            GlobalScope.launch(Dispatchers.Main){
+                Toast.makeText(context,"Image saved",Toast.LENGTH_SHORT).show()
+            }
+
         } catch (e: IOException) {
             e.printStackTrace()
-            Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+            //For Show the toast from main thread
+            GlobalScope.launch(Dispatchers.Main){
+                Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+            }
+
         }
     }
 
-    private fun downloadAndSaveImage(bitmap: Bitmap) {
-        val directory =
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyApp")
-        if (!directory.exists()) {
-            directory.mkdirs()
-        }
-
-        val fileName = "my_image.jpg"
-        val file = File(directory, fileName)
-
-        try {
-            val fos = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-            fos.flush()
-            fos.close()
-
-            // Update the gallery
-            MediaScannerConnection.scanFile(
-                context,
-                arrayOf(file.toString()),
-                arrayOf("image/jpeg"),
-                null
-            )
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
-        }
-    }
 
 
 

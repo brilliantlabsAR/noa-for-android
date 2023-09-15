@@ -7,7 +7,7 @@ class Graphics:
     def __init__(self):
         self.MAX_LINES = 7
         self.WORD_SPEED = 300
-        self.FRAME_RATE = 20
+        self.FRAME_RATE = 15
         self.error_flag = False
         self.done_printing = False
         self.__current_response = ""
