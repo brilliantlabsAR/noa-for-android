@@ -20,7 +20,7 @@
             android:text="@string/top_name"
             android:lineSpacingExtra="-16sp"
             android:textSize="12sp"
-            android:textColor="@color/black"
+
             android:gravity="center_horizontal|center_vertical"
             />
         <TextView
@@ -32,24 +32,24 @@
             android:text="@string/app_name"
             android:lineSpacingExtra="-16sp"
             android:textSize="32sp"
-            android:textColor="@color/black"
+            android:textColor="@color/text_Color"
             android:gravity="center_horizontal|center_vertical"
             />
+
         <TextView
             android:id="@+id/let_s_pair_"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_marginLeft="38dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="38dp"
             android:layout_alignParentTop="true"
-            android:layout_marginTop="198dp"
-            android:text="@string/let_s_pair_"
-            android:textColor="@color/black"
-            android:textSize="15sp"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="36dp"
+            android:layout_marginTop="199dp"
+            android:layout_marginRight="40dp"
             android:gravity="top"
-            />
+            android:text="@string/let_s_pair_"
+            android:textColor="@color/text_Color"
+            android:textSize="15sp" />
     </RelativeLayout>
 
     <TextView
@@ -57,11 +57,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:gravity="center"
         android:autoLink="web"
+        android:gravity="center"
         android:linksClickable="true"
         android:text="@string/privacy_policy2"
-        android:textColor="@color/black"
+        android:textColor="@color/text_Color"
         android:textSize="14sp" />
 
     <Button
@@ -81,6 +81,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="@drawable/square_gray_background_for_pairing"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:layout_marginBottom="-35dp"
@@ -91,7 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="visible"
-            android:background="@drawable/square_white_background">
+            android:background="@color/white">
 
             <TextView
                 android:id="@+id/deviceCloseTextView"
@@ -124,7 +125,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_marginBottom="20dp"
-                android:background="@drawable/square_gray_background">
+                android:background="@drawable/square_gray_background_for_pairing">
                 <TextView
                     android:id="@+id/popUpbtn"
                     android:layout_width="wrap_content"

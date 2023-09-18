@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/layoutMsg"
+
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/backgroundLayout"
     xmlns:tools="http://schemas.android.com/tools"
@@ -21,6 +21,7 @@
             android:layout_gravity="end"
             android:orientation="vertical">
         <LinearLayout
+            android:id="@+id/layoutMsg"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="end"
@@ -40,23 +41,22 @@
                 android:visibility="gone" />
 
 
-
-                <TextView
-                    android:id="@+id/messageText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="12dp"
-                    android:autoLink="all"
-                    android:maxWidth="@dimen/_300sp"
-                    android:paddingLeft="@dimen/_20sp"
-                    android:paddingTop="6dp"
-                    android:paddingRight="12dp"
-                    android:paddingBottom="@dimen/_10sp"
-                    android:textColorLink="#E85DA0"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    tools:text="This is a message" />
+            <TextView
+                android:id="@+id/messageText"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_marginEnd="12dp"
+                android:autoLink="all"
+                android:maxWidth="@dimen/_300sp"
+                android:paddingLeft="@dimen/_20sp"
+                android:paddingTop="6dp"
+                android:paddingRight="12dp"
+                android:paddingBottom="@dimen/_10sp"
+                android:textColor="@android:color/white"
+                android:textColorLink="#E85DA0"
+                android:textSize="16sp"
+                tools:text="This is a message" />
 
 
 
