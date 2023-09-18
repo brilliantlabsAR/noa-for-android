@@ -48,5 +48,5 @@
     <string name="privacy_policy2">Be sure to read our <![CDATA[<a href="https://brilliant.xyz/pages/privacy-policy" style="color:#E82E87">Privacy Policy</a>]]>, as well as <![CDATA[<a href="https://brilliant.xyz/pages/terms-conditions" style="color:#E82E87">Terms and Conditions</a>]]> before using arGPT</string>
 
     <string name="privecy_txt" >Be sure to read our<a href="privacy"><font color="#E82E87"> Privacy Policy</font></a>, as well as\n <a href="terms"><font color="#E82E87">Terms and Conditions</font></a> before using arGPT</string>
-
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
