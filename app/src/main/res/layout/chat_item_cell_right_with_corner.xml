@@ -63,7 +63,7 @@
 
         </LinearLayout>
         <ImageView
-            android:layout_marginTop="-5dp"
+            android:layout_marginTop="-8dp"
             android:layout_marginEnd="@dimen/_25sp"
             android:layout_width="@dimen/_12sp"
             android:layout_height="16dp"

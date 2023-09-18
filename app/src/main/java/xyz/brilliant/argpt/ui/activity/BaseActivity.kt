@@ -264,6 +264,9 @@ class BaseActivity : AppCompatActivity() {
             if (apiKey.isEmpty()) {
                 apiKey = getStoredApiKey()
             }
+            if(stabilityApiKey.isEmpty()){
+                stabilityApiKey =  getStoredStabilityApiKey()
+            }
             if (storedDeviceAddress.isNullOrBlank()) {
                 currentAppState = AppState.FIRST_PAIR
                 val fragment = ScanningFragment()
@@ -1026,6 +1029,7 @@ class BaseActivity : AppCompatActivity() {
 
         if (status == "ist:") {
             imageBuffer = byteArrayOf(0)
+            audioBuffer = byteArrayOf(0)
             println("[NEW_Image Starting to come]\n")
         }
         if (status == "idt:") {
@@ -1092,7 +1096,9 @@ class BaseActivity : AppCompatActivity() {
             audioJob = CoroutineScope(Dispatchers.IO).launch {
                 val path = applicationContext.filesDir
                 val f2 = File(path, "test.wav")
-                f2.absolutePath
+                if(f2.exists()){
+                    f2.delete()
+                }
                 try {
                     rawToWave(
                         signed8ToUnsigned16(audioBuffer),
@@ -1270,6 +1276,7 @@ class BaseActivity : AppCompatActivity() {
 
         } finally {
             output?.close()
+            audioBuffer = byteArrayOf(0)
             callback(true)
         }
 
@@ -1809,9 +1816,9 @@ class BaseActivity : AppCompatActivity() {
                 "R",
                 "To use the camera capture feature, you’ll\n" +
                         "need a Stable Diffusion key. Get one\n" +
-                        "here: https://key.stabediffusion.com",
+                        "here: https://platform.stability.ai/",
                 false,
-                getThumbnailUrl("https://key.stabediffusion.com")
+                getThumbnailUrl("https://platform.stability.ai/")
             ),
             ChatModel(
                 1, "R", "Tap either of the touch pads and speak.\n" +
