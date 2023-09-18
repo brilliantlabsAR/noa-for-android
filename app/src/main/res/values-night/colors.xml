@@ -28,11 +28,11 @@
     <color name="switch_checked_color">#57C7AA</color>
     <color name="switch_default_color">#787880</color>
 
-    <color name="text_Color">#000000</color>
-    <color name="message_background">#E9E9EB</color>
-    <color name="chat_background">#FFFFFF</color>
-    <color name="chat_background_stroke">#BDBDBD</color>
-    <color name="status_bar_color">@android:color/transparent</color>
-    <color name="layout_color">#F5F5F5</color>
+    <color name="text_Color">#F3F2F2</color>
+    <color name="message_background">#1B1C1E</color>
+    <color name="chat_background">#000000</color>
+    <color name="chat_background_stroke">#5E5E5E</color>
+    <color name="status_bar_color">#0C0C0C</color>
+    <color name="layout_color">#1D1D1F</color>
 
 </resources>

@@ -315,7 +315,7 @@ class BaseActivity : AppCompatActivity() {
         Manifest.permission.BLUETOOTH_CONNECT,
         Manifest.permission.BLUETOOTH_SCAN,
         Manifest.permission.FOREGROUND_SERVICE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
+        //Manifest.permission.WRITE_EXTERNAL_STORAGE
 
     )
 
@@ -326,7 +326,7 @@ class BaseActivity : AppCompatActivity() {
         Manifest.permission.BLUETOOTH,
         Manifest.permission.BLUETOOTH_ADMIN,
         Manifest.permission.FOREGROUND_SERVICE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
+       // Manifest.permission.WRITE_EXTERNAL_STORAGE
 
     )
 
@@ -1763,6 +1763,7 @@ class BaseActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             e.printStackTrace()
+            return "";
         }
 
         // Return null if no thumbnail URL found or an error occurred

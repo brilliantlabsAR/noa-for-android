@@ -4,14 +4,14 @@
     android:layout_height="wrap_content"
     android:id="@+id/layoutMsg"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/white_background"
+    style="@style/backgroundLayout"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:background="@color/white_background"
+        style="@style/backgroundLayout"
         android:layout_marginBottom="5dp"
         android:orientation="vertical">
 
@@ -19,26 +19,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
             android:layout_marginStart="@dimen/_40sp"
             android:layout_marginEnd="@dimen/_25sp"
             android:background="@drawable/chat_right"
             android:orientation="vertical">
-            <TextView
-                android:id="@+id/timeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:visibility="gone"
-                android:textSize="12sp"
-                tools:text="11:40" />
+
             <ImageView
                 android:id="@+id/cht_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="@dimen/_12sp"
                 android:paddingVertical="@dimen/_10sp"
+                android:minHeight="@dimen/_100pxh"
                 android:scaleType="fitXY"
-                android:src="@drawable/openai_website"
                 android:visibility="gone" />
 
 
@@ -72,5 +70,6 @@
             android:layout_gravity="end"
             android:background="@drawable/corner_green"
             />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

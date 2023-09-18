@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:alpha="0.96"
     android:background="@drawable/square_gray_background">
     <TextView
         android:id="@+id/descriptionTextView"
@@ -9,7 +10,7 @@
         android:layout_height="wrap_content"
         android:text="Enter your OpenAI API key"
         android:textSize="16sp"
-        android:textColor="@color/black"
+        android:textColor="@color/text_Color"
         android:textStyle="bold"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp" />
@@ -23,7 +24,7 @@
         android:gravity="center"
         android:text="Create your keys on platform.openai.com"
         android:textSize="14sp"
-        android:textColor="@color/black"
+        android:textColor="@color/text_Color"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp" />
 
@@ -74,7 +75,7 @@
         android:gravity="center"
         android:text="Create your keys on platform.stability.ai"
         android:textSize="14sp"
-        android:textColor="@color/black"
+        android:textColor="@color/text_Color"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp" />
 
@@ -147,26 +148,5 @@
 
         </LinearLayout>
     </LinearLayout>
-<!--    <Button-->
-<!--        android:id="@+id/cancelButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Cancel"-->
-<!--        android:layout_below="@id/inputEditText"-->
-<!--        android:layout_alignParentStart="true"-->
-<!--        android:layout_marginStart="16dp"-->
-<!--        android:layout_marginTop="16dp"-->
-<!--        android:layout_marginBottom="16dp" />-->
-
-<!--    <Button-->
-<!--        android:id="@+id/confirmButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Confirm"-->
-<!--        android:layout_below="@id/inputEditText"-->
-<!--        android:layout_alignParentEnd="true"-->
-<!--        android:layout_marginEnd="16dp"-->
-<!--        android:layout_marginTop="16dp"-->
-<!--        android:layout_marginBottom="16dp" />-->
 
 </RelativeLayout>

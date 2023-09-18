@@ -8,10 +8,7 @@
         <item name="android:background">@color/black_overlay</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
-    <style name="FullScreenStyle" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-    </style>
+
     <style name="TransparentDialog" parent="Theme.AppCompat.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">true</item>
@@ -20,4 +17,6 @@
     <style name="groupStyleteal_300cornerRadius">
         <item name="android:background">@drawable/rectangle_bg_teal_300_radius_18</item>
     </style>
+
+
 </resources>

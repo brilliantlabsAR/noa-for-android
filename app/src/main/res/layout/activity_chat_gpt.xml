@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/white_background">
+    style="@style/backgroundLayout">
 
 
 
@@ -12,7 +12,7 @@
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="@dimen/_15pxh">
 
         <TextView
@@ -25,7 +25,7 @@
             android:lineSpacingExtra="-16sp"
             android:textSize="20sp"
             android:layout_marginBottom="@dimen/_10pxh"
-            android:textColor="@color/black"
+            style="@style/customTextStyle"
             />
         <ImageView
             android:id="@+id/settingBtn"
@@ -41,13 +41,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/topPanel"
-
+        style="@style/backgroundLayout"
         android:id="@+id/scrollView"
         android:layout_above="@id/connectivityRegion">
         <androidx.recyclerview.widget.RecyclerView
             android:layout_alignParentBottom="true"
             android:id="@+id/chatView"
             android:layout_width="match_parent"
+            android:visibility="visible"
+            android:background="@color/layout_color"
             android:layout_height="wrap_content"/>
     </RelativeLayout>
 
@@ -59,6 +61,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:layout_marginBottom="6dp"
+        style="@style/backgroundLayout"
         android:padding="7dp">
 
         <!--        <TextView-->
@@ -122,10 +125,5 @@
 
 
     </RelativeLayout>
-
-
-
-
-
 
 </RelativeLayout>

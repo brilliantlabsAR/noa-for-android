@@ -5,14 +5,13 @@
     android:orientation="vertical"
     android:id="@+id/layoutMsg"
     android:layout_width="match_parent"
-
     android:maxWidth="@dimen/_300sp"
-    android:background="@color/white_background"
+    style="@style/backgroundLayout"
     android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white_background"
+        style="@style/backgroundLayout"
         android:layout_marginTop="@dimen/_2sp"
         android:layout_marginBottom="2dp"
         android:layout_marginEnd="@dimen/_40sp"
@@ -49,8 +48,8 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="@dimen/_12sp"
                     android:paddingVertical="@dimen/_10sp"
+                    android:minHeight="@dimen/_100pxh"
                     android:scaleType="fitXY"
-                    android:src="@drawable/openai_website"
                     android:visibility="gone" />
 
                 <TextView
@@ -63,9 +62,10 @@
             android:paddingTop="6dp"
             android:paddingRight="12dp"
             android:autoLink="web"
+
             android:textColorLink="#E85DA0"
             android:paddingBottom="6dp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/text_Color"
             android:textSize="16sp"
             tools:text="This is a message" />
             </LinearLayout>

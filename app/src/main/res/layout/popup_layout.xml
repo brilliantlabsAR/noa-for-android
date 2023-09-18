@@ -23,9 +23,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Change API Key"
+            android:text="Manage API Key"
             android:textSize="16sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/text_Color"
             android:layout_gravity="center"/>
 
         <Space
@@ -39,7 +39,7 @@
             android:layout_marginStart="25dp"
             android:src="@drawable/unpair"
             android:layout_gravity="center"
-            app:tint="@color/black" />
+            app:tint="@color/text_Color" />
     </LinearLayout>
 
     <View
@@ -60,7 +60,7 @@
             android:layout_height="wrap_content"
             android:text="Translate"
             android:textSize="16sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/text_Color"
             android:layout_gravity="center"/>
 
         <Space

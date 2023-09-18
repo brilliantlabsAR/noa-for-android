@@ -8,7 +8,7 @@
             android:toDegrees="45"
             >
             <shape android:shape="rectangle">
-                <solid android:color="#E9E9EB"/>
+                <solid android:color="@color/message_background"/>
 
             </shape>
         </rotate>
