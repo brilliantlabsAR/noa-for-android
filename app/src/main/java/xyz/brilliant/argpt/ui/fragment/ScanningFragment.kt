@@ -114,13 +114,13 @@ class ScanningFragment : Fragment() {
         myString.setSpan(clickableSpan, 20, 34, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(clickableSpan1, 48, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(
-            ForegroundColorSpan(Color.parseColor("#F15d36")),
+            ForegroundColorSpan(Color.parseColor("#E82E87")),
             20,
             34,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         myString.setSpan(
-            ForegroundColorSpan(Color.parseColor("#F15d36")),
+            ForegroundColorSpan(Color.parseColor("#E82E87")),
             48,
             68,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

@@ -785,7 +785,7 @@ class BaseActivity : AppCompatActivity() {
                 gatt.requestMtu(GATT_MAX_MTU_SIZE)
                 // Handler(Looper.getMainLooper()).post {
                 if (currentAppState == AppState.FIRST_PAIR) {
-                    updateProgressDialog("Checking sofware update.", "Keep the app open")
+                    updateProgressDialog("Checking software update.", "Keep the app open")
                 }
                 if (currentAppState == AppState.SOFTWARE_UPDATE || currentAppState == AppState.FPGA_UPDATE) {
                     updateProgressDialog(
