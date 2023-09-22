@@ -124,7 +124,7 @@
                 android:layout_marginRight="5dp"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="2sp"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:scaleType="centerCrop"
                 android:src="@drawable/attach_image_24" />
             <ImageView

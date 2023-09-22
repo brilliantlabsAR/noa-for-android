@@ -538,13 +538,7 @@ class BaseActivity : AppCompatActivity() {
                             ""
                         )
                     }else{
-                        updatechatList(
-                            1,
-                            "S",
-                            "Make this image black and white",
-                            ""
-                        )
-                        callStabilityAiImagetoImage("Animate this image")
+
                     }
                 }
             } else if(resultCode == RESULT_CANCELED) {
@@ -1535,11 +1529,12 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun getResponse(question: String) {
-        try {
+        if(globalJpegFilePath.isNullOrEmpty()) {
+            try {
 
-            val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
+                val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
 
-            val requestBody = """
+                val requestBody = """
             {
             "prompt": "$question",
             "max_tokens": 500,
@@ -1547,48 +1542,51 @@ class BaseActivity : AppCompatActivity() {
             }
         """.trimIndent()
 
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer $apiKey")
-                .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
+                    .build()
 
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("error", "API failed", e)
-                    updatechatList("R", e.message.toString())
+                client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        Log.e("error", "API failed", e)
+                        updatechatList("R", e.message.toString())
 
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val body = response.body?.string()
-                    if (body != null) {
-                        Log.v("data", body)
-                    } else {
-                        Log.v("data", "empty")
                     }
-                    val jsonObject = JSONObject(body)
-                    Log.d("TAG", "onResponse: " + jsonObject)
 
-                    if (jsonObject.has("id")) {
-                        val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                        val textResult = jsonArray.getJSONObject(0).getString("text")
+                    override fun onResponse(call: Call, response: Response) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            Log.v("data", body)
+                        } else {
+                            Log.v("data", "empty")
+                        }
+                        val jsonObject = JSONObject(body)
+                        Log.d("TAG", "onResponse: " + jsonObject)
 
-                        sendChatGptResponce(textResult, "res:")
+                        if (jsonObject.has("id")) {
+                            val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
+                            val textResult = jsonArray.getJSONObject(0).getString("text")
+
+                            sendChatGptResponce(textResult, "res:")
 //                        callback(textResult)
-                    } else {
-                        val error: JSONObject = jsonObject.getJSONObject("error")
-                        val msg: String = error.getString("message")
+                        } else {
+                            val error: JSONObject = jsonObject.getJSONObject("error")
+                            val msg: String = error.getString("message")
 
-                        sendChatGptResponce(msg, "err:")
+                            sendChatGptResponce(msg, "err:")
 
+                        }
                     }
-                }
-            })
-        } catch (ex: Exception) {
-            sendChatGptResponce("getResponse: ${ex.message}", "err:")
-            Log.d("ChatGpt", "getResponse: $ex")
+                })
+            } catch (ex: Exception) {
+                sendChatGptResponce("getResponse: ${ex.message}", "err:")
+                Log.d("ChatGpt", "getResponse: $ex")
+            }
+        }else{
+            callStabilityAiImagetoImage(question)
         }
     }
 
