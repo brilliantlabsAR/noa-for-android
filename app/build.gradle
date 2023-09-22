@@ -10,8 +10,8 @@ android {
         applicationId 'xyz.brilliant.argpt'
         minSdk 24
         targetSdk 33
-        versionCode 7
-        versionName "1.1.005"
+        versionCode 8
+        versionName "1.1.006"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

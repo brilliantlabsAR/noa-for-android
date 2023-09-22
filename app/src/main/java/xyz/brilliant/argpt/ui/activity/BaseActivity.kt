@@ -1781,15 +1781,6 @@ class BaseActivity : AppCompatActivity() {
     public fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-        // Define a list of messages you want to pass to updateChatList
-        val messages = listOf(
-            "Hi, I’m Noa. Let’s show you around 🙂",
-            "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
-            "To use the camera capture feature, you’ll\n" +
-                    "need a Stable Diffusion key. Get one\n" +
-                    "here: https://key.stabediffusion.com"
-        )
-
         Log.d(
             "Drawable Image====>>>>>",
             BitmapFactory.decodeResource(
@@ -1821,14 +1812,30 @@ class BaseActivity : AppCompatActivity() {
                 getThumbnailUrl("https://platform.stability.ai/")
             ),
             ChatModel(
-                1, "R", "Tap either of the touch pads and speak.\n" +
-                        "I’ll then respond directly back to your\n" +
-                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
+                1, "R", "Tap either of the touch pads and speak.\n\n" +
+                        "Ask me any question, and I'll respond\n directly on uour Monocle.",
+                         false, getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
                     this@BaseActivity.getResources(),
                     R.drawable.monocle_single_tap
                 )
             ),
+            ChatModel(
+                1, "R", "Did you know that I’m a fantastic artist?\n" +
+                        "Hold any touch pad, and Monocle will \n" +
+                        "take a picture before listening.\n" +
+                        "\n" +
+                        "Ask me how to change the image, and \n" +
+                        "I’ll return back a new image right here in\n" +
+                        "the chat.",
+                false, getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.getResources(),
+                    R.drawable.monocle_single_tap
+                )
+            ),
+
+
             ChatModel(
                 1,
                 "R",
