@@ -3,8 +3,6 @@ package xyz.brilliant.argpt.ui.activity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -17,12 +15,14 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
+import android.content.ContentUris
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,13 +30,17 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
 import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -66,6 +70,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
@@ -75,6 +81,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -89,6 +96,9 @@ import kotlin.math.ceil
 class BaseActivity : AppCompatActivity() {
 
     companion object {
+
+        private val IMAGE_CHOOSE = 1000;
+        private val PERMISSION_CODE = 1005  ;
         private const val TAG = "BaseActivity"
         private const val REQUEST_FINE_LOCATION = 1001
         private const val PERMISSION_REQUEST_CODE = 5001
@@ -476,7 +486,8 @@ class BaseActivity : AppCompatActivity() {
 //                    Toast.LENGTH_SHORT
 //                ).show()
             }
-        } else if (requestCode == REQUEST_ENABLE_GPS) {
+        }
+        else if (requestCode == REQUEST_ENABLE_GPS) {
             if (resultCode == RESULT_OK) {
                 checkBluetoothAndGps()
             } else {
@@ -489,7 +500,8 @@ class BaseActivity : AppCompatActivity() {
 //                ).show()
                 // User didn't enable GPS, handle as needed
             }
-        } else if (requestCode == PERMISSION_REQUEST_CODE) {
+        }
+        else if (requestCode == PERMISSION_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
 
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
@@ -498,6 +510,51 @@ class BaseActivity : AppCompatActivity() {
             } else {
                 getAllPermission()
             }
+        }
+
+        //By Ayan
+        else if(requestCode == IMAGE_CHOOSE){
+            if(resultCode == RESULT_OK) {
+                //Toast.makeText(this, "image saved to:\n" + data!!.getData(), Toast.LENGTH_LONG).show();
+                globalJpegFilePath =  data!!.getData()!!.path
+                val options = BitmapFactory.Options()
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888
+                val imgFile = File(getFilePath(this,data!!.getData()!!))
+                bitmap =  BitmapFactory.decodeFile(imgFile.absolutePath, options)
+                bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+                if(bitmap!=null) {
+                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
+                    if (jpegFile != null) {
+                        globalJpegFilePath = jpegFile.absolutePath
+                        println("Path====> $globalJpegFilePath")
+                    }
+                    updatechatList(1, "S", "", bitmap!!)
+                    if (stabilityApiKey.isNullOrEmpty()) {
+                        globalJpegFilePath = null
+                        updatechatList(
+                            1,
+                            "R",
+                            "You have to enter stability API key for this feature!",
+                            ""
+                        )
+                    }else{
+                        updatechatList(
+                            1,
+                            "S",
+                            "Make this image black and white",
+                            ""
+                        )
+                        callStabilityAiImagetoImage("Animate this image")
+                    }
+                }
+            } else if(resultCode == RESULT_CANCELED) {
+                //user cancelled the image capture;
+                Toast.makeText(this@BaseActivity,"Canceled", Toast.LENGTH_SHORT).show()
+            } else {
+                //image capture failed, advise user;
+                Toast.makeText(this@BaseActivity,"Failed", Toast.LENGTH_SHORT).show()
+            }
+
         }
     }
 
@@ -529,6 +586,10 @@ class BaseActivity : AppCompatActivity() {
                 showPermissionPopup()
 
             }
+        }
+        //By Ayan
+        else if(requestCode == PERMISSION_CODE){
+            chooseImageGallery()
         }
     }
 
@@ -1171,6 +1232,12 @@ class BaseActivity : AppCompatActivity() {
             fragment.updatechatList(id, type, msg, image)
         }
     }
+    private fun updatechatListWithNetworkImg(id: Int,type: String, msg: String, image: String) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList(id, type, msg,image)
+        }
+    }
 
     private fun resizeBitmapToMultipleOf64(bitmap: Bitmap): Bitmap {
 // Get the original width and height of the bitmap
@@ -1781,6 +1848,15 @@ class BaseActivity : AppCompatActivity() {
     public fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
+        // Define a list of messages you want to pass to updateChatList
+        val messages = listOf(
+            "Hi, I’m Noa. Let’s show you around 🙂",
+            "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+            "To use the camera capture feature, you’ll\n" +
+                    "need a Stable Diffusion key. Get one\n" +
+                    "here: https://key.stabediffusion.com"
+        )
+
         Log.d(
             "Drawable Image====>>>>>",
             BitmapFactory.decodeResource(
@@ -1812,30 +1888,14 @@ class BaseActivity : AppCompatActivity() {
                 getThumbnailUrl("https://platform.stability.ai/")
             ),
             ChatModel(
-                1, "R", "Tap either of the touch pads and speak.\n\n" +
-                        "Ask me any question, and I'll respond\n directly on uour Monocle.",
-                         false, getThumbnailUrl("https://platform.openai.com"),
+                1, "R", "Tap either of the touch pads and speak.\n" +
+                        "I’ll then respond directly back to your\n" +
+                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
                     this@BaseActivity.getResources(),
                     R.drawable.monocle_single_tap
                 )
             ),
-            ChatModel(
-                1, "R", "Did you know that I’m a fantastic artist?\n" +
-                        "Hold any touch pad, and Monocle will \n" +
-                        "take a picture before listening.\n" +
-                        "\n" +
-                        "Ask me how to change the image, and \n" +
-                        "I’ll return back a new image right here in\n" +
-                        "the chat.",
-                false, getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_single_tap
-                )
-            ),
-
-
             ChatModel(
                 1,
                 "R",
@@ -1862,6 +1922,7 @@ class BaseActivity : AppCompatActivity() {
                     R.drawable.monocle_translate
                 )
             ),
+          //  ChatModel(1, "S", "Test Network Image",false,"https://www.vhv.rs/dpng/d/426-4263064_circle-avatar-png-picture-circle-avatar-image-png.png",),
 
             )
 
@@ -1869,8 +1930,11 @@ class BaseActivity : AppCompatActivity() {
         // Call updateChatList three times with different messages
         coroutineScope.launch {
             for (message in messagelist) {
-                updatechatList(message.id, "R", message.message, message.bitmap)
-                delay(3000) // Delay for 1 second between calls
+                if(!message.image.isNullOrEmpty())
+                    updatechatListWithNetworkImg(message.id,message.userInfo,message.message,message.image)
+                else
+                    updatechatList(message.id,message.userInfo,message.message,message.bitmap)
+                delay(1000) // Delay for 1 second between calls
             }
         }
     }
@@ -2423,4 +2487,114 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+public fun checkGalaryPermission(){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_DENIED) {
+                val permissions = arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+                requestPermissions(permissions, PERMISSION_CODE)
+            } else {
+                chooseImageGallery()
+            }
+        }else {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                requestPermissions(permissions, PERMISSION_CODE)
+            } else {
+                chooseImageGallery()
+            }
+        }
+    }else{
+        chooseImageGallery()
+    }
+}
+
+
+    //By Ayan
+    private fun chooseImageGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, IMAGE_CHOOSE)
+    }
+
+
+    //By Ayan
+    @SuppressLint("NewApi")
+    @Throws(URISyntaxException::class)
+    fun getFilePath(context: Context, uri: Uri): String? {
+        var uri = uri
+        var selection: String? = null
+        var selectionArgs: Array<String>? = null
+        // Uri is different in versions after KITKAT (Android 4.4), we need to
+        if (Build.VERSION.SDK_INT >= 19 && DocumentsContract.isDocumentUri(
+                context.applicationContext,
+                uri
+            )
+        ) {
+            if (isExternalStorageDocument(uri)) {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+                return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+            } else if (isDownloadsDocument(uri)) {
+                val id = DocumentsContract.getDocumentId(uri)
+                uri = ContentUris.withAppendedId(
+                    Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id)
+                )
+            } else if (isMediaDocument(uri)) {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+                val type = split[0]
+                if ("image" == type) {
+                    uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                } else if ("video" == type) {
+                    uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                } else if ("audio" == type) {
+                    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                }
+                selection = "_id=?"
+                selectionArgs = arrayOf(
+                    split[1]
+                )
+            }
+        }
+        if ("content".equals(uri.scheme, ignoreCase = true)) {
+            if (isGooglePhotosUri(uri)) {
+                return uri.lastPathSegment
+            }
+            val projection = arrayOf(
+                MediaStore.Images.Media.DATA
+            )
+            var cursor: Cursor? = null
+            try {
+                cursor = context.contentResolver
+                    .query(uri, projection, selection, selectionArgs, null)
+                val column_index = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                if (cursor.moveToFirst()) {
+                    return cursor.getString(column_index)
+                }
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+            }
+        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+            return uri.path
+        }
+        return null
+    }
+    fun isExternalStorageDocument(uri: Uri): Boolean {
+        return "com.android.externalstorage.documents" == uri.authority
+    }
+
+    fun isDownloadsDocument(uri: Uri): Boolean {
+        return "com.android.providers.downloads.documents" == uri.authority
+    }
+
+    fun isMediaDocument(uri: Uri): Boolean {
+        return "com.android.providers.media.documents" == uri.authority
+    }
+
+    fun isGooglePhotosUri(uri: Uri): Boolean {
+        return "com.google.android.apps.photos.content" == uri.authority
+    }
 }

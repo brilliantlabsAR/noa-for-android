@@ -6,8 +6,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/backgroundLayout">
 
-
-
     <RelativeLayout
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
@@ -104,7 +102,7 @@
             android:paddingBottom="5dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toStartOf="@+id/chatSend"
+            android:layout_toStartOf="@+id/ll_chatSend"
             android:background="@android:color/transparent"
             android:hint="@string/ask_question"
             android:textColorHint="@color/gray"
@@ -112,16 +110,34 @@
             android:singleLine="true"
             tools:ignore="Autofill" />
 
-        <ImageView
-            android:id="@+id/chatSend"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:scaleType="centerCrop"
-            android:padding="2dp"
+        <LinearLayout
+            android:id="@+id/ll_chatSend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true">
 
-            android:layout_alignParentEnd="true"
+            <ImageView
+                android:id="@+id/attachImage"
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="5dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="2sp"
+                android:visibility="gone"
+                android:scaleType="centerCrop"
+                android:src="@drawable/attach_image_24" />
+            <ImageView
+                android:id="@+id/chatSend"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:scaleType="centerCrop"
+                android:padding="2dp"
 
-            android:src="@drawable/send"/>
+
+                android:src="@drawable/send"/>
+
+        </LinearLayout>
 
 
     </RelativeLayout>

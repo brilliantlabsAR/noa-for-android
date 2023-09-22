@@ -37,10 +37,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 //    lateinit var idTVQuestion: TextView
     lateinit var etMessage: EditText
     lateinit var chatSend: ImageView
+    lateinit var attachImage: ImageView
     private lateinit var popupWindow: PopupWindow
     lateinit var voiceSend : ImageView
     lateinit var settingBtn: ImageView
     lateinit var mainView: RelativeLayout
+    //By Ayan
     lateinit var chatView: RecyclerView
     lateinit var chatAdapter: ChatAdapter
     lateinit var layoutManager: LinearLayoutManager
@@ -71,8 +73,10 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
         etMessage=mView.findViewById(R.id.etMessage)
         chatSend=mView.findViewById(R.id.chatSend)
-//        idTVQuestion=mView.findViewById(R.id.idTVQuestion)
-//        txtResponse=mView.findViewById(R.id.txtResponse)
+        //By Ayan
+        attachImage=mView.findViewById(R.id.attachImage)
+        // idTVQuestion=mView.findViewById(R.id.idTVQuestion)
+        // txtResponse=mView.findViewById(R.id.txtResponse)
         settingBtn=mView.findViewById(R.id.settingBtn)
         mainView=mView.findViewById(R.id.mainView)
         chatView=mView.findViewById(R.id.chatView)
@@ -93,18 +97,15 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
         etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-
                 // setting response tv on below line.
-//                txtResponse.text = "Please wait.."
-
+                // txtResponse.text = "Please wait.."
                 // validating text
                 val question = etMessage.text.toString().trim()
-              //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
+                //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
-
                     getResponse(question) { response ->
                         activity?.runOnUiThread {
-//                            txtResponse.text = response
+                // txtResponse.text = response
                         }
                     }
                 }
@@ -112,7 +113,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             }
             false
         })
-
 
 
         chatSend.setOnClickListener {
@@ -128,6 +128,10 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             }
         }
 
+        //By Ayan
+        attachImage.setOnClickListener {
+            parentActivity.checkGalaryPermission()
+        }
         settingBtn.setOnClickListener {
             //showAtAnchor(mainView)
             showPopup()
@@ -148,8 +152,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 val singleChat = ChatModel(1, type, msg.trim(),false)
                 chatMessages.add(singleChat)
             }
-
-
             scrollToBottom()
             chatAdapter.notifyDataSetChanged()
         }
