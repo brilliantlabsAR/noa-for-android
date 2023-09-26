@@ -39,6 +39,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -115,8 +116,7 @@ class BaseActivity : AppCompatActivity() {
         private val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
         private const val NORDIC_CONTROL_UUID = "8ec90001-f315-4f60-9fb8-838830daea50"
         private const val NORDIC_PACKET_UUID = "8ec90002-f315-4f60-9fb8-838830daea50"
-        private val FILES =
-            arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
+        private val FILES = arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
         private const val bitPerSample = 16
@@ -1795,11 +1795,16 @@ class BaseActivity : AppCompatActivity() {
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
 
+            handler.postDelayed({
+                showIntroMessages()
+            }, 1000)
 
-            showIntroMessages()
+
             if (bluetoothGatt != null) {
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
+
+
 
         }
         currentAppState = AppState.RUNNING
@@ -1843,23 +1848,112 @@ class BaseActivity : AppCompatActivity() {
     }
 
     /// Changes done private to public for test by ayan
+//    public fun showIntroMessages() {
+//        val coroutineScope = CoroutineScope(Dispatchers.Default)
+//
+//        // Define a list of messages you want to pass to updateChatList
+//        val messages = listOf(
+//            "Hi, I’m Noa. Let’s show you around 🙂",
+//            "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+//            "To use the camera capture feature, you’ll\n" +
+//                    "need a Stable Diffusion key. Get one\n" +
+//                    "here: https://key.stabediffusion.com"
+//        )
+//
+//        Log.d(
+//            "Drawable Image====>>>>>",
+//            BitmapFactory.decodeResource(
+//                this@BaseActivity.getResources(),
+//                R.drawable.monocle_long_press
+//            ).toString()
+//        )
+//
+//        val messagelist = listOf(
+//
+//            ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false,   getThumbnailUrl("https://platform.stability.ai/")),
+//            ChatModel(
+//                2,
+//                "R",
+//                "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+//                false,
+//                getThumbnailUrl("https://platform.openai.com"),
+//                BitmapFactory.decodeResource(
+//                    this@BaseActivity.getResources(),
+//                    R.drawable.openai_website
+//                )
+//            ),
+//            ChatModel(
+//                3,
+//                "R",
+//                "To use the camera capture feature, you’ll\n" +
+//                        "need a Stable Diffusion key. Get one\n" +
+//                        "here: https://platform.stability.ai/",
+//                false,
+//                getThumbnailUrl("https://platform.stability.ai/")
+//            ),
+//            ChatModel(
+//                1, "R", "Tap either of the touch pads and speak.\n" +
+//                        "I’ll then respond directly back to your " +
+//                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
+//                BitmapFactory.decodeResource(
+//                    this@BaseActivity.getResources(),
+//                    R.drawable.monocle_single_tap
+//                )
+//            ),
+//            ChatModel(
+//                1,
+//                "R",
+//                "Double tap if you’d like to also include\n" +
+//                        "a photo. I’ll then combine it with your \n" +
+//                        "question, and return back an image.",
+//                false,
+//                getThumbnailUrl("https://platform.openai.com"),
+//                BitmapFactory.decodeResource(
+//                    this@BaseActivity.getResources(),
+//                    R.drawable.monocle_long_press
+//                )
+//            ),
+//            ChatModel(
+//                1,
+//                "R",
+//                "I can translate too. Enable translate\n" +
+//                        "mode from the menu, and everything\n" +
+//                        "I hear, I’ll translate to English.",
+//                false,
+//                getThumbnailUrl("https://platform.openai.com"),
+//                BitmapFactory.decodeResource(
+//                    this@BaseActivity.getResources(),
+//                    R.drawable.monocle_translate
+//                )
+//            ),
+//          //  ChatModel(1, "S", "Test Network Image",false,"https://www.vhv.rs/dpng/d/426-4263064_circle-avatar-png-picture-circle-avatar-image-png.png",),
+//
+//            )
+//
+//
+//        // Call updateChatList three times with different messages
+//        coroutineScope.launch {
+//            for (message in messagelist) {
+//                if(!message.image.isNullOrEmpty())
+//                    updatechatListWithNetworkImg(message.id,message.userInfo,message.message,message.image)
+//                else
+//                    updatechatList(message.id,message.userInfo,message.message,message.bitmap)
+//                delay(1000) // Delay for 1 second between calls
+//            }
+//        }
+//    }
+
+
     public fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-        // Define a list of messages you want to pass to updateChatList
-        val messages = listOf(
-            "Hi, I’m Noa. Let’s show you around 🙂",
-            "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
-            "To use the camera capture feature, you’ll\n" +
-                    "need a Stable Diffusion key. Get one\n" +
-                    "here: https://key.stabediffusion.com"
-        )
+
 
         Log.d(
             "Drawable Image====>>>>>",
             BitmapFactory.decodeResource(
                 this@BaseActivity.getResources(),
-                R.drawable.monocle_long_press
+                R.drawable.openai_website
             ).toString()
         )
 
@@ -1868,61 +1962,63 @@ class BaseActivity : AppCompatActivity() {
             ChatModel(
                 2,
                 "R",
-                "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+                "First, you’ll need to get some API keys.🙂Visit: https://platform.openai.com and 🙂create one.",
                 false,
                 getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
                     this@BaseActivity.getResources(),
                     R.drawable.openai_website
                 )
-            ),
-            ChatModel(
-                3,
-                "R",
-                "To use the camera capture feature, you’ll\n" +
-                        "need a Stable Diffusion key. Get one\n" +
-                        "here: https://platform.stability.ai/",
-                false,
-                getThumbnailUrl("https://platform.stability.ai/")
-            ),
-            ChatModel(
-                1, "R", "Tap either of the touch pads and speak.\n" +
-                        "I’ll then respond directly back to your\n" +
-                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_single_tap
-                )
-            ),
-            ChatModel(
-                1,
-                "R",
-                "Double tap if you’d like to also include\n" +
-                        "a photo. I’ll then combine it with your \n" +
-                        "question, and return back an image.",
-                false,
-                getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_long_press
-                )
-            ),
-            ChatModel(
-                1,
-                "R",
-                "I can translate too. Enable translate\n" +
-                        "mode from the menu, and everything\n" +
-                        "I hear, I’ll translate to English.",
-                false,
-                getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_translate
-                )
-            ),
-          //  ChatModel(1, "S", "Test Network Image",false,"https://www.vhv.rs/dpng/d/426-4263064_circle-avatar-png-picture-circle-avatar-image-png.png",),
 
+        ),
+        ChatModel(
+            3,
+            "R",
+            "To use the camera capture feature, you’ll\n" +
+                    "need a Stable Diffusion key. Get one\n" +
+                    "here: https://platform.stability.ai/",
+            false,
+            getThumbnailUrl("https://platform.stability.ai/")
+        ),
+        ChatModel(
+            1, "R", "Tap either of the touch pads and speak.\n" +
+                    "I’ll then respond directly back to your\n" +
+                    "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
+            BitmapFactory.decodeResource(
+                this@BaseActivity.getResources(),
+                R.drawable.monocle_single_tap
             )
+
+        ),
+        ChatModel(
+            1,
+            "R",
+            "Double tap if you’d like to also include\n" +
+                    "a photo. I’ll then combine it with your \n" +
+                    "question, and return back an image.",
+            false,
+            getThumbnailUrl("https://platform.openai.com"),
+            BitmapFactory.decodeResource(
+                this@BaseActivity.getResources(),
+                R.drawable.monocle_long_press
+            )
+
+        ),
+        ChatModel(
+            1,
+            "R",
+            "I can translate too. Enable translate\n" +
+                    "mode from the menu, and everything\n" +
+                    "I hear, I’ll translate to English.",
+            false,
+            getThumbnailUrl("https://platform.openai.com"),
+            BitmapFactory.decodeResource(
+                this@BaseActivity.getResources(),
+                R.drawable.monocle_translate
+            )
+
+        ),
+        )
 
 
         // Call updateChatList three times with different messages
@@ -1936,6 +2032,8 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     // SCRIPTS UPLOAD
     private fun readScriptFileFromAssets(fileName: String): String {
@@ -1971,7 +2069,7 @@ class BaseActivity : AppCompatActivity() {
             return fileUpload(files, version)  //  TO WORK WITH nrf52DK comment this line
         }
         println("[FILE ALREADY UPLOADED]\n")
-        currentAppState = AppState.SCRIPT_UPDATE
+        currentAppState = BaseActivity.AppState.SCRIPT_UPDATE
         return "Done"
 
 
@@ -2017,7 +2115,7 @@ class BaseActivity : AppCompatActivity() {
             return "Failed"
         }
         println("[FILE  UPLOADING DONE]\n")
-        currentAppState = AppState.SCRIPT_UPDATE
+        currentAppState = BaseActivity.AppState.SCRIPT_UPDATE
         return "Done"
 
     }
