@@ -3,8 +3,6 @@ package xyz.brilliant.argpt.ui.activity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -17,12 +15,14 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
+import android.content.ContentUris
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,13 +30,18 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
 import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
+import android.view.View
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -66,6 +71,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
@@ -75,6 +82,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -105,8 +113,7 @@ class BaseActivity : AppCompatActivity() {
         private val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
         private const val NORDIC_CONTROL_UUID = "8ec90001-f315-4f60-9fb8-838830daea50"
         private const val NORDIC_PACKET_UUID = "8ec90002-f315-4f60-9fb8-838830daea50"
-        private val FILES =
-            arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
+        private val FILES = arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
         private const val bitPerSample = 16
@@ -115,7 +122,7 @@ class BaseActivity : AppCompatActivity() {
         private val client = OkHttpClient()
 
         // For Debugging
-        private const val NRFKIT = false
+        private const val NRFKIT = true
         private const val FIRMWARE_TEST = false
         private const val FPGA_TEST = false
         private const val BACKEND_URL = ""
@@ -476,7 +483,8 @@ class BaseActivity : AppCompatActivity() {
 //                    Toast.LENGTH_SHORT
 //                ).show()
             }
-        } else if (requestCode == REQUEST_ENABLE_GPS) {
+        }
+        else if (requestCode == REQUEST_ENABLE_GPS) {
             if (resultCode == RESULT_OK) {
                 checkBluetoothAndGps()
             } else {
@@ -489,7 +497,8 @@ class BaseActivity : AppCompatActivity() {
 //                ).show()
                 // User didn't enable GPS, handle as needed
             }
-        } else if (requestCode == PERMISSION_REQUEST_CODE) {
+        }
+        else if (requestCode == PERMISSION_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
 
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
@@ -1171,6 +1180,12 @@ class BaseActivity : AppCompatActivity() {
             fragment.updatechatList(id, type, msg, image)
         }
     }
+    private fun updatechatListWithNetworkImg(id: Int,type: String, msg: String, image: String) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList(id, type, msg,image)
+        }
+    }
 
     private fun resizeBitmapToMultipleOf64(bitmap: Bitmap): Bitmap {
 // Get the original width and height of the bitmap
@@ -1468,11 +1483,12 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun getResponse(question: String) {
-        try {
+        if(globalJpegFilePath.isNullOrEmpty()) {
+            try {
 
-            val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
+                val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
 
-            val requestBody = """
+                val requestBody = """
             {
             "prompt": "$question",
             "max_tokens": 500,
@@ -1480,48 +1496,51 @@ class BaseActivity : AppCompatActivity() {
             }
         """.trimIndent()
 
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer $apiKey")
-                .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                .build()
+                val request = Request.Builder()
+                    .url(url)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
+                    .build()
 
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("error", "API failed", e)
-                    updatechatList("R", e.message.toString())
+                client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        Log.e("error", "API failed", e)
+                        updatechatList("R", e.message.toString())
 
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val body = response.body?.string()
-                    if (body != null) {
-                        Log.v("data", body)
-                    } else {
-                        Log.v("data", "empty")
                     }
-                    val jsonObject = JSONObject(body)
-                    Log.d("TAG", "onResponse: " + jsonObject)
 
-                    if (jsonObject.has("id")) {
-                        val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                        val textResult = jsonArray.getJSONObject(0).getString("text")
+                    override fun onResponse(call: Call, response: Response) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            Log.v("data", body)
+                        } else {
+                            Log.v("data", "empty")
+                        }
+                        val jsonObject = JSONObject(body)
+                        Log.d("TAG", "onResponse: " + jsonObject)
 
-                        sendChatGptResponce(textResult, "res:")
+                        if (jsonObject.has("id")) {
+                            val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
+                            val textResult = jsonArray.getJSONObject(0).getString("text")
+
+                            sendChatGptResponce(textResult, "res:")
 //                        callback(textResult)
-                    } else {
-                        val error: JSONObject = jsonObject.getJSONObject("error")
-                        val msg: String = error.getString("message")
+                        } else {
+                            val error: JSONObject = jsonObject.getJSONObject("error")
+                            val msg: String = error.getString("message")
 
-                        sendChatGptResponce(msg, "err:")
+                            sendChatGptResponce(msg, "err:")
 
+                        }
                     }
-                }
-            })
-        } catch (ex: Exception) {
-            sendChatGptResponce("getResponse: ${ex.message}", "err:")
-            Log.d("ChatGpt", "getResponse: $ex")
+                })
+            } catch (ex: Exception) {
+                sendChatGptResponce("getResponse: ${ex.message}", "err:")
+                Log.d("ChatGpt", "getResponse: $ex")
+            }
+        }else{
+            callStabilityAiImagetoImage(question)
         }
     }
 
@@ -1730,11 +1749,16 @@ class BaseActivity : AppCompatActivity() {
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
 
+            handler.postDelayed({
+                showIntroMessages()
+            }, 1000)
 
-            showIntroMessages()
+
             if (bluetoothGatt != null) {
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
+
+
 
         }
         currentAppState = AppState.RUNNING
@@ -1778,14 +1802,16 @@ class BaseActivity : AppCompatActivity() {
     }
 
     /// Changes done private to public for test by ayan
-    public fun showIntroMessages() {
+    fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
+
+
 
         Log.d(
             "Drawable Image====>>>>>",
             BitmapFactory.decodeResource(
                 this@BaseActivity.getResources(),
-                R.drawable.monocle_long_press
+                R.drawable.openai_website
             ).toString()
         )
 
@@ -1794,13 +1820,14 @@ class BaseActivity : AppCompatActivity() {
             ChatModel(
                 2,
                 "R",
-                "First, you’ll need to get some API keys.\u2028Visit: https://platform.openai.com and \u2028create one.",
+                "First, you’ll need to get some API keys.🙂Visit: https://platform.openai.com and 🙂create one.",
                 false,
                 getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
                     this@BaseActivity.getResources(),
                     R.drawable.openai_website
                 )
+
             ),
             ChatModel(
                 3,
@@ -1812,30 +1839,15 @@ class BaseActivity : AppCompatActivity() {
                 getThumbnailUrl("https://platform.stability.ai/")
             ),
             ChatModel(
-                1, "R", "Tap either of the touch pads and speak.\n\n" +
-                        "Ask me any question, and I'll respond\n directly on uour Monocle.",
-                         false, getThumbnailUrl("https://platform.openai.com"),
+                1, "R", "Tap either of the touch pads and speak.\n" +
+                        "I’ll then respond directly back to your\n" +
+                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
                     this@BaseActivity.getResources(),
                     R.drawable.monocle_single_tap
                 )
-            ),
-            ChatModel(
-                1, "R", "Did you know that I’m a fantastic artist?\n" +
-                        "Hold any touch pad, and Monocle will \n" +
-                        "take a picture before listening.\n" +
-                        "\n" +
-                        "Ask me how to change the image, and \n" +
-                        "I’ll return back a new image right here in\n" +
-                        "the chat.",
-                false, getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_single_tap
-                )
-            ),
 
-
+            ),
             ChatModel(
                 1,
                 "R",
@@ -1848,6 +1860,7 @@ class BaseActivity : AppCompatActivity() {
                     this@BaseActivity.getResources(),
                     R.drawable.monocle_long_press
                 )
+
             ),
             ChatModel(
                 1,
@@ -1861,16 +1874,19 @@ class BaseActivity : AppCompatActivity() {
                     this@BaseActivity.getResources(),
                     R.drawable.monocle_translate
                 )
-            ),
 
-            )
+            ),
+        )
 
 
         // Call updateChatList three times with different messages
         coroutineScope.launch {
             for (message in messagelist) {
-                updatechatList(message.id, "R", message.message, message.bitmap)
-                delay(3000) // Delay for 1 second between calls
+                if(!message.image.isNullOrEmpty())
+                    updatechatListWithNetworkImg(message.id,message.userInfo,message.message,message.image)
+                else
+                    updatechatList(message.id,message.userInfo,message.message,message.bitmap)
+                delay(1000) // Delay for 1 second between calls
             }
         }
     }
