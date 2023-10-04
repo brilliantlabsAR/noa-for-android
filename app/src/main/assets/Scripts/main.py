@@ -1,5 +1,5 @@
 import bluetooth
-import camera
+import camera,_camera
 import graphics
 import microphone
 import touch
@@ -85,6 +85,7 @@ while True:
         if state.has_been() >= 250:
             if touch.state(touch.EITHER): # still holding, try detect hold
                 state.after(0, state.DetectHold)
+                _camera.wake()
             else:
                 state.after(0, state.StartRecording)
 
@@ -92,6 +93,7 @@ while True:
         if state.has_been() >= 1000 and touch.state(touch.EITHER):
             state.after(0, state.CaptureImage)
         elif not touch.state(touch.EITHER):
+            _camera.sleep()
             state.after(0, state.WaitForTap)
 
     elif state.current_state == state.StartRecording:
