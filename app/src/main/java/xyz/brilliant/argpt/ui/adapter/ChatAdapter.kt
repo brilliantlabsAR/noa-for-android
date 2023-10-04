@@ -1,6 +1,7 @@
 package xyz.brilliant.argpt.ui.adapter
 
 import android.graphics.Bitmap
+import android.text.method.LinkMovementMethod
 import android.text.util.Linkify
 import android.view.LayoutInflater
 import android.view.View
@@ -80,6 +81,11 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
             viewHolder.contents.text = chatMessage.message
             //For Click..
             Linkify.addLinks(viewHolder.contents,Linkify.WEB_URLS)
+            viewHolder.contents.movementMethod = LinkMovementMethod.getInstance()
+            viewHolder.contents.movementMethod = LinkMovementMethod.getInstance()
+
+
+
 
             if(chatMessage.bitmap != null)
             {

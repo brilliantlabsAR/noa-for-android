@@ -122,7 +122,8 @@ class BaseActivity : AppCompatActivity() {
         private val client = OkHttpClient()
 
         // For Debugging
-        private const val NRFKIT = true
+        // For Debugging
+        private const val NRFKIT = false
         private const val FIRMWARE_TEST = false
         private const val FPGA_TEST = false
         private const val BACKEND_URL = ""
@@ -1712,7 +1713,7 @@ class BaseActivity : AppCompatActivity() {
                 return
             }
             if (currentAppState != BaseActivity.AppState.FPGA_UPDATE) {
-                updateProgressDialog("Checking sofware update..", "Keep the app open")
+                updateProgressDialog("Checking software update..", "Keep the app open")
             }
 
             if (!NRFKIT && fpgaCheckUpdate() != "Updated") {
@@ -1802,81 +1803,73 @@ class BaseActivity : AppCompatActivity() {
     }
 
     /// Changes done private to public for test by ayan
+
+
+
     fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
-
-
-
         Log.d(
             "Drawable Image====>>>>>",
             BitmapFactory.decodeResource(
-                this@BaseActivity.getResources(),
+                this@BaseActivity.resources,
                 R.drawable.openai_website
             ).toString()
         )
 
         val messagelist = listOf(
             ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false, ""),
+
+            ChatModel(
+                1, "R", "Tap either of the touch pads and speak.\n\n" +
+                        "Ask me any question, and I’ll then respond directly on your Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.resources,
+                    R.drawable.tutorial_image_one
+                )
+
+            ),
+            ChatModel(
+                1,
+                "R",
+                "I can also translate whatever I hear into English.\n\nToggle the translator mode from the menu like so.",
+                false,
+                getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.resources,
+                    R.drawable.tutorial_image_single_tap_monocle
+                )
+
+            ),
+            ChatModel(
+                1,
+                "R",
+                "Did you know that I'm a fantastic artist?\nHold any touch pad, and Monocle will take a picture before listening.\n\nAsk me how to change the image and I'll return back a new image right here in the chat.",
+                false,
+                getThumbnailUrl("https://platform.openai.com"),
+                BitmapFactory.decodeResource(
+                    this@BaseActivity.resources,
+                    R.drawable.tutorial_image_with_cam
+                )
+
+            ),
             ChatModel(
                 2,
                 "R",
-                "First, you’ll need to get some API keys.🙂Visit: https://platform.openai.com and 🙂create one.",
+                "To get started, you'll need an OpenAI Api key. To create one visit:\n\nhttps://platform.openai.com\n" +
+                        "\nAdditionally, to use the AI art feature, You'll need a stability key. Get it here:\n" +
+                        "\nhttps://platform.stability.ai/",
                 false,
                 getThumbnailUrl("https://platform.openai.com"),
                 BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.openai_website
+                    this@BaseActivity.resources,
+                    R.drawable.tutorial_monocle
                 )
+            ),
+            ChatModel(1, "R", "Looks like you’re all set!\n" +
+                    "\n" +
+                    "Go ahead. Ask me anything you’d like ☺️", false, ""),
 
-            ),
-            ChatModel(
-                3,
-                "R",
-                "To use the camera capture feature, you’ll\n" +
-                        "need a Stable Diffusion key. Get one\n" +
-                        "here: https://platform.stability.ai/",
-                false,
-                getThumbnailUrl("https://platform.stability.ai/")
-            ),
-            ChatModel(
-                1, "R", "Tap either of the touch pads and speak.\n" +
-                        "I’ll then respond directly back to your\n" +
-                        "Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_single_tap
-                )
-
-            ),
-            ChatModel(
-                1,
-                "R",
-                "Double tap if you’d like to also include\n" +
-                        "a photo. I’ll then combine it with your \n" +
-                        "question, and return back an image.",
-                false,
-                getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_long_press
-                )
-
-            ),
-            ChatModel(
-                1,
-                "R",
-                "I can translate too. Enable translate\n" +
-                        "mode from the menu, and everything\n" +
-                        "I hear, I’ll translate to English.",
-                false,
-                getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.getResources(),
-                    R.drawable.monocle_translate
-                )
-
-            ),
-        )
+            )
 
 
         // Call updateChatList three times with different messages
