@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/teal_200"
+
+    tools:context=".ui.login.SocialLoginActivity">
+
+
+
+        <ImageView
+            android:id="@+id/appIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@mipmap/argpt_launcher_icon"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="48dp"/>
+
+
+
+        <Button
+            android:id="@+id/btnGmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Gmail"
+            android:layout_margin="16dp"
+            android:layout_marginTop="@dimen/_150sp"
+            android:layout_below="@id/appIcon"
+            android:backgroundTint="#FF5733"
+            android:textColor="#FFFFFF"/>
+
+        <Button
+            android:id="@+id/btnApple"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Apple"
+            android:layout_margin="16dp"
+            android:layout_below="@id/btnGmail"
+            android:backgroundTint="#000000"
+            android:textColor="#FFFFFF"/>
+
+        <Button
+            android:id="@+id/btnDiscord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Discord"
+            android:layout_margin="16dp"
+            android:layout_below="@id/btnApple"
+            android:backgroundTint="#7289DA"
+            android:textColor="#FFFFFF"/>
+
+
+
+
+</RelativeLayout>

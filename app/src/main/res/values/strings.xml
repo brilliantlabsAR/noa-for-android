@@ -50,5 +50,17 @@
     <string name="privecy_txt">Be sure to read our<a href="privacy"><font color="#E82E87"> Privacy Policy</font></a>, as well as\n <a href="terms"><font color="#E82E87">Terms and Conditions</font></a> before using arGPT</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="default_web_client_id" translatable="false">662025261192-bhouv884b3nraa0h7hkdke6u8cl681pl.apps.googleusercontent.com</string>
+    <!-- The value of this string is replaced by the value of google_server_client_id -->
+    <string name="server_client_id" translatable="false">510809410914-fu0879edscc66bccj07as6g71vbutir2.apps.googleusercontent.com</string>
+<!--    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-->
 </resources>

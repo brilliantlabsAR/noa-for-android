@@ -15,14 +15,12 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
-import android.content.ContentUris
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,18 +28,12 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import android.view.View
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -82,7 +74,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -100,8 +91,8 @@ class BaseActivity : AppCompatActivity() {
         private const val TAG = "BaseActivity"
         private const val REQUEST_FINE_LOCATION = 1001
         private const val PERMISSION_REQUEST_CODE = 5001
-        private val REQUEST_ENABLE_BLUETOOTH = 1002
-        private val REQUEST_ENABLE_GPS = 1003
+        private const val REQUEST_ENABLE_BLUETOOTH = 1002
+        private const val REQUEST_ENABLE_GPS = 1003
         private val SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         private const val RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
         private const val TX_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
@@ -1758,9 +1749,6 @@ class BaseActivity : AppCompatActivity() {
             if (bluetoothGatt != null) {
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
-
-
-
         }
         currentAppState = AppState.RUNNING
     }
