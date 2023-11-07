@@ -43,6 +43,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.auth.api.Auth
+import com.google.android.gms.common.api.GoogleApiClient
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +71,7 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
+import xyz.brilliant.argpt.ui.login.SocialLoginActivity
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.DataOutputStream
 import java.io.File
@@ -229,9 +232,61 @@ class BaseActivity : AppCompatActivity() {
         currentDevice = ""
         currentScannedDevice = null
         overlallSoftwareProgress = 0
-        finish()
-        startActivity(intent)
+       // finish()
+        performLogout()
+       // startActivity(intent)
     }
+
+    fun performLogout() {
+        // Retrieve the token from SharedPreferences
+        val token = getTokenFromSharedPreferences()
+
+        val client = OkHttpClient()
+        val mediaType = "text/plain".toMediaType()
+        val body = "".toRequestBody(mediaType)
+        val request = Request.Builder()
+            .url("https://api.brilliant.xyz/noa/signout")
+            .post(body)
+            .addHeader("Authorization", "Bearer $token")
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                // Handle network errors or request failures
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                if (response.isSuccessful) {
+                    // Clear SharedPreferences when logout is successful
+                    clearSharedPreferences()
+
+                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
+                    startActivity(intent)
+
+                    // Finish the current activity if you want to
+                    finish()
+                    // Logout was successful, perform any necessary post-logout actions
+                } else {
+                    // Handle the error response
+                }
+            }
+        })
+    }
+
+    private fun getTokenFromSharedPreferences(): String {
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("token", "") ?: ""
+    }
+
+    private fun clearSharedPreferences() {
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.clear()
+        editor.apply()
+    }
+
+
+
 
     fun storeApiKey(_apiKey: String) {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)

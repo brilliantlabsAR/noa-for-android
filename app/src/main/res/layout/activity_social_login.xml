@@ -31,15 +31,7 @@
             android:backgroundTint="#FF5733"
             android:textColor="#FFFFFF"/>
 
-        <Button
-            android:id="@+id/btnApple"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sign in with Apple"
-            android:layout_margin="16dp"
-            android:layout_below="@id/btnGmail"
-            android:backgroundTint="#000000"
-            android:textColor="#FFFFFF"/>
+
 
         <Button
             android:id="@+id/btnDiscord"
@@ -47,7 +39,7 @@
             android:layout_height="wrap_content"
             android:text="Sign in with Discord"
             android:layout_margin="16dp"
-            android:layout_below="@id/btnApple"
+            android:layout_below="@id/btnGmail"
             android:backgroundTint="#7289DA"
             android:textColor="#FFFFFF"/>
 

@@ -61,6 +61,8 @@
     <string name="login_failed">"Login failed"</string>
     <string name="default_web_client_id" translatable="false">662025261192-bhouv884b3nraa0h7hkdke6u8cl681pl.apps.googleusercontent.com</string>
     <!-- The value of this string is replaced by the value of google_server_client_id -->
-    <string name="server_client_id" translatable="false">510809410914-fu0879edscc66bccj07as6g71vbutir2.apps.googleusercontent.com</string>
+    <string name="server_client_id" translatable="false">510809410914-9l54als25m83hujritvk3ebn6q6qibop.apps.googleusercontent.com</string>
+<!--    510809410914-o5q5ip4q676rp1376n9jqt3297ve94ls.apps.googleusercontent.com-->
 <!--    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-->
+<!--    662025261192-qvk2un4n71nvv3b6ll988glu34hnh1hb.apps.googleusercontent.com-->
 </resources>
