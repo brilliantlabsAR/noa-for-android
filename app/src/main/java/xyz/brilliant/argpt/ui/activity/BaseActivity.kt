@@ -34,6 +34,7 @@ import android.os.ParcelUuid
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -244,14 +245,25 @@ class BaseActivity : AppCompatActivity() {
         val client = OkHttpClient()
         val mediaType = "text/plain".toMediaType()
         val body = "".toRequestBody(mediaType)
+
+
+
+
         val request = Request.Builder()
             .url("https://api.brilliant.xyz/noa/signout")
             .post(body)
-            .addHeader("Authorization", "Bearer $token")
+            .addHeader("Authorization", "$token")
             .build()
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@BaseActivity, "failure", Toast.LENGTH_LONG).show()
+
+
+                    // Finish the current activity if you want to
+                    finish()
+                }
                 // Handle network errors or request failures
             }
 
@@ -267,6 +279,8 @@ class BaseActivity : AppCompatActivity() {
                     finish()
                     // Logout was successful, perform any necessary post-logout actions
                 } else {
+                    Toast.makeText(this@BaseActivity, "unauthorized", Toast.LENGTH_LONG).show()
+
                     // Handle the error response
                 }
             }
@@ -354,6 +368,10 @@ class BaseActivity : AppCompatActivity() {
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
+
+//        currentAppState = AppState.RUNNING
+//        val fragment = ChatGptFragment()
+//        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
     }
 
     private fun startBluetoothBackground() {
