@@ -27,7 +27,7 @@
 
     <color name="switch_checked_color">#57C7AA</color>
     <color name="switch_default_color">#787880</color>
-
+    <color name="indigo_A200">#727aef</color>
     <color name="text_Color">#000000</color>
     <color name="message_background">#E9E9EB</color>
     <color name="chat_background">#FFFFFF</color>

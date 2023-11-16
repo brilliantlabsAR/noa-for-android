@@ -189,6 +189,7 @@ class BaseActivity : AppCompatActivity() {
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
     private var currentConnectionStatus = false
+    private var accessToken : String = ""
     private fun getStoredDeviceAddress(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_KEY_DEVICE_ADDRESS, "") ?: ""
@@ -208,7 +209,10 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
-
+    fun getStoredAccessToken(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString("token", "") ?: ""
+    }
     fun getStoredApiKey(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
@@ -328,6 +332,7 @@ class BaseActivity : AppCompatActivity() {
 
     private fun firstCodeExecute() {
         try {
+            accessToken = getStoredAccessToken()
             val storedDeviceAddress = getStoredDeviceAddress()
             if (apiKey.isEmpty()) {
                 apiKey = getStoredApiKey()
@@ -364,6 +369,9 @@ class BaseActivity : AppCompatActivity() {
                     updateConnectionStatus("")
                 }
             }
+
+
+
 
         } catch (ex: Exception) {
             ex.printStackTrace()
@@ -1395,6 +1403,32 @@ class BaseActivity : AppCompatActivity() {
             //.addHeader("Content-Type", "application/json")
             .addHeader("Authorization", "Bearer $apiKey")
             .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(byteCallback)
+    }
+
+
+    private fun uploadAudioToGpt(
+        audioFile: File,
+
+        prompt: String,
+        initImageFile: File,
+        byteCallback: Callback
+    ) {
+        val client = OkHttpClient()
+
+        val audioRequestBody =
+            MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
+                .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
+
+                .build()
+
+        val request = Request.Builder()
+            .url("https://api.brilliant.xyz/noa/audio_gpt") // Replace {{host}} with your actual base URL
+            .addHeader("Authorization", "Bearer $accessToken") // Assuming apiKey is the authorization token
+            .post(audioRequestBody)
             .build()
 
         client.newCall(request).enqueue(byteCallback)

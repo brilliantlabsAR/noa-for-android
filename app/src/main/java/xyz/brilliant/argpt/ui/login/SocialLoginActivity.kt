@@ -2,13 +2,25 @@ package xyz.brilliant.argpt.ui.login
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.GoogleApiClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -23,6 +35,7 @@ import org.json.JSONObject
 import xyz.brilliant.argpt.MainActivity
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.activity.BaseActivity
+import xyz.brilliant.argpt.ui.activity.DiscordAuthActivity
 
 
 class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFailedListener {
@@ -42,9 +55,11 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
         }
         setContentView(R.layout.activity_social_login)
 
-        val btnGmail = findViewById<Button>(R.id.btnGmail)
+        val btnGmail = findViewById<SignInButton>(R.id.btnGmail)
+        btnGmail.setSize(SignInButton.SIZE_STANDARD);
+
        // val btnApple = findViewById<Button>(R.id.btnApple)
-        val btnDiscord = findViewById<Button>(R.id.btnDiscord)
+        val btnDiscord = findViewById<LinearLayout>(R.id.btnDiscord)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -52,6 +67,40 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
             .requestIdToken("510809410914-fu0879edscc66bccj07as6g71vbutir2.apps.googleusercontent.com")
             .build()
 
+        val privacyPolicyTextView: TextView = findViewById(R.id.privacyPolicy)
+
+        val myString =
+            SpannableString(getString(R.string.privecy_txt))
+
+        val clickableSpan: ClickableSpan = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+                //var d = "click1";
+                gotoTerms("privacy");
+            }
+        }
+
+        val clickableSpan1: ClickableSpan = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+                gotoTerms("terms");
+            }
+        }
+
+        myString.setSpan(clickableSpan, 20, 34, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(clickableSpan1, 48, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(
+            ForegroundColorSpan(Color.parseColor("#E82E87")),
+            20,
+            34,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        myString.setSpan(
+            ForegroundColorSpan(Color.parseColor("#E82E87")),
+            48,
+            68,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        privacyPolicyTextView.movementMethod = LinkMovementMethod.getInstance()
+        privacyPolicyTextView.text = myString
 
 
         mGoogleApiClient = GoogleApiClient.Builder(this)
@@ -69,12 +118,27 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
 
 
         btnDiscord.setOnClickListener {
+
+            val intent = Intent(this, DiscordAuthActivity::class.java)
+            startActivity(intent)
             // Handle Discord sign-in
             // Start the authentication process for Discord
         }
     }
 
+    private fun gotoTerms(url: String) {
 
+        if(url=="terms") {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://brilliant.xyz/pages/terms-conditions"))
+            startActivity(intent)
+        }
+        else
+        {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://brilliant.xyz/pages/privacy-policy"))
+            startActivity(intent)
+        }
+
+    }
     private fun getTokenFromSharedPreferences(): String {
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("token", "") ?: ""

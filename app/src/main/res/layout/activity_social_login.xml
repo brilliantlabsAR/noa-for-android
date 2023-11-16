@@ -4,44 +4,117 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/teal_200"
+    >
 
-    tools:context=".ui.login.SocialLoginActivity">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/topLogo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="100dp"
+                    android:text="@string/welcome_String"
+                    android:lineSpacingExtra="-16sp"
+                    android:textSize="15sp"
+
+                    android:gravity="center_horizontal|center_vertical"
+                    />
+                <TextView
+                    android:id="@+id/argpt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_below="@+id/topLogo"
+                    android:text="@string/app_name"
+                    android:lineSpacingExtra="-16sp"
+                    android:textSize="32sp"
+                    android:textColor="@color/text_Color"
+                    android:gravity="center_horizontal|center_vertical"
+                    />
+
+                <TextView
+                    android:id="@+id/let_s_pair_"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginLeft="36dp"
+                    android:layout_marginTop="199dp"
+                    android:layout_marginRight="40dp"
+                    android:gravity="top"
+                    android:text="@string/let_s_pair_"
+                    android:textColor="@color/text_Color"
+                    android:textSize="15sp" />
+        </RelativeLayout>
 
 
-
-        <ImageView
-            android:id="@+id/appIcon"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@mipmap/argpt_launcher_icon"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="48dp"/>
-
-
-
-        <Button
+        <com.google.android.gms.common.SignInButton
             android:id="@+id/btnGmail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sign in with Gmail"
-            android:layout_margin="16dp"
-            android:layout_marginTop="@dimen/_150sp"
-            android:layout_below="@id/appIcon"
-            android:backgroundTint="#FF5733"
-            android:textColor="#FFFFFF"/>
+            android:layout_above="@+id/btnDiscord"
 
+            android:layout_marginStart="@dimen/_35pxh"
+            android:layout_marginEnd="@dimen/_35pxh"
+            app:buttonSize="wide"
+            android:layout_height="wrap_content" />
 
-
-        <Button
+        <LinearLayout
             android:id="@+id/btnDiscord"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="@dimen/_20pxv"
+            android:layout_above="@+id/privacyPolicy"
+            android:layout_marginBottom="@dimen/_55sp"
+            android:layout_marginStart="@dimen/_35pxh"
+            android:layout_marginEnd="@dimen/_35pxh"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            style="@style/groupStyleindigo_A200cornerRadius">
+                <ImageView android:id="@+id/imageUser"
+                    android:layout_height="@dimen/_21pxh"
+                    android:layout_marginBottom="@dimen/_13pxv"
+                    android:layout_marginStart="@dimen/_15pxh"
+                    android:layout_marginTop="@dimen/_15pxv"
+                    android:layout_width="@dimen/_28pxh"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/img_user"
+                    tools:ignore="ContentDescription" tools:src="@drawable/img_user"/>
+                <TextView android:ellipsize="end"
+                    android:id="@+id/txtSigninwithDi"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/_14pxv"
+                    android:layout_marginEnd="@dimen/_58pxh"
+                    android:layout_marginStart="@dimen/_75pxh"
+                    android:layout_marginTop="@dimen/_17pxv"
+                    android:layout_weight="0.85"
+                    android:layout_width="0dp"
+                    android:lineSpacingExtra="@dimen/_15pxh"
+
+                    android:textSize="@dimen/_16pxv"
+                    android:text=" Sign in with Discord"
+                    android:textColor="@color/white_background"
+                     />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/privacyPolicy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sign in with Discord"
-            android:layout_margin="16dp"
-            android:layout_below="@id/btnGmail"
-            android:backgroundTint="#7289DA"
-            android:textColor="#FFFFFF"/>
+            android:layout_marginBottom="@dimen/_35pxh"
+            android:layout_alignParentBottom="true"
+            android:autoLink="web"
+            android:gravity="center"
+            android:linksClickable="true"
+            android:text="@string/privacy_policy2"
+            android:textColor="@color/text_Color"
+            android:textSize="14sp" />
+
+
 
 
 

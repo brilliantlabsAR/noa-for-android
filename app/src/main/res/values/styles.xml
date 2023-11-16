@@ -17,6 +17,8 @@
     <style name="groupStyleteal_300cornerRadius">
         <item name="android:background">@drawable/rectangle_bg_teal_300_radius_18</item>
     </style>
-
+    <style name="groupStyleindigo_A200cornerRadius">
+        <item name="android:background">@drawable/rectangle_bg_indigo_a200_radius_10</item>
+    </style>
 
 </resources>
