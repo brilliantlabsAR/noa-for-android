@@ -44,8 +44,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.auth.api.Auth
-import com.google.android.gms.common.api.GoogleApiClient
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -1427,7 +1425,7 @@ class BaseActivity : AppCompatActivity() {
 
         val request = Request.Builder()
             .url("https://api.brilliant.xyz/noa/audio_gpt") // Replace {{host}} with your actual base URL
-            .addHeader("Authorization", "Bearer $accessToken") // Assuming apiKey is the authorization token
+            .addHeader("Authorization", "$accessToken") // Assuming apiKey is the authorization token
             .post(audioRequestBody)
             .build()
 
@@ -1464,12 +1462,15 @@ class BaseActivity : AppCompatActivity() {
                         updatechatList("S", " ")
                         getResponse(" ")
                     }
-                } else {
+                }
+                else {
                     if (translateEnabled) {
 
                         // updatechatList("S",textResult.trim())
                         sendTranslatedResponce(textResult.trim(), "res:")
-                    } else {
+                    }
+
+                    else {
                         updatechatList("S", textResult.trim())
 
 
@@ -1543,10 +1544,29 @@ class BaseActivity : AppCompatActivity() {
                                     .getString("content")
 
                             addMessage("assistant", assistantResponse)
-                            updatechatList("R",assistantResponse)
+                          //  updatechatList("R",assistantResponse)
 
 
-                            // Handle or use the assistantResponse as needed
+
+                            if (assistantResponse.isNullOrEmpty()) {
+
+
+                                if (translateEnabled) {
+                                    sendTranslatedResponce("Couldn't translate....try again!", "err:")
+                                } else {
+                                    updatechatList("S", " ")
+                                    getResponse(" ")
+                                }
+                            }
+                            else {
+                                    if (globalJpegFilePath.isNullOrEmpty()) {
+                                        updatechatList("R", assistantResponse.toString())
+
+                                    } else {
+                                        callStabilityAiImagetoImage(assistantResponse)
+                                    }
+                            }
+
                             println("Completion ID: $completionId")
                             println("Model Used: $modelUsed")
                             println("Prompt Used: $promptUsed")
@@ -1651,12 +1671,100 @@ class BaseActivity : AppCompatActivity() {
 
     }
 
+    private fun callStabilityApi(prompt: String) {
+        val apiKey = stabilityApiKey
+
+        val imageFilePath = globalJpegFilePath
+        val prompt = prompt
+        val strength = 0.5f
+        val guidance = 1
+
+        globalJpegFilePath = null
+
+        val client = OkHttpClient()
+
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "init_image",
+                "Output.jpg",
+                File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull())
+            )
+            .addFormDataPart("text_prompts[0][text]", prompt)
+            .addFormDataPart("init_image_mode", "IMAGE_STRENGTH")
+            .addFormDataPart("image_strength", strength.toString())
+            .addFormDataPart("cfg_scale", guidance.toString())
+            .addFormDataPart("samples", "1")
+            .build()
+
+
+        val request = Request.Builder()
+            .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Stability-Client-ID", "Noa/Android")
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+
+//                val responseData = response.body?.bytes()
+                println("response styability")
+                println(response.body)
+                if (response.isSuccessful) {
+                    val responseData = response.body?.string()
+
+
+                    val jsonObject = JSONObject(responseData)
+                    val artifactsArray = jsonObject.getJSONArray("artifacts")
+                    if (artifactsArray.length() > 0) {
+                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
+
+                        // Now you have the base64Value, which you can decode if needed
+                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
+                        println("decoded bytes")
+                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                        println(bitmap)
+                        updatechatList(1, "R", "", bitmap!!)
+                    } else {
+                        // Handle the API error here
+                        // Log error or show an error message to the user
+                    }
+
+                } else {
+                    val responseData = response.body?.string()
+
+                    try {
+                        val jsonObject = JSONObject(responseData)
+                        if (jsonObject.has("message")) {
+                            println(jsonObject.get("message"))
+                        }
+                    } catch (e: java.lang.Exception) {
+                        println(responseData)
+                        println(e.printStackTrace())
+                    }
+
+                    // Handle the API error here
+                    // Log error or show an error message to the user
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                println(e)
+                // Handle the network error here
+                // Log error or show an error message to the user
+            }
+        })
+    }
+
+
+
     fun getResponse(question: String) {
         if(globalJpegFilePath.isNullOrEmpty()) {
             try {
 
                 val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-
                 val requestBody = """
             {
             "prompt": "$question",
