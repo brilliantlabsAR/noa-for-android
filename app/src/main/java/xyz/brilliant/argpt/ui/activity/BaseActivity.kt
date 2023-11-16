@@ -65,6 +65,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -210,7 +211,7 @@ class BaseActivity : AppCompatActivity() {
         }
     }
     fun getStoredAccessToken(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         return prefs.getString("token", "") ?: ""
     }
     fun getStoredApiKey(): String {
@@ -1196,8 +1197,8 @@ class BaseActivity : AppCompatActivity() {
                             } else {
 
 
-                                uploadAudioFile(f2, byteCallback)
-
+                               // uploadAudioFile(f2, byteCallback)
+                                uploadAudioToGpt(f2, byteCallback)
 
                             }
 
@@ -1411,18 +1412,17 @@ class BaseActivity : AppCompatActivity() {
 
     private fun uploadAudioToGpt(
         audioFile: File,
-
-        prompt: String,
-        initImageFile: File,
         byteCallback: Callback
     ) {
         val client = OkHttpClient()
 
+        val jsonPayload = apiPayload.toString()
+
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-                .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
-
+               // .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
+                .addFormDataPart("json", jsonPayload)
                 .build()
 
         val request = Request.Builder()
@@ -1435,7 +1435,7 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-    val byteCallback = object : Callback {
+    val byteCallback2 = object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             // Handle request failure
             updatechatList("S", e.message.toString())
@@ -1488,6 +1488,76 @@ class BaseActivity : AppCompatActivity() {
 
                 sendChatGptResponce(msg, "err:")
 
+            }
+        }
+    }
+    val apiPayload = JSONObject().apply {
+        put("model", "gpt-3.5-turbo")
+        put("messages", JSONArray().apply {
+            // Initial system message
+            put(JSONObject().apply {
+                put("role", "system")
+                put("content", "You are a smart assistant that answers all user queries, questions, and statements with a single sentence.")
+            })
+        })
+    }
+
+    // Function to add a row to the "messages" array
+    fun addMessage(role: String, content: String) {
+        val messageObject = JSONObject().apply {
+            put("role", role)
+            put("content", content)
+        }
+        apiPayload.getJSONArray("messages").put(messageObject)
+    }
+
+    val byteCallback = object :  Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            updatechatList("S", e.message.toString())
+            // Handle failure
+            // client.close()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
+                if (!response.isSuccessful) {
+                    // Handle unsuccessful response
+                } else {
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        // Parse the JSON response
+                        val jsonResponse = JSONObject(responseBody)
+
+                        // Extract relevant information
+                        val completionId = jsonResponse.getString("id")
+                        val modelUsed = jsonResponse.getString("model")
+                        val promptUsed = jsonResponse.getString("prompt")
+                        addMessage("user", promptUsed)
+
+                        updatechatList("S",promptUsed)
+                        // Extract the assistant's response
+                        val choicesArray = jsonResponse.getJSONArray("choices")
+                        if (choicesArray.length() > 0) {
+                            val assistantResponse =
+                                choicesArray.getJSONObject(0).getJSONObject("message")
+                                    .getString("content")
+
+                            addMessage("assistant", assistantResponse)
+                            updatechatList("R",assistantResponse)
+
+
+                            // Handle or use the assistantResponse as needed
+                            println("Completion ID: $completionId")
+                            println("Model Used: $modelUsed")
+                            println("Prompt Used: $promptUsed")
+                            println("Assistant's Response: $assistantResponse")
+                        }
+                    }
+                }
+            } catch (e: JSONException) {
+                // Handle JSON parsing error
+            } finally {
+                //client.close()
             }
         }
     }
@@ -1947,19 +2017,19 @@ class BaseActivity : AppCompatActivity() {
                 )
 
             ),
-            ChatModel(
-                2,
-                "R",
-                "To get started, you'll need an OpenAI Api key. To create one visit:\n\nhttps://platform.openai.com\n" +
-                        "\nAdditionally, to use the AI art feature, You'll need a stability key. Get it here:\n" +
-                        "\nhttps://platform.stability.ai/",
-                false,
-                getThumbnailUrl("https://platform.openai.com"),
-                BitmapFactory.decodeResource(
-                    this@BaseActivity.resources,
-                    R.drawable.tutorial_monocle
-                )
-            ),
+//            ChatModel(
+//                2,
+//                "R",
+//                "To get started, you'll need an OpenAI Api key. To create one visit:\n\nhttps://platform.openai.com\n" +
+//                        "\nAdditionally, to use the AI art feature, You'll need a stability key. Get it here:\n" +
+//                        "\nhttps://platform.stability.ai/",
+//                false,
+//                getThumbnailUrl("https://platform.openai.com"),
+//                BitmapFactory.decodeResource(
+//                    this@BaseActivity.resources,
+//                    R.drawable.tutorial_monocle
+//                )
+//            ),
             ChatModel(1, "R", "Looks like you’re all set!\n" +
                     "\n" +
                     "Go ahead. Ask me anything you’d like ☺️", false, ""),
