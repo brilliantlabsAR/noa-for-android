@@ -1196,7 +1196,13 @@ class BaseActivity : AppCompatActivity() {
 
 
                                // uploadAudioFile(f2, byteCallback)
-                                uploadAudioToGpt(f2, byteCallback)
+                                if(translateEnabled)
+                                {
+                                    translateAudio(f2,translateAudioCallback)
+                                }
+                                else {
+                                    uploadAudioToGpt(f2, uploadAudioToGptCallback)
+                                }
 
                             }
 
@@ -1381,32 +1387,6 @@ class BaseActivity : AppCompatActivity() {
 
 
     // OPEN AI
-    private fun uploadAudioFile(audioFile: File, byteCallback: Callback) {
-        val client = OkHttpClient()
-
-        // Replace 'YOUR_API_KEY' with your actual OpenAI API key
-//        val apiKey = "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"
-
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "whisper-1")
-            // Add additional parameters if required
-            .build()
-
-
-        Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
-
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/audio/translations")
-            //.addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).enqueue(byteCallback)
-    }
-
 
     private fun uploadAudioToGpt(
         audioFile: File,
@@ -1431,88 +1411,7 @@ class BaseActivity : AppCompatActivity() {
 
         client.newCall(request).enqueue(byteCallback)
     }
-
-
-    val byteCallback2 = object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            // Handle request failure
-            updatechatList("S", e.message.toString())
-            e.printStackTrace()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            val body = response.body?.string()
-            if (body != null) {
-                Log.v("data", body)
-            } else {
-                Log.v("data", "empty")
-            }
-            val jsonObject = JSONObject(body)
-            Log.d("TAG", "onResponse: " + jsonObject)
-            if (jsonObject.has("text")) {
-
-                val textResult = jsonObject.getString("text")
-                if (textResult.isNullOrEmpty()) {
-//                    Toast.makeText(this@BaseActivity,"blank text", Toast.LENGTH_SHORT).show()
-                    // updatechatList("S","Text not readable... try again!!")
-
-                    if (translateEnabled) {
-                        sendTranslatedResponce("Couldn't translate....try again!", "err:")
-                    } else {
-                        updatechatList("S", " ")
-                        getResponse(" ")
-                    }
-                }
-                else {
-                    if (translateEnabled) {
-
-                        // updatechatList("S",textResult.trim())
-                        sendTranslatedResponce(textResult.trim(), "res:")
-                    }
-
-                    else {
-                        updatechatList("S", textResult.trim())
-
-
-                        if (globalJpegFilePath.isNullOrEmpty()) {
-                            getResponse(textResult)
-                        } else {
-                            callStabilityAiImagetoImage(textResult.trim())
-                        }
-                    }
-
-                }
-
-            } else {
-                val error: JSONObject = jsonObject.getJSONObject("error")
-                val msg: String = error.getString("message")
-
-                sendChatGptResponce(msg, "err:")
-
-            }
-        }
-    }
-    val apiPayload = JSONObject().apply {
-        put("model", "gpt-3.5-turbo")
-        put("messages", JSONArray().apply {
-            // Initial system message
-            put(JSONObject().apply {
-                put("role", "system")
-                put("content", "You are a smart assistant that answers all user queries, questions, and statements with a single sentence.")
-            })
-        })
-    }
-
-    // Function to add a row to the "messages" array
-    fun addMessage(role: String, content: String) {
-        val messageObject = JSONObject().apply {
-            put("role", role)
-            put("content", content)
-        }
-        apiPayload.getJSONArray("messages").put(messageObject)
-    }
-
-    val byteCallback = object :  Callback {
+    val uploadAudioToGptCallback = object :  Callback {
         override fun onFailure(call: Call, e: IOException) {
             updatechatList("S", e.message.toString())
             // Handle failure
@@ -1544,7 +1443,7 @@ class BaseActivity : AppCompatActivity() {
                                     .getString("content")
 
                             addMessage("assistant", assistantResponse)
-                          //  updatechatList("R",assistantResponse)
+                            //  updatechatList("R",assistantResponse)
 
 
 
@@ -1559,12 +1458,12 @@ class BaseActivity : AppCompatActivity() {
                                 }
                             }
                             else {
-                                    if (globalJpegFilePath.isNullOrEmpty()) {
-                                        updatechatList("R", assistantResponse.toString())
+                                if (globalJpegFilePath.isNullOrEmpty()) {
+                                    updatechatList("R", assistantResponse.toString())
 
-                                    } else {
-                                        callStabilityAiImagetoImage(assistantResponse)
-                                    }
+                                } else {
+                                    callStabilityAiImagetoImage(assistantResponse)
+                                }
                             }
 
                             println("Completion ID: $completionId")
@@ -1581,6 +1480,90 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    private fun translateAudio(
+        audioFile: File,
+        byteCallback: Callback
+    ) {
+        val client = OkHttpClient()
+
+
+        val audioRequestBody =
+            MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
+                // .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
+               // .addFormDataPart("json", jsonPayload)
+                .build()
+
+        val request = Request.Builder()
+            .url("https://api.brilliant.xyz/noa/translate") // Replace {{host}} with your actual base URL
+            .addHeader("Authorization", "$accessToken") // Assuming apiKey is the authorization token
+            .post(audioRequestBody)
+            .build()
+
+        client.newCall(request).enqueue(byteCallback)
+    }
+    val translateAudioCallback = object :  Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            updatechatList("S", e.message.toString())
+            // Handle failure
+            // client.close()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
+                if (!response.isSuccessful) {
+                    updatechatList("S","Something is wrong!! try again..")
+                    // Handle unsuccessful response
+                } else {
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        // Parse the JSON response
+                        val jsonResponse = JSONObject(responseBody)
+
+                        // Extract relevant information
+                        val reply = jsonResponse.getString("reply")
+
+
+
+                        updatechatList("S",reply)
+                        // Extract the assistant's response
+
+                    }
+                }
+            } catch (e: JSONException) {
+                updatechatList("S","Something is wrong!! try again..")
+                // Handle JSON parsing error
+            } finally {
+                //client.close()
+            }
+        }
+    }
+
+
+
+    val apiPayload = JSONObject().apply {
+        put("model", "gpt-3.5-turbo")
+        put("messages", JSONArray().apply {
+            // Initial system message
+            put(JSONObject().apply {
+                put("role", "system")
+                put("content", "You are a smart assistant that answers all user queries, questions, and statements with a single sentence.")
+            })
+        })
+    }
+
+    // Function to add a row to the "messages" array
+    fun addMessage(role: String, content: String) {
+        val messageObject = JSONObject().apply {
+            put("role", role)
+            put("content", content)
+        }
+        apiPayload.getJSONArray("messages").put(messageObject)
+    }
+
+
 
     private fun callStabilityAiImagetoImage(prompt: String) {
         val apiKey = stabilityApiKey//"sk-sb1h86seqfVQrvwIT6MNX4Y82SFmiurrhBSwXLlaFPCbt4cb"
@@ -1700,8 +1683,8 @@ class BaseActivity : AppCompatActivity() {
 
 
         val request = Request.Builder()
-            .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .url("https://api.brilliant.xyz/noa/translate")
+            .addHeader("Authorization", "$accessToken")
             .addHeader("Stability-Client-ID", "Noa/Android")
             .post(requestBody)
             .build()
