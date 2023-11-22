@@ -261,7 +261,7 @@ class BaseActivity : AppCompatActivity() {
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@BaseActivity, "failure", Toast.LENGTH_LONG).show()
+                   // Toast.makeText(this@BaseActivity, "failure", Toast.LENGTH_LONG).show()
 
 
                     // Finish the current activity if you want to
@@ -282,7 +282,7 @@ class BaseActivity : AppCompatActivity() {
                     finish()
                     // Logout was successful, perform any necessary post-logout actions
                 } else {
-                    Toast.makeText(this@BaseActivity, "unauthorized", Toast.LENGTH_LONG).show()
+                  //  Toast.makeText(this@BaseActivity, "unauthorized", Toast.LENGTH_LONG).show()
 
                     // Handle the error response
                 }
@@ -376,9 +376,9 @@ class BaseActivity : AppCompatActivity() {
             ex.printStackTrace()
         }
 
-//        currentAppState = AppState.RUNNING
-//        val fragment = ChatGptFragment()
-//        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
+        currentAppState = AppState.RUNNING
+        val fragment = ChatGptFragment()
+        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
     }
 
     private fun startBluetoothBackground() {
@@ -1140,15 +1140,15 @@ class BaseActivity : AppCompatActivity() {
                     globalJpegFilePath = jpegFile.absolutePath
                 }
                 updatechatList(1, "S", "", bitmap!!)
-                if (stabilityApiKey.isNullOrEmpty()) {
-                    globalJpegFilePath = null
-                    updatechatList(
-                        1,
-                        "R",
-                        "You have to enter stability API key for this feature!",
-                        ""
-                    )
-                }
+//                if (stabilityApiKey.isNullOrEmpty()) {
+//                    globalJpegFilePath = null
+//                    updatechatList(
+//                        1,
+//                        "R",
+//                        "You have to enter stability API key for this feature!",
+//                        ""
+//                    )
+//                }
             }
 
             var responseData = "ick:"
@@ -1194,14 +1194,21 @@ class BaseActivity : AppCompatActivity() {
                                 getGPTResult(f2)
                             } else {
 
+                                lastAudioFile = f2
 
-                               // uploadAudioFile(f2, byteCallback)
                                 if(translateEnabled)
                                 {
                                     translateAudio(f2,translateAudioCallback)
                                 }
                                 else {
-                                    uploadAudioToGpt(f2, uploadAudioToGptCallback)
+
+                                    if(globalJpegFilePath.isNullOrEmpty()) {
+                                        uploadAudioToGpt(f2, uploadAudioToGptCallback)
+                                    }
+                                    else
+                                    {
+                                        callStabilityApi(f2,callStabilityApiCallback)
+                                    }
                                 }
 
                             }
@@ -1387,7 +1394,7 @@ class BaseActivity : AppCompatActivity() {
 
 
     // OPEN AI
-
+    var lastAudioFile: File? = null
     private fun uploadAudioToGpt(
         audioFile: File,
         byteCallback: Callback
@@ -1399,8 +1406,7 @@ class BaseActivity : AppCompatActivity() {
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-               // .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
-                .addFormDataPart("json", jsonPayload)
+               .addFormDataPart("json", jsonPayload)
                 .build()
 
         val request = Request.Builder()
@@ -1414,6 +1420,7 @@ class BaseActivity : AppCompatActivity() {
     val uploadAudioToGptCallback = object :  Callback {
         override fun onFailure(call: Call, e: IOException) {
             updatechatList("S", e.message.toString())
+            sendChatGptResponce( e.message.toString(),"err:")
             // Handle failure
             // client.close()
         }
@@ -1421,6 +1428,7 @@ class BaseActivity : AppCompatActivity() {
         override fun onResponse(call: Call, response: Response) {
             try {
                 if (!response.isSuccessful) {
+                    sendChatGptResponce( "Something is wrong...try again!!","err:")
                     // Handle unsuccessful response
                 } else {
                     val responseBody = response.body?.string()
@@ -1449,21 +1457,13 @@ class BaseActivity : AppCompatActivity() {
 
                             if (assistantResponse.isNullOrEmpty()) {
 
+                                sendChatGptResponce( "Something is wrong...try again!!","err:")
 
-                                if (translateEnabled) {
-                                    sendTranslatedResponce("Couldn't translate....try again!", "err:")
-                                } else {
-                                    updatechatList("S", " ")
-                                    getResponse(" ")
-                                }
                             }
                             else {
-                                if (globalJpegFilePath.isNullOrEmpty()) {
-                                    updatechatList("R", assistantResponse.toString())
+                                sendChatGptResponce( assistantResponse.toString(),"res:")
 
-                                } else {
-                                    callStabilityAiImagetoImage(assistantResponse)
-                                }
+
                             }
 
                             println("Completion ID: $completionId")
@@ -1474,6 +1474,7 @@ class BaseActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: JSONException) {
+                sendChatGptResponce( "Something is wrong...try again!!","err:")
                 // Handle JSON parsing error
             } finally {
                 //client.close()
@@ -1492,8 +1493,7 @@ class BaseActivity : AppCompatActivity() {
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-                // .addFormDataPart("json", "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"system\",\"content\": \"You are a smart assistant that answers all user queries, questions, and statements with a single sentence.\"}]}")
-               // .addFormDataPart("json", jsonPayload)
+
                 .build()
 
         val request = Request.Builder()
@@ -1506,7 +1506,8 @@ class BaseActivity : AppCompatActivity() {
     }
     val translateAudioCallback = object :  Callback {
         override fun onFailure(call: Call, e: IOException) {
-            updatechatList("S", e.message.toString())
+           // updatechatList("S", e.message.toString())
+            sendChatGptResponce( e.message.toString(),"err:")
             // Handle failure
             // client.close()
         }
@@ -1514,7 +1515,8 @@ class BaseActivity : AppCompatActivity() {
         override fun onResponse(call: Call, response: Response) {
             try {
                 if (!response.isSuccessful) {
-                    updatechatList("S","Something is wrong!! try again..")
+                  //  updatechatList("S","Something is wrong!! try again..")
+                    sendChatGptResponce( "Something is wrong!! try again..","err:")
                     // Handle unsuccessful response
                 } else {
                     val responseBody = response.body?.string()
@@ -1526,14 +1528,14 @@ class BaseActivity : AppCompatActivity() {
                         val reply = jsonResponse.getString("reply")
 
 
-
-                        updatechatList("S",reply)
+                        sendChatGptResponce( reply,"res:")
+                       // updatechatList("S",reply)
                         // Extract the assistant's response
 
                     }
                 }
             } catch (e: JSONException) {
-                updatechatList("S","Something is wrong!! try again..")
+                sendChatGptResponce( "Something is wrong!! try again..","err:")
                 // Handle JSON parsing error
             } finally {
                 //client.close()
@@ -1564,136 +1566,44 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-
-    private fun callStabilityAiImagetoImage(prompt: String) {
-        val apiKey = stabilityApiKey//"sk-sb1h86seqfVQrvwIT6MNX4Y82SFmiurrhBSwXLlaFPCbt4cb"
-
-        val imageFilePath = globalJpegFilePath // Replace with the actual path to your image file
-        val prompt = prompt
-        val strength = 0.5f
-        val guidance = 1
-
-        globalJpegFilePath = null
-
+    private fun callStabilityApi(
+        audioFile: File,
+        callStabilityApiCallback: Callback
+    ) {
         val client = OkHttpClient()
+        val imageFilePath = globalJpegFilePath
 
-        // Create a request body with multipart form data
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "init_image",
-                "Output.jpg",
-                File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull())
-            )
-            .addFormDataPart("text_prompts[0][text]", prompt)
-            .addFormDataPart("init_image_mode", "IMAGE_STRENGTH")
-            .addFormDataPart("image_strength", strength.toString())
-            .addFormDataPart("cfg_scale", guidance.toString())
-            .addFormDataPart("samples", "1")
+            .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
+            .addFormDataPart("model", "stable-diffusion-v1-5")
+            .addFormDataPart("init_image", "Output.jpg",
+                File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull()))
             .build()
 
         // Create a request with headers and the prepared request body
         val request = Request.Builder()
-            .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .addHeader("Stability-Client-ID", "Noa/Android")
-            .post(requestBody)
-            .build()
-
-        // Make the network request asynchronously
-        client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-
-//                val responseData = response.body?.bytes()
-                println("response styability")
-                println(response.body)
-                if (response.isSuccessful) {
-                    val responseData = response.body?.string()
-
-
-                    val jsonObject = JSONObject(responseData)
-                    val artifactsArray = jsonObject.getJSONArray("artifacts")
-                    if (artifactsArray.length() > 0) {
-                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
-
-                        // Now you have the base64Value, which you can decode if needed
-                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
-                        println("decoded bytes")
-                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                        println(bitmap)
-                        updatechatList(1, "R", "", bitmap!!)
-                    } else {
-                        // Handle the API error here
-                        // Log error or show an error message to the user
-                    }
-
-                } else {
-                    val responseData = response.body?.string()
-
-                    try {
-                        val jsonObject = JSONObject(responseData)
-                        if (jsonObject.has("message")) {
-                            println(jsonObject.get("message"))
-                        }
-                    } catch (e: java.lang.Exception) {
-                        println(responseData)
-                        println(e.printStackTrace())
-                    }
-
-                    // Handle the API error here
-                    // Log error or show an error message to the user
-                }
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                println(e)
-                // Handle the network error here
-                // Log error or show an error message to the user
-            }
-        })
-
-    }
-
-    private fun callStabilityApi(prompt: String) {
-        val apiKey = stabilityApiKey
-
-        val imageFilePath = globalJpegFilePath
-        val prompt = prompt
-        val strength = 0.5f
-        val guidance = 1
-
-        globalJpegFilePath = null
-
-        val client = OkHttpClient()
-
-
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "init_image",
-                "Output.jpg",
-                File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull())
-            )
-            .addFormDataPart("text_prompts[0][text]", prompt)
-            .addFormDataPart("init_image_mode", "IMAGE_STRENGTH")
-            .addFormDataPart("image_strength", strength.toString())
-            .addFormDataPart("cfg_scale", guidance.toString())
-            .addFormDataPart("samples", "1")
-            .build()
-
-
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/translate")
+            .url("https://api.brilliant.xyz/noa/image_to_image_audio_prompt") // Replace {{host}} with your actual base URL
             .addHeader("Authorization", "$accessToken")
-            .addHeader("Stability-Client-ID", "Noa/Android")
             .post(requestBody)
             .build()
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
 
-//                val responseData = response.body?.bytes()
-                println("response styability")
+
+
+        client.newCall(request).enqueue(callStabilityApiCallback)
+    }
+    val callStabilityApiCallback = object :  Callback {
+        override fun onFailure(call: Call, e: IOException) {
+           // updatechatList("S", e.message.toString())
+            sendChatGptResponce( e.message.toString(),"err:")
+            globalJpegFilePath = null
+            // Handle failure
+            // client.close()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
                 println(response.body)
                 if (response.isSuccessful) {
                     val responseData = response.body?.string()
@@ -1701,6 +1611,8 @@ class BaseActivity : AppCompatActivity() {
 
                     val jsonObject = JSONObject(responseData)
                     val artifactsArray = jsonObject.getJSONArray("artifacts")
+                    val promptUsed = jsonObject.getString("prompt")
+                    updatechatList( "S", promptUsed)
                     if (artifactsArray.length() > 0) {
                         val base64Value = artifactsArray.getJSONObject(0).getString("base64")
 
@@ -1709,98 +1621,47 @@ class BaseActivity : AppCompatActivity() {
                         println("decoded bytes")
                         bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
                         println(bitmap)
+
+
+
                         updatechatList(1, "R", "", bitmap!!)
+                        globalJpegFilePath = null
                     } else {
+                        sendChatGptResponce( "Something is wrong","err:")
+                        globalJpegFilePath = null
                         // Handle the API error here
                         // Log error or show an error message to the user
                     }
 
-                } else {
+                }
+                else {
                     val responseData = response.body?.string()
 
                     try {
                         val jsonObject = JSONObject(responseData)
                         if (jsonObject.has("message")) {
                             println(jsonObject.get("message"))
+                            sendChatGptResponce( "Something is wrong...Try again!!","err:")
+                            globalJpegFilePath = null
                         }
                     } catch (e: java.lang.Exception) {
                         println(responseData)
                         println(e.printStackTrace())
+                        sendChatGptResponce( e.message.toString(),"err:")
+                        globalJpegFilePath = null
                     }
 
                     // Handle the API error here
                     // Log error or show an error message to the user
                 }
+            } catch (e: JSONException) {
+                sendChatGptResponce( "Something is wrong...Try again!!","err:")
+
+                globalJpegFilePath = null
+                // Handle JSON parsing error
+            } finally {
+                //client.close()
             }
-
-            override fun onFailure(call: Call, e: IOException) {
-                println(e)
-                // Handle the network error here
-                // Log error or show an error message to the user
-            }
-        })
-    }
-
-
-
-    fun getResponse(question: String) {
-        if(globalJpegFilePath.isNullOrEmpty()) {
-            try {
-
-                val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-                val requestBody = """
-            {
-            "prompt": "$question",
-            "max_tokens": 500,
-            "temperature": 0
-            }
-        """.trimIndent()
-
-                val request = Request.Builder()
-                    .url(url)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                    .build()
-
-                client.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        Log.e("error", "API failed", e)
-                        updatechatList("R", e.message.toString())
-
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val body = response.body?.string()
-                        if (body != null) {
-                            Log.v("data", body)
-                        } else {
-                            Log.v("data", "empty")
-                        }
-                        val jsonObject = JSONObject(body)
-                        Log.d("TAG", "onResponse: " + jsonObject)
-
-                        if (jsonObject.has("id")) {
-                            val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                            val textResult = jsonArray.getJSONObject(0).getString("text")
-
-                            sendChatGptResponce(textResult, "res:")
-//                        callback(textResult)
-                        } else {
-                            val error: JSONObject = jsonObject.getJSONObject("error")
-                            val msg: String = error.getString("message")
-
-                            sendChatGptResponce(msg, "err:")
-
-                        }
-                    }
-                })
-            } catch (ex: Exception) {
-                sendChatGptResponce("getResponse: ${ex.message}", "err:")
-                Log.d("ChatGpt", "getResponse: $ex")
-            }
-        }else{
-            callStabilityAiImagetoImage(question)
         }
     }
 
@@ -2108,19 +1969,7 @@ class BaseActivity : AppCompatActivity() {
                 )
 
             ),
-//            ChatModel(
-//                2,
-//                "R",
-//                "To get started, you'll need an OpenAI Api key. To create one visit:\n\nhttps://platform.openai.com\n" +
-//                        "\nAdditionally, to use the AI art feature, You'll need a stability key. Get it here:\n" +
-//                        "\nhttps://platform.stability.ai/",
-//                false,
-//                getThumbnailUrl("https://platform.openai.com"),
-//                BitmapFactory.decodeResource(
-//                    this@BaseActivity.resources,
-//                    R.drawable.tutorial_monocle
-//                )
-//            ),
+
             ChatModel(1, "R", "Looks like you’re all set!\n" +
                     "\n" +
                     "Go ahead. Ask me anything you’d like ☺️", false, ""),

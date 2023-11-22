@@ -84,8 +84,8 @@ class DiscordAuthActivity : AppCompatActivity() {
         if (!code.isNullOrBlank()) {
             // Exchange the authorization code for an access token
             runOnUiThread {
-                Toast.makeText(this@DiscordAuthActivity, "code:$code", Toast.LENGTH_LONG)
-                    .show()
+//                Toast.makeText(this@DiscordAuthActivity, "code:$code", Toast.LENGTH_LONG)
+//                    .show()
             }
 
             lifecycleScope.launch(Dispatchers.Main) {
@@ -108,11 +108,11 @@ class DiscordAuthActivity : AppCompatActivity() {
                                 saveTokenAndEmailToSharedPreferences(token, email)
 
                                 runOnUiThread {
-                                    Toast.makeText(
-                                        this@DiscordAuthActivity,
-                                        "Success $responseBody",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+//                                    Toast.makeText(
+//                                        this@DiscordAuthActivity,
+//                                        "Success $responseBody",
+//                                        Toast.LENGTH_LONG
+//                                    ).show()
 
                                     val intent =
                                         Intent(this@DiscordAuthActivity, BaseActivity::class.java)
@@ -125,11 +125,11 @@ class DiscordAuthActivity : AppCompatActivity() {
                                 // Handle the response data as needed
                             } else {
                                 runOnUiThread {
-                                    Toast.makeText(
-                                        this@DiscordAuthActivity,
-                                        "Failed" + response.body?.string(),
-                                        Toast.LENGTH_LONG
-                                    ).show()
+//                                    Toast.makeText(
+//                                        this@DiscordAuthActivity,
+//                                        "Failed" + response.body?.string(),
+//                                        Toast.LENGTH_LONG
+//                                    ).show()
                                 }
                                 val responseBody = response.body?.string()
                                 var a = responseBody

@@ -388,12 +388,12 @@ class DeviceAdapter(context: Context, resource: Int, private val devices: ArrayL
            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                if (newState == BluetoothProfile.STATE_CONNECTED) {
                    Log.d("TAG", "Connected: "+selectedDevice)
-                   Toast.makeText(this@MainActivity,"Connected",Toast.LENGTH_LONG).show()
+                 //  Toast.makeText(this@MainActivity,"Connected",Toast.LENGTH_LONG).show()
                   // Toast.makeText(this, "Connected: ", Toast.LENGTH_SHORT).show()
                    // Device connected, perform further operations
                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                    // Device disconnected
-                   Toast.makeText(this@MainActivity,"Disconnected",Toast.LENGTH_LONG).show()
+                 //  Toast.makeText(this@MainActivity,"Disconnected",Toast.LENGTH_LONG).show()
                   // Toast.makeText(this@MainActivity,"Connected",Toast.LENGTH_LONG).show()
                   // Log.d("TAG", "Disconnected: "+selectedDevice)
                }

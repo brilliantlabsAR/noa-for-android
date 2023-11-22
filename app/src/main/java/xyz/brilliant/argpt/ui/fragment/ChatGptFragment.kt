@@ -85,7 +85,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         chatAdapter = ChatAdapter(chatMessages,this)
         chatView.adapter = chatAdapter
         if(parentActivity.apiKey.isNullOrEmpty()){
-            openChangeApiKey()
+           // openChangeApiKey()
         }
         if(parentActivity.connectionStatus.isNotEmpty()){
             connectionStatus.visibility = View.VISIBLE
@@ -122,7 +122,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     val singleChat = ChatModel(1,"S",question)
                     chatMessages.add(singleChat)
                     chatAdapter.notifyDataSetChanged()
-                    parentActivity.getResponse(question)
+                   // parentActivity.getResponse(question)
                     etMessage.text.clear()
                 }
             }
@@ -207,11 +207,11 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        val ll_changeApiKey =popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
-        ll_changeApiKey.setOnClickListener {
-            openChangeApiKey()
-            popupWindow.dismiss()
-        }
+//        val ll_changeApiKey =popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
+//        ll_changeApiKey.setOnClickListener {
+//            openChangeApiKey()
+//            popupWindow.dismiss()
+//        }
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
@@ -237,12 +237,13 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
 
-        // Show the popup below the icon
-        val location = IntArray(2)
-        settingBtn.getLocationOnScreen(location)
-        val x = location[0] + settingBtn.width - popupWindow.width // Adjust the space here
-        val y = location[1] - popupWindow.height
-        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y+10)
+        val screenWidth = resources.displayMetrics.widthPixels
+        val popupWidth = popupWindow?.width ?: 0 // Get the current popup width
+        val xOffset = screenWidth - popupWidth - 40 // Adjust the margin here
+
+        // Show the popup with a margin of 40dp at the top, 40dp to the left, and 40dp to the right
+        val yOffset = 40 // Adjust the top margin here
+        popupWindow?.showAsDropDown(settingBtn, xOffset, yOffset)
 
         //popupWindow.showAsDropDown(settingBtn)
     }
@@ -261,75 +262,75 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     }
 
     lateinit var dialog: Dialog
-    fun openChangeApiKey() {
-        dialog = Dialog(requireActivity(),R.style.TransparentDialog)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(false)
-        dialog.setContentView(R.layout.api_key_change_popup_open_ai_stability_api)
-        val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
-        val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
-        val apiKeyTextStabilityApi = dialog.findViewById<EditText>(R.id.apiKeyTextStabilityApi)
+//    fun openChangeApiKey() {
+//        dialog = Dialog(requireActivity(),R.style.TransparentDialog)
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+//        dialog.setCancelable(false)
+//        dialog.setContentView(R.layout.api_key_change_popup_open_ai_stability_api)
+//        val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
+//        val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
+//        val apiKeyTextStabilityApi = dialog.findViewById<EditText>(R.id.apiKeyTextStabilityApi)
+////        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
+//        val apiKeyOld =  parentActivity.getStoredApiKey()
+//        apiKeyText.setText(apiKeyOld)
+//
+//        val oldStabilityApiKey =  parentActivity.getStoredStabilityApiKey()
+//        apiKeyTextStabilityApi.setText(oldStabilityApiKey)
+////        closeButton.setOnClickListener {
+////            dialog.dismiss()
+////            gotoOpenApi()
+////        }
+//
+//
+//        doneButton.setOnClickListener {
+//            val apiKeyValue = apiKeyText.text.toString().trim()
+//            if (apiKeyValue.isNotEmpty()){
+//                // API key not null
+//                dialog.dismiss()
+//                parentActivity.storeApiKey(apiKeyValue)
+//                parentActivity.apiKey  = apiKeyValue
+//                parentActivity.storeStabilityApiKey(apiKeyTextStabilityApi.text.toString().trim())
+//                parentActivity.stabilityApiKey  = apiKeyTextStabilityApi.text.toString().trim()
+//            }else{
+//
+//              //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
+//
+//            }
+//        }
+//        dialog.show()
+//    }
+//
+//    fun stabilityChangeApiKey() {
+//        dialog = Dialog(requireActivity(),R.style.TransparentDialog)
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+//        dialog.setCancelable(false)
+//        dialog.setContentView(R.layout.stability_api_key_change)
+//        val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
+//        val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
 //        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
-        val apiKeyOld =  parentActivity.getStoredApiKey()
-        apiKeyText.setText(apiKeyOld)
-
-        val oldStabilityApiKey =  parentActivity.getStoredStabilityApiKey()
-        apiKeyTextStabilityApi.setText(oldStabilityApiKey)
+//        val apiKeyOld =  parentActivity.getStoredStabilityApiKey()
+//        apiKeyText.setText(apiKeyOld)
 //        closeButton.setOnClickListener {
 //            dialog.dismiss()
-//            gotoOpenApi()
+//            //gotoStabilityApi()
 //        }
-
-
-        doneButton.setOnClickListener {
-            val apiKeyValue = apiKeyText.text.toString().trim()
-            if (apiKeyValue.isNotEmpty()){
-                // API key not null
-                dialog.dismiss()
-                parentActivity.storeApiKey(apiKeyValue)
-                parentActivity.apiKey  = apiKeyValue
-                parentActivity.storeStabilityApiKey(apiKeyTextStabilityApi.text.toString().trim())
-                parentActivity.stabilityApiKey  = apiKeyTextStabilityApi.text.toString().trim()
-            }else{
-
-              //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
-
-            }
-        }
-        dialog.show()
-    }
-
-    fun stabilityChangeApiKey() {
-        dialog = Dialog(requireActivity(),R.style.TransparentDialog)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(false)
-        dialog.setContentView(R.layout.stability_api_key_change)
-        val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
-        val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
-        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
-        val apiKeyOld =  parentActivity.getStoredStabilityApiKey()
-        apiKeyText.setText(apiKeyOld)
-        closeButton.setOnClickListener {
-            dialog.dismiss()
-            //gotoStabilityApi()
-        }
-
-
-        doneButton.setOnClickListener {
-            val apiKeyValue = apiKeyText.text.toString().trim()
-            if (apiKeyValue.isNotEmpty()){
-                // API key not null
-                dialog.dismiss()
-                parentActivity.storeStabilityApiKey(apiKeyValue)
-                parentActivity.stabilityApiKey  = apiKeyValue
-            }else{
-
-                //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
-
-            }
-        }
-        dialog.show()
-    }
+//
+//
+//        doneButton.setOnClickListener {
+//            val apiKeyValue = apiKeyText.text.toString().trim()
+//            if (apiKeyValue.isNotEmpty()){
+//                // API key not null
+//                dialog.dismiss()
+//                parentActivity.storeStabilityApiKey(apiKeyValue)
+//                parentActivity.stabilityApiKey  = apiKeyValue
+//            }else{
+//
+//                //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
+//
+//            }
+//        }
+//        dialog.show()
+//    }
 
     fun scrollToBottom() {
         chatView.scrollToPosition(chatMessages.size-1)
@@ -414,12 +415,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     }
 
     override fun onStabilityApiClick(position: Int, chatModel: ChatModel) {
-        gotoStabilityApi()
-        stabilityChangeApiKey()
+       // gotoStabilityApi()
+       // stabilityChangeApiKey()
     }
 
     override fun onOpenApiClick(position: Int, chatModel: ChatModel) {
-        openChangeApiKey()
+      //  openChangeApiKey()
     }
 
 

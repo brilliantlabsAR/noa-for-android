@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -55,8 +56,8 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
         }
         setContentView(R.layout.activity_social_login)
 
-        val btnGmail = findViewById<SignInButton>(R.id.btnGmail)
-        btnGmail.setSize(SignInButton.SIZE_STANDARD);
+        val btnGmail = findViewById<MaterialButton>(R.id.btnGmail)
+       // btnGmail.setSize(SignInButton.SIZE_STANDARD);
 
        // val btnApple = findViewById<Button>(R.id.btnApple)
         val btnDiscord = findViewById<LinearLayout>(R.id.btnDiscord)

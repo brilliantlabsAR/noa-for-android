@@ -17,9 +17,9 @@
                     android:layout_alignParentTop="true"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="100dp"
-                    android:text="@string/welcome_String"
+                    android:text="@string/top_name"
                     android:lineSpacingExtra="-16sp"
-                    android:textSize="15sp"
+                    android:textSize="12sp"
 
                     android:gravity="center_horizontal|center_vertical"
                     />
@@ -53,20 +53,27 @@
         </RelativeLayout>
 
 
-        <com.google.android.gms.common.SignInButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGmail"
+            style="@style/ButtonTextStyle"
             android:layout_width="match_parent"
+            android:layout_height="60dp"
             android:layout_above="@+id/btnDiscord"
-
+            android:layout_centerInParent="true"
             android:layout_marginStart="@dimen/_35pxh"
             android:layout_marginEnd="@dimen/_35pxh"
-            app:buttonSize="wide"
-            android:layout_height="wrap_content" />
+            android:layout_weight="1"
+            android:backgroundTint="@color/white"
+            android:text="Sign in With Google"
+            app:cornerRadius="10dp"
+            app:icon="@drawable/googleg_standard_color_18"
+            app:iconPadding="10dp"
+            app:iconTint="#00100D0D"
+            app:iconTintMode="src_atop" />
 
         <LinearLayout
             android:id="@+id/btnDiscord"
             android:layout_height="wrap_content"
-
             android:layout_marginTop="@dimen/_20pxv"
             android:layout_above="@+id/privacyPolicy"
             android:layout_marginBottom="@dimen/_55sp"
@@ -75,7 +82,9 @@
             android:layout_width="match_parent"
             android:orientation="horizontal"
             style="@style/groupStyleindigo_A200cornerRadius">
-                <ImageView android:id="@+id/imageUser"
+
+                <ImageView
+                    android:id="@+id/imageUser"
                     android:layout_height="@dimen/_21pxh"
                     android:layout_marginBottom="@dimen/_13pxv"
                     android:layout_marginStart="@dimen/_15pxh"
@@ -84,22 +93,25 @@
                     android:scaleType="fitXY"
                     android:src="@drawable/img_user"
                     tools:ignore="ContentDescription" tools:src="@drawable/img_user"/>
-                <TextView android:ellipsize="end"
+
+                <TextView
+                    android:ellipsize="end"
                     android:id="@+id/txtSigninwithDi"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/_14pxv"
-                    android:layout_marginEnd="@dimen/_58pxh"
-                    android:layout_marginStart="@dimen/_75pxh"
+                    android:layout_marginEnd="@dimen/_10pxh"
+                    android:gravity="center_horizontal"
                     android:layout_marginTop="@dimen/_17pxv"
-                    android:layout_weight="0.85"
+                    android:layout_weight="0.95"
                     android:layout_width="0dp"
+                    android:maxLines="1"
                     android:lineSpacingExtra="@dimen/_15pxh"
-
                     android:textSize="@dimen/_16pxv"
-                    android:text=" Sign in with Discord"
+                    android:text="Sign in with Discord"
                     android:textColor="@color/white_background"
-                     />
+                    style="@style/ButtonTextStyle" />
         </LinearLayout>
+
 
         <TextView
             android:id="@+id/privacyPolicy"

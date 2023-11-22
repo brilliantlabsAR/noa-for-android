@@ -20,5 +20,15 @@
     <style name="groupStyleindigo_A200cornerRadius">
         <item name="android:background">@drawable/rectangle_bg_indigo_a200_radius_10</item>
     </style>
+    <style name="whitecornerRadius">
+        <item name="android:background">@drawable/whiteroundedcorner</item>
+    </style>
+
+    <style name="ButtonTextStyle" parent="TextAppearance.MaterialComponents.Button">
+        <!-- Customize text attributes here -->
+        <item name="android:textSize">@dimen/_16pxv</item>
+        <item name="android:textColor">@color/black</item>
+        <!-- Add other text attributes as needed -->
+    </style>
 
 </resources>

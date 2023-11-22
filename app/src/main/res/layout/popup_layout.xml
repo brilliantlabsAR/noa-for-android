@@ -4,51 +4,51 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_marginRight="10dp"
+    android:layout_marginRight="40dp"
     android:layout_marginLeft="10dp"
-    android:paddingRight="@dimen/_5pxh"
+    android:paddingRight="@dimen/_25pxh"
     android:paddingLeft="@dimen/_5pxh"
     android:background="@drawable/square_gray_background">
 
+<!--    <LinearLayout-->
+<!--        android:id="@+id/ll_changeApiKey"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        android:paddingTop="10dp"-->
+
+<!--        android:paddingBottom="10dp"-->
+<!--        android:orientation="horizontal">-->
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Manage API Key"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textColor="@color/text_Color"-->
+<!--            android:layout_gravity="center"/>-->
+
+<!--        <Space-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_weight="1"/>-->
+
+<!--        <ImageView-->
+<!--            android:layout_width="30dp"-->
+<!--            android:layout_height="30dp"-->
+<!--            android:layout_marginStart="25dp"-->
+<!--            android:src="@drawable/unpair"-->
+<!--            android:layout_gravity="center"-->
+<!--            app:tint="@color/text_Color" />-->
+<!--    </LinearLayout>-->
+
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="2dp"-->
+<!--        android:background="@color/gray"/>-->
+
     <LinearLayout
-        android:id="@+id/ll_changeApiKey"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:paddingTop="10dp"
-
-        android:paddingBottom="10dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Manage API Key"
-            android:textSize="16sp"
-            android:textColor="@color/text_Color"
-            android:layout_gravity="center"/>
-
-        <Space
-            android:layout_width="50dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="25dp"
-            android:src="@drawable/unpair"
-            android:layout_gravity="center"
-            app:tint="@color/text_Color" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/gray"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:paddingTop="10dp"
