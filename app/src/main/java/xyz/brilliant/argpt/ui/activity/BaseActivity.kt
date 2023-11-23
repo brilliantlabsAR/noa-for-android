@@ -336,8 +336,8 @@ class BaseActivity : AppCompatActivity() {
             if (apiKey.isEmpty()) {
                 apiKey = getStoredApiKey()
             }
-            if(stabilityApiKey.isEmpty()){
-                stabilityApiKey =  getStoredStabilityApiKey()
+            if (stabilityApiKey.isEmpty()) {
+                stabilityApiKey = getStoredStabilityApiKey()
             }
             if (storedDeviceAddress.isNullOrBlank()) {
                 currentAppState = AppState.FIRST_PAIR
@@ -370,17 +370,15 @@ class BaseActivity : AppCompatActivity() {
             }
 
 
-
-
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
 
-        currentAppState = AppState.RUNNING
-        val fragment = ChatGptFragment()
-        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
+//        currentAppState = AppState.RUNNING
+//        val fragment = ChatGptFragment()
+//        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
+//    }
     }
-
     private fun startBluetoothBackground() {
         val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
 

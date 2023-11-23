@@ -152,7 +152,7 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
             val result = data?.let { Auth.GoogleSignInApi.getSignInResultFromIntent(it) }
             if (result != null) {
                 if (result.isSuccess) {
-                    Toast.makeText(this, "Sign-in was successful!", Toast.LENGTH_LONG).show()
+                  //  Toast.makeText(this, "Sign-in was successful!", Toast.LENGTH_LONG).show()
                     // Google Sign-In was successful, handle the user's information
                     val account = result.signInAccount
                     val idToken = account?.idToken
@@ -179,7 +179,7 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
                                     saveTokenAndEmailToSharedPreferences(token, email)
 
                                     runOnUiThread {
-                                        Toast.makeText(this@SocialLoginActivity, "Success $responseBody", Toast.LENGTH_LONG).show()
+//                                        Toast.makeText(this@SocialLoginActivity, "Success $responseBody", Toast.LENGTH_LONG).show()
 
                                         val intent = Intent(this@SocialLoginActivity, BaseActivity::class.java)
                                         startActivity(intent)
@@ -201,7 +201,7 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
 
                     // You can use this information for user authentication or other purposes.
                 } else {
-                    Toast.makeText(this, "Sign-in was failed!", Toast.LENGTH_LONG).show()
+                 //   Toast.makeText(this, "Sign-in was failed!", Toast.LENGTH_LONG).show()
 
                     // Google Sign-In failed
                 }
@@ -216,7 +216,7 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
         editor.apply()
     }
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        Toast.makeText(this, "onconnectionfailed", Toast.LENGTH_LONG).show()
+     //   Toast.makeText(this, "onconnectionfailed", Toast.LENGTH_LONG).show()
 
         // Connection to Google Play services failed, handle this gracefully
     }

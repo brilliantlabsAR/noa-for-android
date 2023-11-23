@@ -57,7 +57,7 @@
             android:id="@+id/btnGmail"
             style="@style/ButtonTextStyle"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="@dimen/_55pxh"
             android:layout_above="@+id/btnDiscord"
             android:layout_centerInParent="true"
             android:layout_marginStart="@dimen/_35pxh"
