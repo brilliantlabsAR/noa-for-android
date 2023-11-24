@@ -24,6 +24,28 @@
         <item name="android:background">@drawable/whiteroundedcorner</item>
     </style>
 
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background, animated icon, and animation
+        duration. -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- Use windowSplashScreenAnimatedIcon to add a drawable or an animated
+             drawable. One of these is required. -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/argpt_launcher_icon</item>
+        <!-- Required for animated icons. -->
+        <item name="windowSplashScreenAnimationDuration">200</item>
+
+        <!-- Set the theme of the Activity that directly follows your splash
+        screen. This is required. -->
+        <item name="postSplashScreenTheme">@style/XXXXXAppTheme</item>
+    </style>
+<!--    <style name="Theme.App.Starting" parent="Theme.Material3.DayNight">-->
+<!--        &lt;!&ndash; ...other attributes... &ndash;&gt;-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/argpt_launcher_icon</item>-->
+<!--        <item name="windowSplashScreenBackground">@color/black</item>-->
+
+<!--    </style>-->
+
     <style name="ButtonTextStyle" parent="TextAppearance.MaterialComponents.Button">
         <!-- Customize text attributes here -->
         <item name="android:textSize">@dimen/_16pxv</item>

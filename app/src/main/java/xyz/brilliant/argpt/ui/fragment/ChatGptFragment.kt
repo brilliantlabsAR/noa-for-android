@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -12,13 +13,13 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.NonDisposableHandle.parent
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -29,6 +30,7 @@ import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
+
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private val client = OkHttpClient()
@@ -130,7 +132,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
         settingBtn.setOnClickListener {
             //showAtAnchor(mainView)
-            showPopup()
+            showPopup(settingBtn)
         }
      //   parentActivity.sendHelloRaw("")
         return mView
@@ -195,7 +197,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
-    private fun showPopup() {
+    private fun showPopup(anchorView: View) {
         val inflater = LayoutInflater.from(activity)
         val popupView = inflater.inflate(R.layout.popup_layout, null)
 
@@ -207,11 +209,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-//        val ll_changeApiKey =popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
-//        ll_changeApiKey.setOnClickListener {
-//            openChangeApiKey()
-//            popupWindow.dismiss()
-//        }
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
@@ -225,7 +222,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
            // if (parentActivity != null) {
                 // Modify the boolean value in the parent activity
                 parentActivity.translateEnabled =switchButton.isChecked
-            popupWindow.dismiss()
+           // popupWindow.dismiss()
            // }
         }
 
@@ -237,16 +234,38 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
 
-        val screenWidth = resources.displayMetrics.widthPixels
-        val popupWidth = popupWindow?.width ?: 0 // Get the current popup width
-        val xOffset = screenWidth - popupWidth - 40 // Adjust the margin here
+        val popupWidth = popupWindow.width
 
-        // Show the popup with a margin of 40dp at the top, 40dp to the left, and 40dp to the right
-        val yOffset = 40 // Adjust the top margin here
-        popupWindow?.showAsDropDown(settingBtn, xOffset, yOffset)
+        // Get the width of the settingBtn
+        val settingBtnWidth = anchorView.width
 
-        //popupWindow.showAsDropDown(settingBtn)
+        // Calculate the xOffset to end on the left of anchorView
+        val xOffset = -30
+
+        // Calculate the yOffset to be below anchorView
+        val yOffset = 30  // Adjust the top margin here
+        popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+
     }
+
+    fun locateView(v: View?): Rect? {
+        val loc_int = IntArray(2)
+        if (v == null) return null
+        try {
+            v.getLocationOnScreen(loc_int)
+        } catch (npe: NullPointerException) {
+            //Happens when the view doesn't exist on screen anymore.
+            return null
+        }
+        val location = Rect()
+        location.left = loc_int[0]
+        location.top = loc_int[1]
+        location.right = location.left + v.width
+        location.bottom = location.top + v.height
+        return location
+    }
+
+
     private fun gotoOpenApi() {
 
 

@@ -38,14 +38,16 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="top_name"><font color='#E82E87'> > </font><font color='#000000'>Brilliant</font><font color='#E82E87'> (Labs) </font> </string>
     <string name="argpt">Noa</string>
+    <string name="welcometxt">Welcome to Noa. Let\'s get started...</string>
     <string name="let_s_pair_">Let\'s pair your device. Take your Monocle out of the case, and bring it close.</string>
+
     <string name="device_close">Bring your device close.</string>
     <string name="searching">Searching</string>
     <string name="api_key_suggestion">Next, enter your OpenAI developer API key. If you don\'t have one. You can sign up<font color='#4CAF50'> here </font>  </string>
     <string name="enter_api_key">Enter your api key</string>
     <string name="ask_question">Ask a question</string>
     <string name="privacy_policy">Be sure to read our<font color='#E82E87'> Privacy Policy</font>, as well as\n <font color='#E82E87'>Terms and Conditions</font> before using arGPT</string>
-    <string name="privacy_policy2">Be sure to read our <![CDATA[<a href="https://brilliant.xyz/pages/privacy-policy" style="color:#E82E87">Privacy Policy</a>]]>, as well as <![CDATA[<a href="https://brilliant.xyz/pages/terms-conditions" style="color:#E82E87">Terms and Conditions</a>]]> before using arGPT</string>
+    <string name="privacy_policy2">Be sure to read our <![CDATA[<a href="https://brilliant.xyz/pages/privacy-policy" style="color:#E82E87">Privacy Policy</a>]]>, as well as <![CDATA[<a href="https://brilliant.xyz/pages/terms-conditions" style="color:#E82E87">Terms and Conditions</a>]]> before using Noa</string>
 
     <string name="privecy_txt">Be sure to read our<a href="privacy"><font color="#E82E87"> Privacy Policy</font></a>, as well as\n <a href="terms"><font color="#E82E87">Terms and Conditions</font></a> before using arGPT</string>
     <!-- TODO: Remove or change this placeholder text -->

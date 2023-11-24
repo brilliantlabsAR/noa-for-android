@@ -377,7 +377,7 @@ class BaseActivity : AppCompatActivity() {
 //        currentAppState = AppState.RUNNING
 //        val fragment = ChatGptFragment()
 //        pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt") // for testing**
-//    }
+
     }
     private fun startBluetoothBackground() {
         val foregroundServiceIntent = Intent(this, ForegroundService::class.java)

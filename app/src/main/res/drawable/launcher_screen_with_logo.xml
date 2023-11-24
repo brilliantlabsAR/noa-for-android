@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+
+    <!--Background color of your Splash Screen-->
+    <item android:drawable="@android:color/white" />
+
+    <item>
+        <!--This logo is 144x144 px. If your image is larger, you should scale it to fit nicely-->
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/ic_home_black_24dp" />
+    </item>
+
+</layer-list>

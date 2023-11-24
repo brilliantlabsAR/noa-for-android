@@ -3,12 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_gravity="end"
     android:orientation="vertical"
-    android:layout_marginRight="20dp"
+    android:layout_marginRight="50dp"
     android:layout_marginLeft="10dp"
-    android:paddingRight="@dimen/_25pxh"
+
     android:paddingLeft="@dimen/_5pxh"
-    android:background="@drawable/square_gray_background">
+    >
 
 <!--    <LinearLayout-->
 <!--        android:id="@+id/ll_changeApiKey"-->
@@ -47,6 +48,18 @@
 <!--        android:layout_height="2dp"-->
 <!--        android:background="@color/gray"/>-->
 
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="10dp"
+
+        android:paddingLeft="@dimen/_5pxh"
+        android:background="@drawable/square_gray_background">
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -72,6 +85,7 @@
             android:id="@+id/switchButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:trackTint="@drawable/switch_thumb_color_selector"
             android:thumbTint="@drawable/switch_thumb_color_selector"
             android:layout_marginStart="25dp"/>
     </LinearLayout>
@@ -95,8 +109,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Unpair Monocle, Logout"
+            android:text="Logout &amp; unpair Monocle"
             android:textSize="16sp"
+            android:maxLines="1"
             android:textColor="#FF453A"
             android:layout_gravity="center"/>
 
@@ -113,6 +128,6 @@
             android:layout_gravity="center"
             app:tint="#FF453A" />
     </LinearLayout>
-
+    </LinearLayout>
 
 </LinearLayout>
