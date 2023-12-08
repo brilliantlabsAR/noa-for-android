@@ -70,6 +70,7 @@ import org.jsoup.nodes.Document
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
+import xyz.brilliant.argpt.ui.fragment.DeleteProfileFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
 import xyz.brilliant.argpt.ui.login.SocialLoginActivity
 import xyz.brilliant.argpt.ui.model.ChatModel
@@ -79,6 +80,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.file.Files.delete
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.zip.CRC32
@@ -301,25 +303,6 @@ class BaseActivity : AppCompatActivity() {
         editor.clear()
         editor.apply()
     }
-
-
-
-
-    fun storeApiKey(_apiKey: String) {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putString(PREFS_OPEN_API_KEY, _apiKey)
-        editor.apply()
-    }
-
-
-    fun storeStabilityApiKey(_apiKey: String) {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putString(PREFS_STABILITY_API_KEY, _apiKey)
-        editor.apply()
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1428,6 +1411,11 @@ class BaseActivity : AppCompatActivity() {
                 if (!response.isSuccessful) {
                     sendChatGptResponce( "Something is wrong...try again!!","err:")
                     // Handle unsuccessful response
+
+
+                    if(response.code==401){
+                        unpairMonocle()
+                    }
                 } else {
                     val responseBody = response.body?.string()
                     if (responseBody != null) {
@@ -1662,6 +1650,69 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
+
+    fun deleteAccount(){
+        deleteAccount(deleteAccountCallback)
+    }
+     fun deleteAccount(deleteAccountCallback: Callback) {
+        val client = OkHttpClient()
+         val mediaType = "text/plain".toMediaType()
+         val body = "".toRequestBody(mediaType)
+        // Create a request with headers
+        val request = Request.Builder()
+            .url("https://api.brilliant.xyz/noa/delete_account")
+            .addHeader("Authorization", accessToken)
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(deleteAccountCallback)
+    }
+
+    private val deleteAccountCallback = object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            // Handle failure
+            // e.message.toString()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
+                if (response.isSuccessful) {
+
+
+                    clearSharedPreferences()
+
+                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
+                    startActivity(intent)
+                    // Handle successful response
+                } else {
+
+                    clearSharedPreferences()
+
+                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
+                    startActivity(intent)
+                    // Handle unsuccessful response
+                }
+            } catch (e: Exception) {
+
+                clearSharedPreferences()
+
+                val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
+                startActivity(intent)
+                // Handle exceptions
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     fun sendChatGptResponce(data: String, prefix: String) {
         updatechatList("R", data)
@@ -2533,6 +2584,13 @@ class BaseActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun gotoDeleteProfile() {
+
+        currentAppState = AppState.RUNNING
+        val fragment = DeleteProfileFragment()
+        pushFragmentsStatic(fragmentManager, fragment, false, "delete_profile") // for testing**
     }
 
 }

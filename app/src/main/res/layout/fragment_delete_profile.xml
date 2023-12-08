@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/topLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="100dp"
+            android:text="@string/top_name"
+            android:lineSpacingExtra="-16sp"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:gravity="center_horizontal|center_vertical"
+            />
+        <TextView
+            android:id="@+id/argpt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/topLogo"
+            android:text="@string/app_name"
+            android:lineSpacingExtra="-16sp"
+            android:textSize="32sp"
+            android:textColor="@color/text_Color"
+            android:gravity="center_horizontal|center_vertical"
+            />
+        <TextView
+            android:id="@+id/let_s_pair_"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="38dp"
+            android:textAlignment="center"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="38dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="198dp"
+            android:text="User Profile Deletion Page"
+            android:textColor="@color/text_Color"
+            android:textSize="20sp"
+
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/privacyPolicy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:autoLink="web"
+        android:gravity="center"
+        android:linksClickable="true"
+        android:text="@string/privacy_policy2"
+        android:textColor="@color/text_Color"
+        android:textSize="14sp" />
+    <LinearLayout
+        android:id="@+id/idTILQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="7dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="35dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_alignParentBottom="true"
+      >
+
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_marginStart="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="@dimen/_10pxh"
+            android:text="Delete Profile"
+            android:layout_above="@+id/btngoBack"
+
+            android:background="@drawable/round_white_background"
+
+            android:maxLines="1" />
+
+        <Button
+            android:id="@+id/btngoBack"
+            android:visibility="gone"
+            android:layout_marginStart="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="Go Back"
+
+            android:background="@drawable/round_white_background"
+
+            android:maxLines="1" />
+
+
+    </LinearLayout>
+
+</RelativeLayout>

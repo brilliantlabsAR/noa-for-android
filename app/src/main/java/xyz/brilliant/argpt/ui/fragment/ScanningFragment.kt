@@ -18,7 +18,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.RelativeLayout
+import android.widget.Switch
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
@@ -33,7 +37,8 @@ class ScanningFragment : Fragment() {
     private lateinit var popUpbtn: TextView
     private lateinit var myCardView: CardView
     private lateinit var searchBox: RelativeLayout
-
+    lateinit var settingBtn: ImageView
+    private lateinit var popupWindow: PopupWindow
     override fun onAttach(context: Context) {
         super.onAttach(context)
         parentActivity = context as BaseActivity
@@ -54,12 +59,15 @@ class ScanningFragment : Fragment() {
         popUpbtn = view.findViewById(R.id.popUpbtn)
         deviceCloseTextView = view.findViewById(R.id.deviceCloseTextView)
         searchBox = view.findViewById(R.id.searchBox)
+        settingBtn=view.findViewById(R.id.settingBtn)
 
 
 
 
-
-
+        settingBtn.setOnClickListener {
+            //showAtAnchor(mainView)
+            showPopup(settingBtn)
+        }
 
         myCardView.translationY = myCardView.height.toFloat()
 
@@ -84,7 +92,64 @@ class ScanningFragment : Fragment() {
         }
     }
 
+    private fun showPopup(anchorView: View) {
+        val inflater = LayoutInflater.from(activity)
+        val popupView = inflater.inflate(R.layout.popup_layout, null)
 
+
+
+        // Set up the popup window
+        popupWindow = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
+
+
+        val delete_profile_layout = popupView.findViewById<LinearLayout>(R.id.delete_profile_layout)
+        val translate_layout = popupView.findViewById<LinearLayout>(R.id.translate_layout)
+
+
+        translate_layout.visibility = View.GONE
+        delete_profile_layout.visibility = View.VISIBLE
+
+        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+
+        switchButton.isChecked = parentActivity.translateEnabled
+
+        switchButton.setOnClickListener {
+
+            parentActivity.translateEnabled =switchButton.isChecked
+
+        }
+
+        delete_profile_layout.setOnClickListener{
+            popupWindow.dismiss()
+            parentActivity.gotoDeleteProfile()
+        }
+
+        unpairMonocle.setOnClickListener {
+            popupWindow.dismiss()
+            parentActivity.unpairMonocle()
+        }
+        // Set up any additional settings for the popup window
+        popupWindow.isOutsideTouchable = true
+        popupWindow.isFocusable = true
+
+        val popupWidth = popupWindow.width
+
+        // Get the width of the settingBtn
+        val settingBtnWidth = anchorView.width
+
+        // Calculate the xOffset to end on the left of anchorView
+        val xOffset = -30
+
+        // Calculate the yOffset to be below anchorView
+        val yOffset = 30  // Adjust the top margin here
+        popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

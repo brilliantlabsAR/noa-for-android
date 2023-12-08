@@ -62,6 +62,7 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
+        android:id="@+id/translate_layout"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:paddingTop="10dp"
@@ -90,7 +91,26 @@
             android:layout_marginStart="25dp"/>
     </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:id="@+id/delete_profile_layout"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:paddingTop="10dp"
+            android:visibility="gone"
+            android:paddingBottom="10dp"
+            android:orientation="horizontal">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="   Delete Profile   "
+                android:textSize="16sp"
+                android:textColor="@color/text_Color"
+                android:layout_gravity="center"/>
+
+
+        </LinearLayout>
 
     <View
         android:layout_width="match_parent"
