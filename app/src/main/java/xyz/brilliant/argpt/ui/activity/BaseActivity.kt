@@ -2379,7 +2379,7 @@ class BaseActivity : AppCompatActivity() {
                 //            start firmware update
                 currentDevice = bluetoothGatt!!.device.address
                 frameSendBle("frame.update()")
-                return "Failed"
+                return "Failed "
             } else {
                 return "Updated"
             }
