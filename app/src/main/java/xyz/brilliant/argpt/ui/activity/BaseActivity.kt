@@ -109,6 +109,11 @@ class BaseActivity : AppCompatActivity() {
         private val NORDIC_SERVICE_UUID = UUID.fromString("0000fe59-0000-1000-8000-00805f9b34fb")
         private const val NORDIC_CONTROL_UUID = "8ec90001-f315-4f60-9fb8-838830daea50"
         private const val NORDIC_PACKET_UUID = "8ec90002-f315-4f60-9fb8-838830daea50"
+        private val FRAME_SERVICE_UUID = UUID.fromString("7A230001-5475-A6A4-654C-8431F6AD49C4")
+
+        private const val FRAME_RX_UUID = "7A230002-5475-A6A4-654C-8431F6AD49C4"
+        private const val FRAME_TX_UUID = "7A230003-5475-A6A4-654C-8431F6AD49C4"
+
         private val FILES = arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
@@ -151,6 +156,8 @@ class BaseActivity : AppCompatActivity() {
     private var bluetoothGatt: BluetoothGatt? = null
     private var rxCharacteristic: BluetoothGattCharacteristic? = null
     private var txCharacteristic: BluetoothGattCharacteristic? = null
+    private var frameRxCharacteristic: BluetoothGattCharacteristic? = null
+    private var frameTxCharacteristic: BluetoothGattCharacteristic? = null
     private var writingREPLProgress: Boolean = false
     val fragmentManager = supportFragmentManager
     var translateEnabled: Boolean = false
@@ -161,6 +168,7 @@ class BaseActivity : AppCompatActivity() {
     private var nordicControlCharacteristic: BluetoothGattCharacteristic? = null
     private var nordicPacketCharacteristic: BluetoothGattCharacteristic? = null
     var rawReplResponseCallback: ((String) -> Unit)? = null
+    var frameResponseCallback: ((String) -> Unit)? = null
     var controlResponseCallback: ((ByteArray) -> Unit)? = null
 
     data class Fpga(val bin: ByteArray?, val version: String?)
@@ -177,6 +185,7 @@ class BaseActivity : AppCompatActivity() {
     var currentAppState = AppState.FIRST_PAIR
     private val mArrayList = ArrayList<ScanResult>()
     private var currentDevice: String = ""
+    private var currentDeviceName: String = ""
     private var audioBuffer: ByteArray = byteArrayOf(0)
     private var imageBuffer: ByteArray = byteArrayOf(0)
     var audioJob: Job? = null
@@ -751,6 +760,9 @@ class BaseActivity : AppCompatActivity() {
                     .build(),
                 ScanFilter.Builder()
                     .setServiceUuid(ParcelUuid(NORDIC_SERVICE_UUID))
+                    .build(),
+                ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid(FRAME_SERVICE_UUID))
                     .build()
 
             )
@@ -838,6 +850,7 @@ class BaseActivity : AppCompatActivity() {
             super.onConnectionStateChange(gatt, status, newState)
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
+                currentDeviceName = gatt.device.name
                 writingREPLProgress = false
                 currentScannedDevice = null
                 currentConnectionStatus = true
@@ -862,7 +875,7 @@ class BaseActivity : AppCompatActivity() {
                 }
                 // }
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-
+                currentDeviceName = ""
                 disconnectGatt()
                 if (currentAppState == AppState.FIRST_PAIR || currentAppState == AppState.RUNNING) {
 
@@ -903,6 +916,7 @@ class BaseActivity : AppCompatActivity() {
                     val service = gatt.getService(SERVICE_UUID)
                     val rawService = gatt.getService(RAW_SERVICE_UUID)
                     val nordicService = gatt.getService(NORDIC_SERVICE_UUID)
+                    val frameService = gatt.getService(FRAME_SERVICE_UUID)
                     if (service != null && rawService != null) {
                         // for REPL and data of monocle
                         println("[REPL SERVICE DISCOVERED] : ${service.uuid}\n")
@@ -915,6 +929,12 @@ class BaseActivity : AppCompatActivity() {
                         println("[NORDIC SERVICE UUID DISCOVERED] : ${nordicService.uuid}\n")
                         connectNordicService(nordicService, gatt)
                         startDfuProcess()
+                    }
+
+                    if (frameService!=null){
+                        println("[FRAME SERVICE UUID DISCOVERED] : ${frameService.uuid}\n")
+                            connectFrameService(frameService,gatt)
+                            startFrameBleProcess()
                     }
                 }
             } else {
@@ -994,6 +1014,37 @@ class BaseActivity : AppCompatActivity() {
             }
         }
 
+
+        @SuppressLint("MissingPermission")
+        suspend fun connectFrameService(
+            service: BluetoothGattService,
+            gatt: BluetoothGatt
+        ) {
+            return coroutineScope {
+                val resultDeferred = async {
+
+                    frameRxCharacteristic = service.getCharacteristic(UUID.fromString(FRAME_RX_UUID))
+                    frameTxCharacteristic = service.getCharacteristic(UUID.fromString(FRAME_TX_UUID))
+
+                    if (frameRxCharacteristic != null && frameTxCharacteristic != null) {
+                        println("[REPL RX CHARACTERISTICS CONNECTED ] : ${frameRxCharacteristic!!.uuid}\n")
+                        println("[REPL TX CHARACTERISTICS CONNECTED ] : ${frameTxCharacteristic!!.uuid}\n")
+                        gatt.setCharacteristicNotification(frameTxCharacteristic, true)
+                        val descriptor =
+                            frameTxCharacteristic!!.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt.writeDescriptor(descriptor)
+                        println("[REPL TX CHARACTERISTICS NOTIFICATION ENABLED ] : ${frameTxCharacteristic!!.uuid}\n")
+                    }
+                    delay(500)
+
+
+                }
+                resultDeferred.await()
+            }
+        }
+
+
         @SuppressLint("MissingPermission")
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS)
@@ -1032,6 +1083,10 @@ class BaseActivity : AppCompatActivity() {
                     handleNordicControlData(characteristic.value)
                     return@launch
                 }
+                if (characteristic.uuid==frameTxCharacteristic?.uuid){
+                    handleFrameData(characteristic.value)
+                    return@launch
+                }
             }
 
         }
@@ -1058,7 +1113,12 @@ class BaseActivity : AppCompatActivity() {
         private fun handleNordicControlData(value: ByteArray) {
             controlResponseCallback!!(value)
         }
-
+        private fun handleFrameData(value: ByteArray) {
+            val receivedData = String(value)
+            if (frameResponseCallback != null) {
+                frameResponseCallback!!(receivedData)
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -1797,6 +1857,36 @@ class BaseActivity : AppCompatActivity() {
         }
         resultDeferred.complete("Done")
     }
+    @SuppressLint("MissingPermission")
+    private fun frameWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
+
+        val characteristic = frameRxCharacteristic
+        if (bluetoothGatt != null && characteristic != null) {
+            characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            var offset = 0
+            val chunkSize = 100
+            while (offset < data.size) {
+                if (writingREPLProgress) {
+                    continue
+                }
+                val length = minOf(chunkSize, data.size - offset)
+                val chunkData = data.slice(offset until offset + length)
+
+                characteristic.value = chunkData.toByteArray()
+                writingREPLProgress = true
+                if (bluetoothGatt != null) {
+
+                    bluetoothGatt!!.writeCharacteristic(characteristic)
+                } else {
+                    break
+                    resultDeferred.complete("Done")
+                }
+                offset += length
+            }
+
+        }
+        resultDeferred.complete("Done")
+    }
 
     private suspend fun replSendBle(data: String): String {
         return coroutineScope {
@@ -1833,6 +1923,41 @@ class BaseActivity : AppCompatActivity() {
             bleWriteComplete.await()
         }
     }
+ private suspend fun frameSendBle(data: String): String {
+        return coroutineScope {
+
+
+            val resultDeferred = CompletableDeferred<String>()
+            val handler = Handler(Looper.getMainLooper())
+            thread {
+                frameWrite(data.toByteArray() , resultDeferred)
+            }
+
+            // Set up the response handler callback
+            val bleWriteComplete = CompletableDeferred<String>()
+            frameResponseCallback = { responseString ->
+                println("[RECEIVED]: $responseString\n")
+                if (bleWriteComplete.isActive) {
+                    bleWriteComplete.complete(responseString)
+                }
+//
+            }
+
+            // Resolve if the response handler callback isn't called
+            launch {
+                handler.postDelayed({
+                    if (!resultDeferred.isCompleted) {
+                        resultDeferred.complete("")
+                    }
+                    if (!bleWriteComplete.isCompleted) {
+                        bleWriteComplete.complete("")
+                    }
+                }, 3000)
+            }
+            resultDeferred.await()
+            bleWriteComplete.await()
+        }
+    }
 
     private suspend fun replSendBle(data: ByteArray): String {
         return coroutineScope {
@@ -1847,6 +1972,39 @@ class BaseActivity : AppCompatActivity() {
             // Set up the response handler callback
             val bleWriteComplete = CompletableDeferred<String>()
             rawReplResponseCallback = { responseString ->
+                println("[RECEIVED]: $responseString\n")
+                if (bleWriteComplete.isActive) {
+                    bleWriteComplete.complete(responseString)
+                }
+//
+            }
+
+            // Resolve if the response handler callback isn't called
+            launch {
+                handler.postDelayed({
+                    if (!resultDeferred.isCompleted) {
+                        resultDeferred.complete("")
+                    }
+                    if (!bleWriteComplete.isCompleted) {
+                        bleWriteComplete.complete("")
+                    }
+                }, 3000)
+            }
+            resultDeferred.await()
+            bleWriteComplete.await()
+        }
+    }
+    private suspend fun frameSendBle(data: ByteArray): String {
+        return coroutineScope {
+            val resultDeferred = CompletableDeferred<String>()
+            val handler = Handler(Looper.getMainLooper())
+            thread {
+                frameWrite(data, resultDeferred)
+            }
+
+            // Set up the response handler callback
+            val bleWriteComplete = CompletableDeferred<String>()
+            frameResponseCallback = { responseString ->
                 println("[RECEIVED]: $responseString\n")
                 if (bleWriteComplete.isActive) {
                     bleWriteComplete.complete(responseString)
@@ -1928,6 +2086,59 @@ class BaseActivity : AppCompatActivity() {
                 storeDeviceAddress(bluetoothGatt!!.device.address)
             }
         }
+        currentAppState = AppState.RUNNING
+    }
+
+    //MAIN FLOW AFTER CONNECTION TO FRAME
+    suspend fun startFrameBleProcess() {
+         frameSendBle(byteArrayOf(0x04))
+//        //   firmware check and update
+        if (currentAppState == BaseActivity.AppState.FIRST_PAIR ) {
+            if ( frameFirmwareCheckUpdate() != "Updated") {
+                currentAppState = BaseActivity.AppState.SOFTWARE_UPDATE
+                println("[STARTED FIRMWARE UPDATE]\n")
+                return
+            }
+
+            currentDevice = ""
+            currentAppState = BaseActivity.AppState.SCRIPT_UPDATE
+            startBluetoothBackground()
+//            updateProgressDialog("Checking Sofware Update...", "Keep the app open")
+            println("[FIRMWARE STABLE]\n")
+
+        }
+//        //    file upload
+//
+//        if (NRFKIT) {
+//            currentAppState =
+//                if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE) AppState.SCRIPT_UPDATE else AppState.RUNNING
+//
+//        } else {
+//            startFileUpload()
+//        }
+//        replSendBle(byteArrayOf(0x3, 0x4))
+//        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+//        if (fragment !is ChatGptFragment) {
+//            val fragment = ChatGptFragment()
+//            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
+//
+//            val apikeyStored = getStoredApiKey()
+//            if (!apikeyStored.isNullOrEmpty()) {
+//                apiKey = apikeyStored
+//            }
+//            updateConnectionStatus("")
+//            println("[CHAT READY]\n")
+//            currentAppState = AppState.RUNNING
+//
+//            handler.postDelayed({
+//                showIntroMessages()
+//            }, 1000)
+//
+//
+//            if (bluetoothGatt != null) {
+//                storeDeviceAddress(bluetoothGatt!!.device.address)
+//            }
+//        }
         currentAppState = AppState.RUNNING
     }
 
@@ -2149,6 +2360,25 @@ class BaseActivity : AppCompatActivity() {
                 //            start firmware update
                 currentDevice = bluetoothGatt!!.device.address
                 replSendBle("import update;update.micropython();")
+                return "Failed"
+            } else {
+                return "Updated"
+            }
+
+        }
+
+        return "Updated"
+    }
+ private suspend fun frameFirmwareCheckUpdate(): String {
+
+        var response = frameSendBle("print(frame.FIRMWARE_VERSION);")
+//        check version if not matched update
+        val firmwareData = readFirmwareFromAssets()
+        if (firmwareData.binBytes != null && firmwareData.datBytes != null) {
+            if (response.contains("Error") || !response.contains(firmwareData.version.toString()) || FIRMWARE_TEST) {
+                //            start firmware update
+                currentDevice = bluetoothGatt!!.device.address
+                frameSendBle("frame.update()")
                 return "Failed"
             } else {
                 return "Updated"
@@ -2405,7 +2635,11 @@ class BaseActivity : AppCompatActivity() {
             var datBytes: ByteArray? = null
             var binBytes: ByteArray? = null
             val fileName: String = packageZips.first()
-            val pattern = Regex("monocle-micropython-v(\\d+\\.\\d+\\.\\d+)\\.zip")
+            var pattern: Regex = Regex("monocle-micropython-v(\\d+\\.\\d+\\.\\d+)\\.zip")
+            if (currentDeviceName != "" && currentDeviceName.equals("frame",true)) {
+                 pattern = Regex("frame-firmware-v(\\d+\\.\\d+\\.\\d+)\\.zip")
+            }
+
             val matchResult = pattern.find(fileName)
             var version: String? = matchResult?.groupValues?.get(1)
             while (zipInputStream.nextEntry.also { entry = it } != null) {

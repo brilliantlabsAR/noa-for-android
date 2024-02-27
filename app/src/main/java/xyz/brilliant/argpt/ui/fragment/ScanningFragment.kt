@@ -85,6 +85,8 @@ class ScanningFragment : Fragment() {
             try {
                 if (popUpbtn.text == "Monocle. Connect") {
                     parentActivity.connectDevice()
+                }else if (popUpbtn.text =="Frame. Connect"){
+                    parentActivity.connectDevice()
                 }
             }catch (ex:Exception){
                 ex.printStackTrace()
