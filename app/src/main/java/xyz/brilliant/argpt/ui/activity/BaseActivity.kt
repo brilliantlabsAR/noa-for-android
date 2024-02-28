@@ -115,6 +115,7 @@ class BaseActivity : AppCompatActivity() {
         private const val FRAME_TX_UUID = "7A230003-5475-A6A4-654C-8431F6AD49C4"
 
         private val FILES = arrayListOf<String>("states.py", "graphics.py", "main.py", "audio.py", "photo.py")
+        private val FRAME_FILES = arrayListOf<String>("main.lua", "graphics.lua", "state.lua")
         private const val GATT_MAX_MTU_SIZE = 256
         private const val sampleRate = 8000
         private const val bitPerSample = 16
@@ -288,7 +289,6 @@ class BaseActivity : AppCompatActivity() {
 
                     val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
                     startActivity(intent)
-
                     // Finish the current activity if you want to
                     finish()
                     // Logout was successful, perform any necessary post-logout actions
@@ -1952,7 +1952,7 @@ class BaseActivity : AppCompatActivity() {
                     if (!bleWriteComplete.isCompleted) {
                         bleWriteComplete.complete("")
                     }
-                }, 3000)
+                }, 1000)
             }
             resultDeferred.await()
             bleWriteComplete.await()
@@ -2091,7 +2091,8 @@ class BaseActivity : AppCompatActivity() {
 
     //MAIN FLOW AFTER CONNECTION TO FRAME
     suspend fun startFrameBleProcess() {
-         frameSendBle(byteArrayOf(0x04))
+         frameSendBle(byteArrayOf(0x03))
+         frameSendBle("frame.imu.tap_callback(nil);print(nil)")
 //        //   firmware check and update
         if (currentAppState == BaseActivity.AppState.FIRST_PAIR ) {
             if ( frameFirmwareCheckUpdate() != "Updated") {
@@ -2109,36 +2110,37 @@ class BaseActivity : AppCompatActivity() {
         }
 //        //    file upload
 //
-//        if (NRFKIT) {
-//            currentAppState =
-//                if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE) AppState.SCRIPT_UPDATE else AppState.RUNNING
-//
-//        } else {
-//            startFileUpload()
+        if (NRFKIT) {
+            currentAppState = if (currentAppState == BaseActivity.AppState.SOFTWARE_UPDATE || currentAppState == AppState.SCRIPT_UPDATE) AppState.SCRIPT_UPDATE else AppState.RUNNING
+
+        }
+//        if (currentAppState == AppState.SCRIPT_UPDATE) {
+        // always upload files
+            startFileUpload()
 //        }
-//        replSendBle(byteArrayOf(0x3, 0x4))
-//        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-//        if (fragment !is ChatGptFragment) {
-//            val fragment = ChatGptFragment()
-//            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
-//
-//            val apikeyStored = getStoredApiKey()
-//            if (!apikeyStored.isNullOrEmpty()) {
-//                apiKey = apikeyStored
-//            }
-//            updateConnectionStatus("")
-//            println("[CHAT READY]\n")
-//            currentAppState = AppState.RUNNING
-//
-//            handler.postDelayed({
-//                showIntroMessages()
-//            }, 1000)
-//
-//
-//            if (bluetoothGatt != null) {
-//                storeDeviceAddress(bluetoothGatt!!.device.address)
-//            }
-//        }
+        frameSendBle(byteArrayOf(0x4))
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment !is ChatGptFragment) {
+            val fragment = ChatGptFragment()
+            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
+
+            val apikeyStored = getStoredApiKey()
+            if (!apikeyStored.isNullOrEmpty()) {
+                apiKey = apikeyStored
+            }
+            updateConnectionStatus("")
+            println("[CHAT READY]\n")
+            currentAppState = AppState.RUNNING
+
+            handler.postDelayed({
+                showIntroMessages()
+            }, 1000)
+
+
+            if (bluetoothGatt != null) {
+                storeDeviceAddress(bluetoothGatt!!.device.address)
+            }
+        }
         currentAppState = AppState.RUNNING
     }
 
@@ -2256,7 +2258,12 @@ class BaseActivity : AppCompatActivity() {
             it.readText()
         }
     }
-
+    private fun readFrameScriptFileFromAssets(fileName: String): String {
+        val assetManager: AssetManager = applicationContext.assets
+        return assetManager.open("Frame Scripts/$fileName").bufferedReader().use {
+            it.readText()
+        }
+    }
     @SuppressLint("MissingPermission")
     fun fileUploadOne() {
         lifecycleScope.launch {
@@ -2266,29 +2273,99 @@ class BaseActivity : AppCompatActivity() {
 
     private suspend fun startFileUpload(): String {
 
-        val fileNames = FILES
 
+        var fileNames = FILES
+        if (currentDeviceName.equals("frame",true)){
+            fileNames = FRAME_FILES
+        }
         val files: MutableList<Pair<String, String>> = mutableListOf()
         for (filename in fileNames) {
-            val contents = readScriptFileFromAssets(filename)
-            files.add(filename to contents)
+            if (currentDeviceName.equals("frame",true)) {
+                val contents = readFrameScriptFileFromAssets(filename)
+                files.add(filename to contents)
+            } else {
+                val contents = readScriptFileFromAssets(filename)
+                files.add(filename to contents)
+            }
+
         }
         val version = generateProgramVersionString(files)
         //        first version check if not matched then upload
         println("[VERSION]: $version\n")
-        val response = replSendBle("'NOA_VERSION' in globals() and print(NOA_VERSION)")
-
-        if (!response.contains(version)) {
-            println("[FILE  UPLOADING]\n")
-            return fileUpload(files, version)  //  TO WORK WITH nrf52DK comment this line
+        if (!currentDeviceName.equals("frame",true)) {
+             val response = replSendBle("'NOA_VERSION' in globals() and print(NOA_VERSION)")
+            if (!response.contains(version)) {
+                println("[FILE  UPLOADING]\n")
+                return fileUpload(files, version)  //  TO WORK WITH nrf52DK comment this line
+            }
+        }else{
+            frameFileUpload(files, version)
+            frameSendBle(byteArrayOf(0x3))
         }
+
+
         println("[FILE ALREADY UPLOADED]\n")
         currentAppState = AppState.SCRIPT_UPDATE
+
+
         return "Done"
 
 
     }
+   // file upload for frame
+    @SuppressLint("MissingPermission")
+    private suspend fun frameFileUpload(
+        files: MutableList<Pair<String, String>>,
+        version: String
+    ): String {
 
+        val finalResults = mutableListOf<Int>()
+        coroutineScope {
+            for (file in files) {
+                val deferItem = async {
+                    // need send in chunks
+                    val devicePath = file.first
+                    val fileData = file.second
+                    val chunkSize = 70
+                    var response = frameSendBle("f = frame.file.open('$devicePath', 'w');print(f);" )
+                    if (response.contains("Error") || response.contains("Trace")) {
+                        println("[FRAME FILE  UPLOAD FAILED] ${file.first}\n")
+                        finalResults.add(0)
+                    } else {
+                        for (i in fileData.indices step chunkSize) {
+                            val chunk = fileData.substring(i, minOf(i + chunkSize, fileData.length))
+                            response = frameSendBle("f:write([[${chunk}]]);print(1);")
+                            if (response.contains("Error") || response.contains("Trace")) {
+                                println("[FRAME FILE  UPLOAD FAILED] ${file.first}\n")
+                                finalResults.add(0)
+                                break
+                            }
+                        }
+                        response = frameSendBle("print(f:close());")
+                        if (response.contains("Error") || response.contains("Trace")) {
+                            println("[FRAME FILE  UPLOAD FAILED] ${file.first}\n")
+                            finalResults.add(0)
+                        } else {
+                            println("[FRAME FILE  UPLOADED] ${file.first}\n")
+                            finalResults.add(1)
+                        }
+                    }
+                    println("[FRAME FILE  UPLOADING] ${file.first}\n")
+                }
+                deferItem.await()
+
+            }
+        }
+//        println(finalResults)
+        if (finalResults.contains(0)) {
+            println("[FRAME FILE  UPLOADING FAILED]\n")
+            return "Failed"
+        }
+        println("[FRAME FILE  UPLOADING DONE]\n")
+        currentAppState = AppState.SCRIPT_UPDATE
+        return "Done"
+
+    }
     @SuppressLint("MissingPermission")
     private suspend fun fileUpload(
         files: MutableList<Pair<String, String>>,
@@ -2372,6 +2449,7 @@ class BaseActivity : AppCompatActivity() {
  private suspend fun frameFirmwareCheckUpdate(): String {
 
         var response = frameSendBle("print(frame.FIRMWARE_VERSION);")
+            println("FIRMWARE VERSION---"+response)
 //        check version if not matched update
         val firmwareData = readFirmwareFromAssets()
         if (firmwareData.binBytes != null && firmwareData.datBytes != null) {
@@ -2602,20 +2680,26 @@ class BaseActivity : AppCompatActivity() {
         val zipData = readFirmwareFromAssets()
         val fpgaData = readFPGAFromAssets()
 
-//        currentDevice = bluetoothGatt!!.device.address
         if (zipData.datBytes != null && zipData.binBytes != null) {
             if (fpgaData.bin != null) {
                 val asciiFile = Base64.encodeToString(fpgaData.bin, Base64.NO_WRAP)
-                overlallSoftwareSize =
+                overlallSoftwareSize = if (currentDeviceName.contains("frame",true)) {
+                    zipData.binBytes.size  + zipData.datBytes.size
+                } else {
                     zipData.binBytes.size + asciiFile.length + zipData.datBytes.size
+                }
             }
             transferFile(zipData.datBytes, "init")
             transferFile(zipData.binBytes, "image")
             println("[NORDIC FIRMWARE UPDATE COMPLETE]")
 
-//            updateProgressDialog("Monocle Found", "Connect")
             bluetoothGatt?.disconnect()
-            currentAppState = AppState.FPGA_UPDATE
+            currentAppState = if (currentDeviceName.contains("frame",true)) {
+                AppState.SCRIPT_UPDATE
+            } else {
+                AppState.FPGA_UPDATE
+            }
+
         }
     }
 
