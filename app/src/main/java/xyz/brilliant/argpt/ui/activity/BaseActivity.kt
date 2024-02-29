@@ -220,6 +220,37 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
+    private val bluetoothReceiver = object : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
+                    val device =
+                        intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                    val bondState = intent.getIntExtra(
+                        BluetoothDevice.EXTRA_BOND_STATE,
+                        BluetoothDevice.ERROR
+                    )
+
+                    when (bondState) {
+                        BluetoothDevice.BOND_BONDING -> {
+
+                        }
+
+                        BluetoothDevice.BOND_BONDED -> {
+                            bluetoothGatt!!.requestMtu(GATT_MAX_MTU_SIZE)
+                        }
+
+                        BluetoothDevice.BOND_NONE -> {
+                            if (bluetoothGatt != null){
+                                bluetoothGatt!!.disconnect()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     fun getStoredAccessToken(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         return prefs.getString("token", "") ?: ""
@@ -242,6 +273,11 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun unpairMonocle() {
+        try {
+            bluetoothGatt!!.device::class.java.getMethod("removeBond").invoke(bluetoothGatt!!.device)
+        } catch (e: Exception) {
+            Log.e(TAG, "Removing bond has been failed. ${e.message}")
+        }
         storeDeviceAddress("")
         disconnectGatt()
         currentAppState = AppState.FIRST_PAIR
@@ -318,6 +354,8 @@ class BaseActivity : AppCompatActivity() {
         val intentFilter = IntentFilter("ACTION_START_SCAN")
         registerReceiver(scanReceiver, intentFilter)
         setContentView(R.layout.activity_base)
+        val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        registerReceiver(bluetoothReceiver, filter)
         getAllPermission()
     }
 
@@ -695,6 +733,7 @@ class BaseActivity : AppCompatActivity() {
         val stopServiceIntent = Intent(this, ForegroundService::class.java)
         stopService(stopServiceIntent)
         unregisterReceiver(scanReceiver)
+        unregisterReceiver(bluetoothReceiver)
         super.onDestroy()
 
 
@@ -706,7 +745,7 @@ class BaseActivity : AppCompatActivity() {
 
             val deviceName = result.device.name
             println(deviceName)
-            if (currentAppState == AppState.SOFTWARE_UPDATE || deviceName == "DfuTarg") {
+            if (currentAppState == AppState.SOFTWARE_UPDATE || deviceName == "DfuTarg" || deviceName.contains("frame update",true)) {
                 connectDevice(result.device.address)
                 stopScan()
                 return
@@ -838,6 +877,7 @@ class BaseActivity : AppCompatActivity() {
 
             // Connect to the device
             bluetoothGatt = device.connectGatt(this, false, gattCallback)
+
         } else {
             println("Device is already connected")
         }
@@ -854,10 +894,19 @@ class BaseActivity : AppCompatActivity() {
                 writingREPLProgress = false
                 currentScannedDevice = null
                 currentConnectionStatus = true
+                if (currentDeviceName.contains("frame",true)){
+                    if (gatt.device.bondState == BluetoothDevice.BOND_BONDED){
+                        gatt.requestMtu(GATT_MAX_MTU_SIZE)
+                    }else{
+//                        gatt.device.createBond()
+                    }
+                }else{
+                    gatt.requestMtu(GATT_MAX_MTU_SIZE)
+                }
                 val intent = Intent("ACTION_CONNECTION_STATUS")
                 intent.putExtra("EXTRA_CONNECTION_STATUS", true)
                 sendBroadcast(intent)
-                gatt.requestMtu(GATT_MAX_MTU_SIZE)
+
                 // Handler(Looper.getMainLooper()).post {
                 if (currentAppState == AppState.FIRST_PAIR) {
                     updateProgressDialog("Checking software update.", "Keep the app open")
@@ -906,7 +955,6 @@ class BaseActivity : AppCompatActivity() {
 
             }
         }
-
         @SuppressLint("MissingPermission")
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             super.onServicesDiscovered(gatt, status)
