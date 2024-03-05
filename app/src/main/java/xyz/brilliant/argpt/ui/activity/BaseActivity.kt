@@ -1490,16 +1490,19 @@ class BaseActivity : AppCompatActivity() {
     ) {
         val client = OkHttpClient()
 
-        val jsonPayload = apiPayload.toString()
+        val jsonPayload = apiMessagePayload.toString()
+        val jsonConfigPayload = apiConfigPayload.toString()
 
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-               .addFormDataPart("json", jsonPayload)
+               .addFormDataPart("messages", jsonPayload)
+                .addFormDataPart("prompt", ".")
+                .addFormDataPart("config", jsonConfigPayload)
                 .build()
 
         val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/audio_gpt") // Replace {{host}} with your actual base URL
+            .url("https://api.brilliant.xyz/noa/mm") // Replace {{host}} with your actual base URL
             .addHeader("Authorization", "$accessToken") // Assuming apiKey is the authorization token
             .post(audioRequestBody)
             .build()
@@ -1531,40 +1534,23 @@ class BaseActivity : AppCompatActivity() {
                         val jsonResponse = JSONObject(responseBody)
 
                         // Extract relevant information
-                        val completionId = jsonResponse.getString("id")
-                        val modelUsed = jsonResponse.getString("model")
-                        val promptUsed = jsonResponse.getString("prompt")
+//                        val completionId = jsonResponse.getString("id")
+//                        val modelUsed = jsonResponse.getString("model")
+                        val promptUsed = jsonResponse.getString("user_prompt")
                         addMessage("user", promptUsed)
 
                         updatechatList("S",promptUsed)
                         // Extract the assistant's response
-                        val choicesArray = jsonResponse.getJSONArray("choices")
-                        if (choicesArray.length() > 0) {
-                            val assistantResponse =
-                                choicesArray.getJSONObject(0).getJSONObject("message")
-                                    .getString("content")
+
+                            val assistantResponse =jsonResponse.getString("response")
 
                             addMessage("assistant", assistantResponse)
                             //  updatechatList("R",assistantResponse)
 
+                          sendChatGptResponce( assistantResponse.toString(),"res:")
 
 
-                            if (assistantResponse.isNullOrEmpty()) {
 
-                                sendChatGptResponce( "Something is wrong...try again!!","err:")
-
-                            }
-                            else {
-                                sendChatGptResponce( assistantResponse.toString(),"res:")
-
-
-                            }
-
-                            println("Completion ID: $completionId")
-                            println("Model Used: $modelUsed")
-                            println("Prompt Used: $promptUsed")
-                            println("Assistant's Response: $assistantResponse")
-                        }
                     }
                 }
             } catch (e: JSONException) {
@@ -1637,18 +1623,23 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+//formdata.append("config", '{"search_api":"serp","engine":"google","location":"<address>","count":5}'); // json string
 
+    val apiConfigPayload = JSONObject().apply {
+        put("search_api", "serp")
+        put("engine", "google")
+        put("location", "kolkata")
+        put("count", 5)
 
-    val apiPayload = JSONObject().apply {
-        put("model", "gpt-3.5-turbo")
-        put("messages", JSONArray().apply {
-            // Initial system message
-            put(JSONObject().apply {
-                put("role", "system")
-                put("content", "You are a smart assistant that answers all user queries, questions, and statements with a single sentence.")
-            })
-        })
     }
+    val apiMessagePayload =  JSONArray().apply {
+            // Initial system message
+//            put(JSONObject().apply {
+//                put("role", "system")
+//                put("content", "You are a smart assistant that answers all user queries, questions, and statements with a single sentence.")
+//            })
+        }
+
 
     // Function to add a row to the "messages" array
     fun addMessage(role: String, content: String) {
@@ -1656,7 +1647,7 @@ class BaseActivity : AppCompatActivity() {
             put("role", role)
             put("content", content)
         }
-        apiPayload.getJSONArray("messages").put(messageObject)
+        apiMessagePayload.put(messageObject)
     }
 
 
@@ -1666,18 +1657,23 @@ class BaseActivity : AppCompatActivity() {
     ) {
         val client = OkHttpClient()
         val imageFilePath = globalJpegFilePath
+        val jsonPayload = apiMessagePayload.toString()
+        val jsonConfigPayload = apiConfigPayload.toString()
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "stable-diffusion-v1-5")
-            .addFormDataPart("init_image", "Output.jpg",
+            .addFormDataPart("messages", jsonPayload)
+            .addFormDataPart("prompt", ".")
+            .addFormDataPart("image", "Output.jpg",
                 File(imageFilePath).asRequestBody("image/jpg".toMediaTypeOrNull()))
-            .build()
+        .addFormDataPart("config", jsonConfigPayload)
+
+        .build()
 
         // Create a request with headers and the prepared request body
         val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/image_to_image_audio_prompt") // Replace {{host}} with your actual base URL
+            .url("https://api.brilliant.xyz/noa/mm") // Replace {{host}} with your actual base URL
             .addHeader("Authorization", "$accessToken")
             .post(requestBody)
             .build()
@@ -1700,32 +1696,35 @@ class BaseActivity : AppCompatActivity() {
             try {
                 println(response.body)
                 if (response.isSuccessful) {
-                    val responseData = response.body?.string()
 
+//                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
+//
+//                        // Now you have the base64Value, which you can decode if needed
+//                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
+//                        println("decoded bytes")
+//                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
 
-                    val jsonObject = JSONObject(responseData)
-                    val artifactsArray = jsonObject.getJSONArray("artifacts")
-                    val promptUsed = jsonObject.getString("prompt")
-                    updatechatList( "S", promptUsed)
-                    if (artifactsArray.length() > 0) {
-                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
-
-                        // Now you have the base64Value, which you can decode if needed
-                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
-                        println("decoded bytes")
-                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                        println(bitmap)
-
-
-
-                        updatechatList(1, "R", "", bitmap!!)
                         globalJpegFilePath = null
-                    } else {
-                        sendChatGptResponce( "Something is wrong","err:")
-                        globalJpegFilePath = null
-                        // Handle the API error here
-                        // Log error or show an error message to the user
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        // Parse the JSON response
+                        val jsonResponse = JSONObject(responseBody)
+
+                        val promptUsed = jsonResponse.getString("user_prompt")
+                        addMessage("user", promptUsed)
+
+                        updatechatList("S",promptUsed)
+                        // Extract the assistant's response
+
+                        val assistantResponse =jsonResponse.getString("response")
+
+                        addMessage("assistant", assistantResponse)
+                        //  updatechatList("R",assistantResponse)
+
+                        sendChatGptResponce( assistantResponse.toString(),"res:")
+
                     }
+
 
                 }
                 else {
@@ -1735,7 +1734,7 @@ class BaseActivity : AppCompatActivity() {
                         val jsonObject = JSONObject(responseData)
                         if (jsonObject.has("message")) {
                             println(jsonObject.get("message"))
-                            sendChatGptResponce( "Something is wrong...Try again!!","err:")
+                            sendChatGptResponce( jsonObject.get("message").toString(),"err:")
                             globalJpegFilePath = null
                         }
                     } catch (e: java.lang.Exception) {
@@ -1748,6 +1747,7 @@ class BaseActivity : AppCompatActivity() {
                     // Handle the API error here
                     // Log error or show an error message to the user
                 }
+
             } catch (e: JSONException) {
                 sendChatGptResponce( "Something is wrong...Try again!!","err:")
 
@@ -2759,18 +2759,21 @@ class BaseActivity : AppCompatActivity() {
 
     private fun readFirmwareFromAssets(): ExtractedData {
         val assetManager: AssetManager = applicationContext.assets
-        val packageZips = assetManager.list("Firmware/")
+
+        var dir = "Firmware/"
+        var pattern: Regex = Regex("monocle-micropython-v(\\d+\\.\\d+\\.\\d+)\\.zip")
+        if (currentDeviceName !="" && currentDeviceName.contains("frame",true)){
+            dir = "Frame Firmware/"
+            pattern = Regex("frame-firmware-v(\\d+\\.\\d+\\.\\d+)\\.zip")
+        }
+        val packageZips = assetManager.list(dir)
         if (!packageZips.isNullOrEmpty()) {
-            val zipFile = assetManager.open("Firmware/${packageZips.first()}")
+            val zipFile = assetManager.open("${dir}${packageZips.first()}")
             val zipInputStream = ZipInputStream(zipFile)
             var entry: ZipEntry?
             var datBytes: ByteArray? = null
             var binBytes: ByteArray? = null
             val fileName: String = packageZips.first()
-            var pattern: Regex = Regex("monocle-micropython-v(\\d+\\.\\d+\\.\\d+)\\.zip")
-            if (currentDeviceName != "" && currentDeviceName.equals("frame",true)) {
-                 pattern = Regex("frame-firmware-v(\\d+\\.\\d+\\.\\d+)\\.zip")
-            }
 
             val matchResult = pattern.find(fileName)
             var version: String? = matchResult?.groupValues?.get(1)
