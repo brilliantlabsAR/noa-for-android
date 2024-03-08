@@ -894,7 +894,7 @@ class BaseActivity : AppCompatActivity() {
                 writingREPLProgress = false
                 currentScannedDevice = null
                 currentConnectionStatus = true
-                if (currentDeviceName.contains("frame",true)){
+                if (currentDeviceName.contains("frame",true) && !currentDeviceName.contains("frame update", true)){
                     if (gatt.device.bondState == BluetoothDevice.BOND_BONDED){
                         gatt.requestMtu(GATT_MAX_MTU_SIZE)
                     }else{
@@ -2494,6 +2494,7 @@ class BaseActivity : AppCompatActivity() {
 
         return "Updated"
     }
+ @SuppressLint("SuspiciousIndentation")
  private suspend fun frameFirmwareCheckUpdate(): String {
 
         var response = frameSendBle("print(frame.FIRMWARE_VERSION);")
