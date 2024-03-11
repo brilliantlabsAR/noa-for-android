@@ -2,7 +2,6 @@
 
 package xyz.brilliant.argpt.ui.activity
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
@@ -18,28 +17,20 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -68,6 +59,8 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import xyz.brilliant.argpt.R
+import xyz.brilliant.argpt.helpers.PermissionHelper
+import xyz.brilliant.argpt.helpers.SharedPreferencesHelper
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.DeleteProfileFragment
@@ -95,10 +88,7 @@ class BaseActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "BaseActivity"
-        private const val REQUEST_FINE_LOCATION = 1001
-        private const val PERMISSION_REQUEST_CODE = 5001
-        private const val REQUEST_ENABLE_BLUETOOTH = 1002
-        private const val REQUEST_ENABLE_GPS = 1003
+
         private val SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         private const val RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
         private const val TX_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
@@ -170,7 +160,9 @@ class BaseActivity : AppCompatActivity() {
     var rawReplResponseCallback: ((String) -> Unit)? = null
     var frameResponseCallback: ((String) -> Unit)? = null
     var controlResponseCallback: ((ByteArray) -> Unit)? = null
-
+    //   MONOCLE AUDIO
+    private var globalJpegFilePath: String? = null
+    private var bitmap: Bitmap? = null
     data class Fpga(val bin: ByteArray?, val version: String?)
     data class ExtractedData(
         val datBytes: ByteArray?,
@@ -189,26 +181,20 @@ class BaseActivity : AppCompatActivity() {
     private var imageBuffer: ByteArray = byteArrayOf(0)
     var audioJob: Job? = null
     var lastResponse: String = ""
-    private val PREFS_FILE_NAME = "MyPrefs"
-    private val PREFS_FILE_NAME2 = "ApiKey"
-    private val PREFS_KEY_DEVICE_ADDRESS = "DeviceAddress"
-    private val PREFS_OPEN_API_KEY = "OpenAi"
-    private val PREFS_STABILITY_API_KEY = "stability"
+    var connectionStatus = ""
     private var currentScannedDevice: BluetoothDevice? = null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
     private var currentConnectionStatus = false
     private var accessToken: String = ""
-    private fun getStoredDeviceAddress(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_KEY_DEVICE_ADDRESS, "") ?: ""
-    }
+    private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
 
+    private lateinit var permissionHelper: PermissionHelper
     private val scanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "ACTION_START_SCAN") {
                 if (bluetoothGatt == null) {
-                    val storedDeviceAddress = getStoredDeviceAddress()
+                    val storedDeviceAddress = sharedPreferencesHelper.getStoredDeviceAddress()
                     if (storedDeviceAddress.isNotEmpty()) {
                         connectDevice(storedDeviceAddress)
                         println("[trying to connect in background]")
@@ -249,28 +235,6 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    fun getStoredAccessToken(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-        return prefs.getString("token", "") ?: ""
-    }
-
-    fun getStoredApiKey(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
-    }
-
-    fun getStoredStabilityApiKey(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_STABILITY_API_KEY, "") ?: ""
-    }
-
-    private fun storeDeviceAddress(deviceAddress: String) {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putString(PREFS_KEY_DEVICE_ADDRESS, deviceAddress)
-        editor.apply()
-    }
-
     fun unpairMonocle() {
         try {
             bluetoothGatt!!.device::class.java.getMethod("removeBond")
@@ -278,7 +242,7 @@ class BaseActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Removing bond has been failed. ${e.message}")
         }
-        storeDeviceAddress("")
+        sharedPreferencesHelper.storeDeviceAddress("")
         disconnectGatt()
         currentAppState = AppState.FIRST_PAIR
         currentDevice = ""
@@ -291,7 +255,7 @@ class BaseActivity : AppCompatActivity() {
 
     fun performLogout() {
         // Retrieve the token from SharedPreferences
-        val token = getTokenFromSharedPreferences()
+        val token = sharedPreferencesHelper.getTokenFromSharedPreferences()
 
         val client = OkHttpClient()
         val mediaType = "text/plain".toMediaType()
@@ -319,7 +283,7 @@ class BaseActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     // Clear SharedPreferences when logout is successful
-                    clearSharedPreferences()
+                    sharedPreferencesHelper.clearSharedPreferences()
 
                     val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
                     startActivity(intent)
@@ -335,37 +299,33 @@ class BaseActivity : AppCompatActivity() {
         })
     }
 
-    private fun getTokenFromSharedPreferences(): String {
-        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("token", "") ?: ""
-    }
-
-    private fun clearSharedPreferences() {
-        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.clear()
-        editor.apply()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferencesHelper = SharedPreferencesHelper(this)
+        permissionHelper = PermissionHelper(this)
         val intentFilter = IntentFilter("ACTION_START_SCAN")
         registerReceiver(scanReceiver, intentFilter)
         setContentView(R.layout.activity_base)
         val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         registerReceiver(bluetoothReceiver, filter)
-        getAllPermission()
+        // Request permissions and check Bluetooth/GPS, then execute firstCodeExecute() if everything is granted and enabled
+        permissionHelper.requestAllPermissionAndCheckBluetoothAndGps(object :
+            PermissionHelper.PermissionCallback {
+            override fun onPermissionsGranted() {
+                firstCodeExecute()
+            }
+        })
     }
 
     private fun firstCodeExecute() {
         try {
-            accessToken = getStoredAccessToken()
-            val storedDeviceAddress = getStoredDeviceAddress()
+            accessToken = sharedPreferencesHelper.getStoredAccessToken()
+            val storedDeviceAddress = sharedPreferencesHelper.getStoredDeviceAddress()
             if (apiKey.isEmpty()) {
-                apiKey = getStoredApiKey()
+                apiKey = sharedPreferencesHelper.getStoredApiKey()
             }
             if (stabilityApiKey.isEmpty()) {
-                stabilityApiKey = getStoredStabilityApiKey()
+                stabilityApiKey = sharedPreferencesHelper.getStoredStabilityApiKey()
             }
             if (storedDeviceAddress.isBlank()) {
                 currentAppState = AppState.FIRST_PAIR
@@ -408,6 +368,46 @@ class BaseActivity : AppCompatActivity() {
 
     }
 
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        permissionHelper.handleActivityResult(
+            requestCode,
+            resultCode,
+            data,
+            object : PermissionHelper.PermissionCallback {
+                override fun onPermissionsGranted() {
+                    // Proceed with your desired action after both Bluetooth and GPS are enabled
+                    firstCodeExecute()
+                }
+            })
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        permissionHelper.onRequestPermissionsResult(
+            requestCode,
+            grantResults,
+            object : PermissionHelper.PermissionCallback {
+                override fun onPermissionsGranted() {
+                    // Here, you can call the function from the helper class
+                    // that checks Bluetooth and GPS after permissions are granted
+                    permissionHelper.checkBluetoothAndGps(object :
+                        PermissionHelper.PermissionCallback {
+                        override fun onPermissionsGranted() {
+                            // Proceed with your desired action after both Bluetooth and GPS are enabled
+                            firstCodeExecute()
+                        }
+                    })
+                }
+            })
+    }
+
     private fun startBluetoothBackground() {
         val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
 
@@ -417,263 +417,6 @@ class BaseActivity : AppCompatActivity() {
             startService(foregroundServiceIntent)
         }
     }
-
-    @SuppressLint("InlinedApi")
-    private val permissionsSDK33 = arrayOf(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.BLUETOOTH_CONNECT,
-        Manifest.permission.BLUETOOTH_SCAN,
-        Manifest.permission.FOREGROUND_SERVICE,
-        //Manifest.permission.WRITE_EXTERNAL_STORAGE
-
-    )
-
-
-    @SuppressLint("InlinedApi")
-    private val permissionsSDK29 = arrayOf(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.BLUETOOTH,
-        Manifest.permission.BLUETOOTH_ADMIN,
-        Manifest.permission.FOREGROUND_SERVICE,
-        // Manifest.permission.WRITE_EXTERNAL_STORAGE
-
-    )
-
-
-    private fun getAllPermission() {
-        try {
-
-            val permissions: Array<String>
-            val androidVersion = Build.VERSION.SDK_INT
-
-            permissions = if (androidVersion <= Build.VERSION_CODES.R) {
-                // Targeting Android 11 or lower
-                // Use permissionsSDK29 array
-                permissionsSDK29
-            } else {
-                // Targeting Android 12 or higher
-                // Use permissions array
-                permissionsSDK33
-            }
-
-
-            val permissionsToRequest = mutableListOf<String>()
-            for (permission in permissions) {
-                val result = ContextCompat.checkSelfPermission(this, permission)
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    permissionsToRequest.add(permission)
-                }
-            }
-
-            if (permissionsToRequest.isNotEmpty()) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    permissionsToRequest.toTypedArray(),
-                    PERMISSION_REQUEST_CODE
-                )
-            } else {
-                // All permissions are already granted. You can proceed with your operation here.
-                Log.d(TAG, "getAllPermission: 12")
-
-
-
-                checkBluetoothAndGps()
-
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun showBluetoothAlertDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage("Bluetooth is disabled. Do you want to enable it?")
-            .setPositiveButton("Yes") { _, _ ->
-                val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH)
-            }
-            .setNegativeButton("No") { dialog: DialogInterface, _ ->
-                dialog.dismiss()
-
-
-                finish()
-                //  checkBluetoothAndGps()
-            }
-        builder.setCancelable(false)
-        builder.create().show()
-    }
-
-    private fun showGpsAlertDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage("GPS is disabled. Do you want to enable it?")
-            .setPositiveButton("Yes") { _, _ ->
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivityForResult(intent, REQUEST_ENABLE_GPS)
-            }
-            .setNegativeButton("No") { dialog: DialogInterface, _ ->
-                dialog.dismiss()
-                finish()
-                // checkBluetoothAndGps()
-            }
-        builder.setCancelable(false)
-        builder.create().show()
-    }
-
-
-    private fun isGpsEnabled(): Boolean {
-
-        return try {
-            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                locationManager.isLocationEnabled
-                locationManager.isLocationEnabled
-            } else {
-                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-            }
-
-        } catch (ex: Exception) {
-            // var exception = ex.message
-            false
-        }
-    }
-
-    private fun isBluetoothEnabled(): Boolean {
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-        return bluetoothAdapter?.isEnabled == true
-    }
-
-    private fun checkBluetoothAndGps() {
-
-
-        val bluetoothEnabled = isBluetoothEnabled()
-        val gpsEnabled = isGpsEnabled()
-
-
-
-        if (bluetoothEnabled && gpsEnabled) {
-            // Both Bluetooth and GPS are enabled, execute your first code
-            firstCodeExecute()
-        } else {
-
-            if (!bluetoothEnabled) {
-                showBluetoothAlertDialog()
-                // showGpsAlertDialog()
-            }
-            if (!gpsEnabled) {
-                showGpsAlertDialog()
-            }
-        }
-    }
-
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
-            if (resultCode == RESULT_OK) {
-
-                checkBluetoothAndGps()
-
-            } else {
-                checkBluetoothAndGps()
-//                Toast.makeText(
-//                    this,
-//                    "Please turn on bluetooth!",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-            }
-        } else if (requestCode == REQUEST_ENABLE_GPS) {
-            if (resultCode == RESULT_OK) {
-                checkBluetoothAndGps()
-            } else {
-
-                checkBluetoothAndGps()
-//                Toast.makeText(
-//                    this,
-//                    "Please turn on GPS!",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-                // User didn't enable GPS, handle as needed
-            }
-        } else if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivityForResult(intent, REQUEST_ENABLE_GPS)
-                checkBluetoothAndGps()
-            } else {
-                getAllPermission()
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            // Check if all permissions are granted
-            var allPermissionsGranted = true
-            for (result in grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    allPermissionsGranted = false
-                    break
-                }
-            }
-
-            if (allPermissionsGranted) {
-                checkBluetoothAndGps()
-                // All permissions are granted. You can proceed with your operation here.
-                Log.d(TAG, "onRequestPermissionsResult: ")
-                // firstCodeExecute()
-            } else {
-                // Handle the case where some permissions are not granted.
-                // You may want to inform the user or handle the missing permissions accordingly.
-                Log.d("BASE ACTIVITY", "Permission Not given")
-                showPermissionPopup()
-
-            }
-        }
-    }
-
-    private fun showPermissionPopup() {
-        try {
-            AlertDialog.Builder(this)
-                .setTitle("Permissions Required")
-                .setMessage("Please grant all the required permissions to use this app.")
-                .setPositiveButton("OK") { dialog, which ->
-                    // You can take appropriate action here, such as redirecting the user to the app settings page.
-                    // For example:
-                    openAppSettings()
-                }
-                .setCancelable(false)
-                .show()
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-
-    }
-
-    private fun openAppSettings() {
-        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
-            }
-        } else {
-            Intent(Settings.ACTION_APPLICATION_SETTINGS)
-        }
-        startActivity(intent)
-    }
-
-    var connectionStatus = ""
     fun updateConnectionStatus(status: String) {
         connectionStatus = status
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
@@ -686,35 +429,6 @@ class BaseActivity : AppCompatActivity() {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
             fragment.updatechatList(type, msg)
-        }
-    }
-
-//    fun updatechatList(id: Int, type: String, msg: String, image: String) {
-//        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-//        if (fragment is ChatGptFragment) {
-//            fragment.updatechatList(id, type, msg, image)
-//        }
-//    }
-
-    fun connectDevice() {
-        try {
-            if (currentScannedDevice != null) {
-                connectDevice(currentScannedDevice!!.address)
-//                currentScannedDevice = null
-            }
-//            val firstItem: ScanResult? = if (mArrayList.size == 1) {
-//                mArrayList[0]
-//            } else if (mArrayList.size > 1) {
-//                mArrayList.minByOrNull { it.rssi }
-//            } else {
-//                null
-//            }
-//            if (firstItem != null) {
-//                stopScan()
-//                connectDevice(firstItem.device.address)
-//            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
         }
     }
 
@@ -738,8 +452,64 @@ class BaseActivity : AppCompatActivity() {
         unregisterReceiver(scanReceiver)
         unregisterReceiver(bluetoothReceiver)
         super.onDestroy()
+    }
 
 
+
+    fun isAppInBackground(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val appProcesses = activityManager.runningAppProcesses
+        val packageName = context.packageName
+
+        for (appProcess in appProcesses) {
+            if (appProcess.processName == packageName) {
+                // Check if the app is in the foreground or background
+                return appProcess.importance != ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+            }
+        }
+
+        return true // App is considered in the background if the process is not found
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startScan() {
+        if (scanning) {
+            return
+        }
+        if (permissionHelper.hasLocationPermission()) {
+            val serviceUuids = listOf(
+                ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid(SERVICE_UUID))
+                    .build(),
+                ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid(NORDIC_SERVICE_UUID))
+                    .build(),
+                ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid(FRAME_SERVICE_UUID))
+                    .build()
+
+            )
+            scanning = true
+            val scanSettings = ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                .build()
+            bluetoothAdapter.bluetoothLeScanner.startScan(
+                serviceUuids,
+                scanSettings,
+                scanCallback
+            )
+        } else {
+            permissionHelper.requestLocationPermission()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun stopScan() {
+        if (scanning) {
+            scanning = false
+            bluetoothAdapter.bluetoothLeScanner.stopScan(scanCallback)
+            currentScannedDevice = null
+        }
     }
 
     private val scanCallback = object : ScanCallback() {
@@ -757,7 +527,7 @@ class BaseActivity : AppCompatActivity() {
                 stopScan()
                 return
             }
-            val storedDeviceAddress = getStoredDeviceAddress()
+            val storedDeviceAddress = sharedPreferencesHelper.getStoredDeviceAddress()
             if (currentDevice.isNotEmpty()) {
                 if (currentDevice == result.device.address) {
                     connectDevice(result.device.address)
@@ -795,77 +565,6 @@ class BaseActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun startScan() {
-        if (scanning) {
-            return
-        }
-        if (hasLocationPermission()) {
-            val serviceUuids = listOf(
-                ScanFilter.Builder()
-                    .setServiceUuid(ParcelUuid(SERVICE_UUID))
-                    .build(),
-                ScanFilter.Builder()
-                    .setServiceUuid(ParcelUuid(NORDIC_SERVICE_UUID))
-                    .build(),
-                ScanFilter.Builder()
-                    .setServiceUuid(ParcelUuid(FRAME_SERVICE_UUID))
-                    .build()
-
-            )
-            scanning = true
-            val scanSettings = ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                .build()
-            bluetoothAdapter.bluetoothLeScanner.startScan(
-                serviceUuids,
-                scanSettings,
-                scanCallback
-            )
-        } else {
-            requestLocationPermission()
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun stopScan() {
-        if (scanning) {
-            scanning = false
-            bluetoothAdapter.bluetoothLeScanner.stopScan(scanCallback)
-            currentScannedDevice = null
-        }
-    }
-
-    private fun hasLocationPermission(): Boolean {
-        return ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            REQUEST_FINE_LOCATION
-        )
-    }
-
-    fun isAppInBackground(context: Context): Boolean {
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val appProcesses = activityManager.runningAppProcesses
-        val packageName = context.packageName
-
-        for (appProcess in appProcesses) {
-            if (appProcess.processName == packageName) {
-                // Check if the app is in the foreground or background
-                return appProcess.importance != ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-            }
-        }
-
-        return true // App is considered in the background if the process is not found
-    }
-
-    @SuppressLint("MissingPermission")
     private fun connectDevice(deviceAddress: String) {
 
         if (currentConnectionStatus) {
@@ -885,7 +584,6 @@ class BaseActivity : AppCompatActivity() {
             println("Device is already connected")
         }
     }
-
 
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
@@ -1070,7 +768,6 @@ class BaseActivity : AppCompatActivity() {
             }
         }
 
-
         @SuppressLint("MissingPermission")
         suspend fun connectFrameService(
             service: BluetoothGattService,
@@ -1198,9 +895,7 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    //   MONOCLE AUDIO
-    private var globalJpegFilePath: String? = null
-    private var bitmap: Bitmap? = null
+
     fun monocleRecieved(data: ByteArray) {
         if (data.size < 4) {
             println("Received on data " + String(data))
@@ -1226,30 +921,13 @@ class BaseActivity : AppCompatActivity() {
             bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
 
             if (bitmap != null) {
-//                val jpegFile = File(cacheDir, "image.png")
-//
-//                val fos = FileOutputStream(jpegFile)
 
-// compress the bitmap to a PNG file
-//                bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, fos)
-
-// close the stream
-//                fos.close()
                 bitmap = resizeBitmapToMultipleOf64(bitmap!!)
                 val jpegFile = saveBitmapAsJPEG(bitmap!!)
                 if (jpegFile != null) {
                     globalJpegFilePath = jpegFile.absolutePath
                 }
                 updatechatList(1, "S", "", bitmap!!)
-//                if (stabilityApiKey.isNullOrEmpty()) {
-//                    globalJpegFilePath = null
-//                    updatechatList(
-//                        1,
-//                        "R",
-//                        "You have to enter stability API key for this feature!",
-//                        ""
-//                    )
-//                }
             }
 
             val responseData = "ick:"
@@ -1326,14 +1004,25 @@ class BaseActivity : AppCompatActivity() {
 //        }
     }
 
-    fun saveBitmapAsJPEG(bitmap: Bitmap, quality: Int = 100): File? {
-        try {
-            // Create a directory for saving the JPEG file (you can change the directory path as needed)
-//            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyAppImages")
-//            if (!directory.exists()) {
-//                directory.mkdirs()
-//            }
 
+
+
+    private fun updatechatList(id: Int, type: String, msg: String, image: Bitmap?) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList(id, type, msg, image)
+        }
+    }
+
+    private fun updatechatListWithNetworkImg(id: Int, type: String, msg: String, image: String) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is ChatGptFragment) {
+            fragment.updatechatList(id, type, msg, image)
+        }
+    }
+
+    private fun saveBitmapAsJPEG(bitmap: Bitmap, quality: Int = 100): File? {
+        try {
             // Generate a unique file name using a timestamp
 
             val fileName = "Output.jpg"
@@ -1352,21 +1041,6 @@ class BaseActivity : AppCompatActivity() {
         } catch (e: IOException) {
             e.printStackTrace()
             return null
-        }
-    }
-
-
-    private fun updatechatList(id: Int, type: String, msg: String, image: Bitmap?) {
-        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-        if (fragment is ChatGptFragment) {
-            fragment.updatechatList(id, type, msg, image)
-        }
-    }
-
-    private fun updatechatListWithNetworkImg(id: Int, type: String, msg: String, image: String) {
-        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-        if (fragment is ChatGptFragment) {
-            fragment.updatechatList(id, type, msg, image)
         }
     }
 
@@ -1561,7 +1235,6 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-
     private fun translateAudio(
         audioFile: File,
         byteCallback: Callback
@@ -1626,7 +1299,6 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-//formdata.append("config", '{"search_api":"serp","engine":"google","location":"<address>","count":5}'); // json string
 
     val apiConfigPayload = JSONObject().apply {
         put("search_api", "serp")
@@ -1703,12 +1375,6 @@ class BaseActivity : AppCompatActivity() {
                 println(response.body)
                 if (response.isSuccessful) {
 
-//                        val base64Value = artifactsArray.getJSONObject(0).getString("base64")
-//
-//                        // Now you have the base64Value, which you can decode if needed
-//                        val decodedBytes = Base64.decode(base64Value, Base64.DEFAULT)
-//                        println("decoded bytes")
-//                        bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
 
                     globalJpegFilePath = null
                     val responseBody = response.body?.string()
@@ -1795,14 +1461,14 @@ class BaseActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
 
 
-                    clearSharedPreferences()
+                    sharedPreferencesHelper.clearSharedPreferences()
 
                     val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
                     startActivity(intent)
                     // Handle successful response
                 } else {
 
-                    clearSharedPreferences()
+                    sharedPreferencesHelper.clearSharedPreferences()
 
                     val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
                     startActivity(intent)
@@ -1810,7 +1476,7 @@ class BaseActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
 
-                clearSharedPreferences()
+                sharedPreferencesHelper.clearSharedPreferences()
 
                 val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
                 startActivity(intent)
@@ -2120,7 +1786,7 @@ class BaseActivity : AppCompatActivity() {
             val fragment = ChatGptFragment()
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
-            val apikeyStored = getStoredApiKey()
+            val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
             if (apikeyStored.isNotEmpty()) {
                 apiKey = apikeyStored
             }
@@ -2134,7 +1800,7 @@ class BaseActivity : AppCompatActivity() {
 
 
             if (bluetoothGatt != null) {
-                storeDeviceAddress(bluetoothGatt!!.device.address)
+                sharedPreferencesHelper.storeDeviceAddress(bluetoothGatt!!.device.address)
             }
         }
         currentAppState = AppState.RUNNING
@@ -2176,7 +1842,7 @@ class BaseActivity : AppCompatActivity() {
             val fragment1 = ChatGptFragment()
             pushFragmentsStatic(fragmentManager, fragment1, false, "chat_gpt")
 
-            val apikeyStored = getStoredApiKey()
+            val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
             if (apikeyStored.isNotEmpty()) {
                 apiKey = apikeyStored
             }
@@ -2190,7 +1856,7 @@ class BaseActivity : AppCompatActivity() {
 
 
             if (bluetoothGatt != null) {
-                storeDeviceAddress(bluetoothGatt!!.device.address)
+                sharedPreferencesHelper.storeDeviceAddress(bluetoothGatt!!.device.address)
             }
         }
         currentAppState = AppState.RUNNING
@@ -2736,7 +2402,6 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-
     // MAIN FLOW AFTER CONNECTION TO DFU
     @SuppressLint("MissingPermission")
     suspend fun startDfuProcess() {
@@ -2919,8 +2584,6 @@ class BaseActivity : AppCompatActivity() {
         crc32.update(data)
         return crc32.value
     }
-
-
     // for server api
     private fun getGPTResult(file: File) {
         val client = OkHttpClient()
