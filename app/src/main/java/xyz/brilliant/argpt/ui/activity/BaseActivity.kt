@@ -563,7 +563,27 @@ class BaseActivity : AppCompatActivity() {
             Log.e(TAG, "Scan failed with error code: $errorCode")
         }
     }
-
+    fun connectDevice() {
+        try {
+            if (currentScannedDevice != null) {
+                connectDevice(currentScannedDevice!!.address)
+//                currentScannedDevice = null
+            }
+//            val firstItem: ScanResult? = if (mArrayList.size == 1) {
+//                mArrayList[0]
+//            } else if (mArrayList.size > 1) {
+//                mArrayList.minByOrNull { it.rssi }
+//            } else {
+//                null
+//            }
+//            if (firstItem != null) {
+//                stopScan()
+//                connectDevice(firstItem.device.address)
+//            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+    }
     @SuppressLint("MissingPermission")
     private fun connectDevice(deviceAddress: String) {
 
