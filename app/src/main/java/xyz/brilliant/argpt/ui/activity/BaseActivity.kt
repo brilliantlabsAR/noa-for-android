@@ -580,6 +580,8 @@ class BaseActivity : AppCompatActivity() {
             // Connect to the device
             bluetoothGatt = device.connectGatt(this, false, gattCallback)
 
+
+
         } else {
             println("Device is already connected")
         }
@@ -1493,11 +1495,6 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-//    fun sendTranslatedResponce(data: String, prefix: String) {
-//        updatechatList("S", data)
-//        val data = prefix + data //err:
-//        dataSendBle(data)
-//    }
 
 
     // MONOCLE COMMUNICATION
