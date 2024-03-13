@@ -4,9 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
@@ -17,13 +15,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.RelativeLayout
-import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import xyz.brilliant.argpt.R
@@ -34,10 +31,10 @@ class ScanningFragment : Fragment() {
 
     private lateinit var parentActivity: BaseActivity
     private lateinit var deviceCloseTextView: TextView
-    private lateinit var popUpbtn: TextView
+    private lateinit var popUpBtn: TextView
     private lateinit var myCardView: CardView
     private lateinit var searchBox: RelativeLayout
-    lateinit var settingBtn: ImageView
+    private lateinit var settingBtn: ImageView
     private lateinit var popupWindow: PopupWindow
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -48,15 +45,15 @@ class ScanningFragment : Fragment() {
     fun updatePopUp(deviceCloseText: String,buttonText:String){
         parentActivity.runOnUiThread {
             deviceCloseTextView.text = deviceCloseText
-            popUpbtn.text = buttonText
-            popUpbtn.isClickable=false
+            popUpBtn.text = buttonText
+            popUpBtn.isClickable=false
         }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         myCardView = view.findViewById(R.id.myCardView)
-        popUpbtn = view.findViewById(R.id.popUpbtn)
+        popUpBtn = view.findViewById(R.id.popUpbtn)
         deviceCloseTextView = view.findViewById(R.id.deviceCloseTextView)
         searchBox = view.findViewById(R.id.searchBox)
         settingBtn=view.findViewById(R.id.settingBtn)
@@ -83,9 +80,9 @@ class ScanningFragment : Fragment() {
 
         searchBox.setOnClickListener {
             try {
-                if (popUpbtn.text == "Monocle. Connect") {
+                if (popUpBtn.text == "Monocle. Connect") {
                     parentActivity.connectDevice()
-                }else if (popUpbtn.text =="Frame. Connect"){
+                }else if (popUpBtn.text =="Frame. Connect"){
                     parentActivity.connectDevice()
                 }
             }catch (ex:Exception){
@@ -109,14 +106,14 @@ class ScanningFragment : Fragment() {
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
-        val delete_profile_layout = popupView.findViewById<LinearLayout>(R.id.delete_profile_layout)
-        val translate_layout = popupView.findViewById<LinearLayout>(R.id.translate_layout)
+        val deleteProfileLayout = popupView.findViewById<LinearLayout>(R.id.delete_profile_layout)
+        val translateLayout = popupView.findViewById<LinearLayout>(R.id.translate_layout)
 
 
-        translate_layout.visibility = View.GONE
-        delete_profile_layout.visibility = View.VISIBLE
+        translateLayout.visibility = View.GONE
+        deleteProfileLayout.visibility = View.VISIBLE
 
-        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+        val switchButton =popupView.findViewById<SwitchCompat>(R.id.switchButton)
 
         switchButton.isChecked = parentActivity.translateEnabled
 
@@ -126,7 +123,7 @@ class ScanningFragment : Fragment() {
 
         }
 
-        delete_profile_layout.setOnClickListener{
+        deleteProfileLayout.setOnClickListener{
             popupWindow.dismiss()
             parentActivity.gotoDeleteProfile()
         }
@@ -138,11 +135,6 @@ class ScanningFragment : Fragment() {
         // Set up any additional settings for the popup window
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
-
-        val popupWidth = popupWindow.width
-
-        // Get the width of the settingBtn
-        val settingBtnWidth = anchorView.width
 
         // Calculate the xOffset to end on the left of anchorView
         val xOffset = -30
@@ -157,24 +149,19 @@ class ScanningFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.activity_pairing_screen, container, false)
-
-        val nextPageButton = view.findViewById<Button>(R.id.btnStartScan)
-
         val privacyPolicyTextView: TextView = view.findViewById(R.id.privacyPolicy)
-
         val myString =
             SpannableString(getString(R.string.privecy_txt))
-
         val clickableSpan: ClickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
                 //var d = "click1";
-                gotoTerms("privacy");
+                gotoTerms("privacy")
             }
         }
 
         val clickableSpan1: ClickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
-                gotoTerms("terms");
+                gotoTerms("terms")
             }
         }
 

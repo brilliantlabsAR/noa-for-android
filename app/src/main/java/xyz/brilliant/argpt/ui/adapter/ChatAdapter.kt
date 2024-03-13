@@ -32,13 +32,10 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
     override fun getItemViewType(position: Int): Int {
 
 
-        if(messages[position].translateEnabled)
-        {
-            return  3
-        }
-
-        else {
-            return if (messages[position].userInfo === "S") 2 else 1
+        return if(messages[position].translateEnabled) {
+            3
+        } else {
+            if (messages[position].userInfo === "S") 2 else 1
         }
     }
 
@@ -46,19 +43,19 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
-       return when (viewType) {
-            ITEM_LEFT -> return LeftChatViewHolder(
+        return when (viewType) {
+            ITEM_LEFT ->  LeftChatViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_left_with_corner, parent, false)
             )
-            ITEM_RIGHT -> return RightChatViewHolder(
+            ITEM_RIGHT ->  RightChatViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_right_with_corner, parent, false)
             )
-           ITEM_CENTER-> return CenterChatViewHolder(
-               LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_center, parent, false)
-           )
-           else -> {
-               throw Exception("Error reading holder type")
-           }
+            ITEM_CENTER->  CenterChatViewHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.chat_item_cell_center, parent, false)
+            )
+            else -> {
+                throw Exception("Error reading holder type")
+            }
         }
 
     }
@@ -67,16 +64,16 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
         val chatMessage: ChatModel = messages[position]
         val context = holder.itemView.context
 
-        if (holder.itemViewType === ITEM_CENTER) {
+        if (holder.itemViewType == ITEM_CENTER) {
             val viewHolder: CenterChatViewHolder = holder as CenterChatViewHolder
             viewHolder.contents.text = chatMessage.message
-            if(chatMessage.message.isNullOrEmpty())
+            if(chatMessage.message.isEmpty())
             {viewHolder.contents.visibility = View.GONE}
             else
             {viewHolder.contents.visibility = View.VISIBLE}
 
         }
-        else if (holder.itemViewType === ITEM_LEFT) {
+        else if (holder.itemViewType == ITEM_LEFT) {
             val viewHolder: LeftChatViewHolder = holder as LeftChatViewHolder
             viewHolder.contents.text = chatMessage.message
             //For Click..
@@ -91,13 +88,9 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
                 viewHolder.chtImage.setImageBitmap(chatMessage.bitmap)
-//                Glide.with(context)
-//                    .load(File(chatMessage.image))
-//                    .into(viewHolder.chtImage)
-
             }
 
-            else if(!chatMessage.image.isNullOrEmpty())
+            else if(chatMessage.image.isNotEmpty())
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
                 val requestOptions = RequestOptions()
@@ -114,47 +107,42 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
                 viewHolder.chtImage.visibility = View.GONE
             }
 
-            if(chatMessage.message.isNullOrEmpty())
+            if(chatMessage.message.isEmpty())
             {viewHolder.contents.visibility = View.GONE}
             else
             {viewHolder.contents.visibility = View.VISIBLE}
 
 
-            if(chatMessage.id==2)
-            {
-                viewHolder.layoutMsg.setOnClickListener {
-                    onItemClickListener.onOpenApiClick(position,chatMessage)
+            when (chatMessage.id) {
+                2 -> {
+                    viewHolder.layoutMsg.setOnClickListener {
+                        onItemClickListener.onOpenApiClick(position,chatMessage)
+                    }
+                    viewHolder.contents.setOnClickListener {
+                        //Open api key dialog
+                        onItemClickListener.onOpenApiClick(position,chatMessage)
+                    }
                 }
-                viewHolder.contents.setOnClickListener {
-                    //Open api key dialog
-                    onItemClickListener.onOpenApiClick(position,chatMessage)
+                3 -> {
+                    viewHolder.layoutMsg.setOnClickListener{
+                        //Open api key dialog
+                        onItemClickListener.onOpenApiClick(position,chatMessage)
+                    }
+                    viewHolder.contents.setOnClickListener {
+                        //Open api key dialog
+                        onItemClickListener.onOpenApiClick(position,chatMessage)
+                    }
                 }
-            }
-            else if(chatMessage.id==3)
-            {
-                viewHolder.layoutMsg.setOnClickListener{
-//                    onItemClickListener.onStabilityApiClick(position,chatMessage)
-
-                    //Open api key dialog
-                    onItemClickListener.onOpenApiClick(position,chatMessage)
-                }
-                viewHolder.contents.setOnClickListener {
-                    //Open api key dialog
-                    onItemClickListener.onOpenApiClick(position,chatMessage)
-                }
-            }
-            else if(chatMessage.id==1)
-            {
-                viewHolder.chtImage.setOnClickListener {
-                    onItemClickListener.onImageClick(position,chatMessage.image,chatMessage.bitmap)
-                }
-                viewHolder.contents.setOnClickListener {
-                    //Do nothing
+                1 -> {
+                    viewHolder.chtImage.setOnClickListener {
+                        onItemClickListener.onImageClick(position,chatMessage.image,chatMessage.bitmap)
+                    }
+                    viewHolder.contents.setOnClickListener {
+                        //Do nothing
+                    }
                 }
             }
 
-            //timeStampStr = chatMessage.getTime()
-            //viewHolder.time.setText(timeStampStr)
         } else {
             val viewHolder: RightChatViewHolder = holder as RightChatViewHolder
             viewHolder.contents.text=chatMessage.message
@@ -164,12 +152,8 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
                 viewHolder.chtImage.setImageBitmap(chatMessage.bitmap)
-//                Glide.with(context)
-//                    .load(File(chatMessage.image))
-//                    .into(viewHolder.chtImage)
-
             }
-            else if(!chatMessage.image.isNullOrEmpty())
+            else if(chatMessage.image.isNotEmpty())
             {
                 viewHolder.chtImage.visibility = View.VISIBLE
                 val requestOptions = RequestOptions()
@@ -186,21 +170,11 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
                 viewHolder.chtImage.visibility = View.GONE
             }
 
-            if(chatMessage.message.isNullOrEmpty())
+            if(chatMessage.message.isEmpty())
             {viewHolder.contents.visibility = View.GONE}
             else
             {viewHolder.contents.visibility = View.VISIBLE}
-//            if(chatMessage.translateEnabled) {
-//                viewHolder.contents.setBackgroundResource(R.drawable.rounded_translated)
-//            }
-//            else
-//            {
-//                viewHolder.contents.setBackgroundResource(R.drawable.rounded_rectangle_primary)
-//            }
-            // timeStampStr = chatMessage.getTime()
-            //viewHolder.time.setText(timeStampStr)
-
-            if(chatMessage.id==1)
+         if(chatMessage.id==1)
             {
                 viewHolder.chtImage.setOnClickListener {
                     onItemClickListener.onImageClick(position,chatMessage.image,chatMessage.bitmap)
@@ -214,7 +188,7 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 
     class LeftChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-         var chtImage: ImageView
+        var chtImage: ImageView
         var layoutMsg : LinearLayout
 //        var time: TextView
 
@@ -229,26 +203,22 @@ class ChatAdapter(private val messages: List<ChatModel>,  private val onItemClic
 
     class RightChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-        var layoutMsg : LinearLayout
+        private var layoutMsg : LinearLayout
         var chtImage: ImageView
-//        var time: TextView
 
         init {
             layoutMsg = itemView.findViewById<View>(R.id.layoutMsg) as LinearLayout
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
             chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
-//            time = itemView.findViewById<View>(R.id.timeText) as TextView
         }
     }
 
     class CenterChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var contents: TextView
-        lateinit var chtImage: ImageView
-//        var time: TextView
+        private var chtImage: ImageView
 
         init {
             contents = itemView.findViewById<View>(R.id.messageText) as TextView
-//            time = itemView.findViewById<View>(R.id.timeText) as TextView
             chtImage = itemView.findViewById<View>(R.id.cht_image) as ImageView
         }
     }

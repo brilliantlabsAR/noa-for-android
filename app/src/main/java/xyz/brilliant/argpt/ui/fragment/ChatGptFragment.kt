@@ -1,25 +1,23 @@
 package xyz.brilliant.argpt.ui.fragment
 
-import android.app.Dialog
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.NonDisposableHandle.parent
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -34,35 +32,20 @@ import java.io.IOException
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private val client = OkHttpClient()
-    // creating variables on below line.
-//    lateinit var txtResponse: TextView
-//    lateinit var idTVQuestion: TextView
-    lateinit var etMessage: EditText
-    lateinit var chatSend: ImageView
+    private lateinit var etMessage: EditText
+    private lateinit var chatSend: ImageView
     private lateinit var popupWindow: PopupWindow
-    lateinit var voiceSend : ImageView
-    lateinit var settingBtn: ImageView
-    lateinit var mainView: RelativeLayout
-    lateinit var chatView: RecyclerView
+    private lateinit var settingBtn: ImageView
+    private lateinit var mainView: RelativeLayout
+    private lateinit var chatView: RecyclerView
     lateinit var chatAdapter: ChatAdapter
-    lateinit var layoutManager: LinearLayoutManager
-    //var chatMessages: List<ChatModel> = ArrayList()
+    private lateinit var layoutManager: LinearLayoutManager
     private val chatMessages = ArrayList<ChatModel>()
-    lateinit var mView: View
+    private lateinit var mView: View
     private lateinit var parentActivity: BaseActivity
-    lateinit var connectionStatus : ImageView
-    fun updateConnectionStatus(status: String) {
-        activity?.runOnUiThread {
-            if(status.isNotEmpty())
-            connectionStatus.visibility = View.VISIBLE
-            else
-                connectionStatus.visibility = View.GONE
-        }
-    }
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        parentActivity = context as BaseActivity
-    }
+    private lateinit var connectionStatus : ImageView
+
+    @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,40 +56,27 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
         etMessage=mView.findViewById(R.id.etMessage)
         chatSend=mView.findViewById(R.id.chatSend)
-//        idTVQuestion=mView.findViewById(R.id.idTVQuestion)
-//        txtResponse=mView.findViewById(R.id.txtResponse)
         settingBtn=mView.findViewById(R.id.settingBtn)
         mainView=mView.findViewById(R.id.mainView)
         chatView=mView.findViewById(R.id.chatView)
-        //voiceSend=mView.findViewById(R.id.voiceSend)
         layoutManager = LinearLayoutManager(activity)
         layoutManager.stackFromEnd = true
-        //layoutManager.reverseLayout = true;
         chatView.layoutManager = layoutManager
-        connectionStatus=mView.findViewById<ImageView>(R.id.connectionStatus)
+        connectionStatus=mView.findViewById(R.id.connectionStatus)
         chatAdapter = ChatAdapter(chatMessages,this)
         chatView.adapter = chatAdapter
-        if(parentActivity.apiKey.isNullOrEmpty()){
-           // openChangeApiKey()
-        }
         if(parentActivity.connectionStatus.isNotEmpty()){
             connectionStatus.visibility = View.VISIBLE
-           // connectionStatus.text = parentActivity.connectionStatus
         }
-        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
+        /**
+         * Editor for message action listener
+         */
+        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-
-                // setting response tv on below line.
-//                txtResponse.text = "Please wait.."
-
-                // validating text
                 val question = etMessage.text.toString().trim()
-              //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
-
-                    getResponse(question) { response ->
+                    getResponse(question) {
                         activity?.runOnUiThread {
-//                            txtResponse.text = response
                         }
                     }
                 }
@@ -117,6 +87,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
 
 
+        /**
+         * On Click event for send chat messages
+         */
         chatSend.setOnClickListener {
             if(etMessage.text.trim().isNotEmpty()){
                 val question = etMessage.text.toString().trim()
@@ -124,20 +97,44 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     val singleChat = ChatModel(1,"S",question)
                     chatMessages.add(singleChat)
                     chatAdapter.notifyDataSetChanged()
-                   // parentActivity.getResponse(question)
                     etMessage.text.clear()
                 }
             }
         }
-
+        /**
+         * On Click event for open setting popup
+         */
         settingBtn.setOnClickListener {
-            //showAtAnchor(mainView)
             showPopup(settingBtn)
         }
-     //   parentActivity.sendHelloRaw("")
         return mView
     }
-    fun updatechatList( type : String , msg : String){
+
+
+
+    /**
+     * Method to update connection status text
+     */
+    fun updateConnectionStatus(status: String) {
+        activity?.runOnUiThread {
+            if(status.isNotEmpty())
+                connectionStatus.visibility = View.VISIBLE
+            else
+                connectionStatus.visibility = View.GONE
+        }
+    }
+    /**
+     * Method to attach activity context
+     */
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        parentActivity = context as BaseActivity
+    }
+    /**
+     * Method to update chat list with text
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    fun updatechatList(type : String, msg : String){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
@@ -157,7 +154,11 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
-    fun updatechatList(id : Int ,type : String,msg : String, image :String){
+    /**
+     * Method to update chat list with image
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    fun updatechatList(id : Int, type : String, msg : String, image :String){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
@@ -177,7 +178,11 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
-    fun updatechatList(id : Int ,type : String,msg : String, image :Bitmap?){
+    /**
+     * Method to update chat list with image
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    fun updatechatList(id : Int, type : String, msg : String, image :Bitmap?){
         activity?.runOnUiThread {
 
             if(parentActivity.translateEnabled)
@@ -197,6 +202,10 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
+    /**
+     * Method to show popup
+     */
+    @SuppressLint("InflateParams")
     private fun showPopup(anchorView: View) {
         val inflater = LayoutInflater.from(activity)
         val popupView = inflater.inflate(R.layout.popup_layout, null)
@@ -212,29 +221,35 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
-        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+        val switchButton =popupView.findViewById<SwitchCompat>(R.id.switchButton)
 
         switchButton.isChecked = parentActivity.translateEnabled
-
+        /**
+         * On Click event for switch language
+         */
         switchButton.setOnClickListener {
 
-                parentActivity.translateEnabled =switchButton.isChecked
+            parentActivity.translateEnabled =switchButton.isChecked
 
         }
 
-        val delete_profile_layout = popupView.findViewById<LinearLayout>(R.id.delete_profile_layout)
+        val deleteProfileLayout = popupView.findViewById<LinearLayout>(R.id.delete_profile_layout)
 
-        delete_profile_layout.visibility = View.VISIBLE
+        deleteProfileLayout.visibility = View.VISIBLE
 
 
-
-        delete_profile_layout.setOnClickListener{
+        /**
+         * On Click event for delete profile
+         */
+        deleteProfileLayout.setOnClickListener{
             popupWindow.dismiss()
             parentActivity.gotoDeleteProfile()
         }
 
 
-
+        /**
+         * On Click event for unpair device
+         */
         unpairMonocle.setOnClickListener {
             popupWindow.dismiss()
             parentActivity.unpairMonocle()
@@ -243,10 +258,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
 
-        val popupWidth = popupWindow.width
-
-        // Get the width of the settingBtn
-        val settingBtnWidth = anchorView.width
 
         // Calculate the xOffset to end on the left of anchorView
         val xOffset = -30
@@ -257,36 +268,16 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
     }
 
-    fun locateView(v: View?): Rect? {
-        val loc_int = IntArray(2)
-        if (v == null) return null
-        try {
-            v.getLocationOnScreen(loc_int)
-        } catch (npe: NullPointerException) {
-            //Happens when the view doesn't exist on screen anymore.
-            return null
-        }
-        val location = Rect()
-        location.left = loc_int[0]
-        location.top = loc_int[1]
-        location.right = location.left + v.width
-        location.bottom = location.top + v.height
-        return location
-    }
-
-
-    private fun gotoOpenApi() {
-
-
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
-            startActivity(intent)
-    }
-
+    /**
+     * Method to scroll to bottom
+     */
     fun scrollToBottom() {
         chatView.scrollToPosition(chatMessages.size-1)
     }
-
-    fun getResponse(question: String, callback: (String) -> Unit){
+    /**
+     * REST API response listener for chat message
+     */
+    private fun getResponse(question: String, callback: (String) -> Unit){
         try {
 
             etMessage.setText("")
@@ -314,6 +305,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     Log.e("error","API failed",e)
                 }
 
+                @SuppressLint("NotifyDataSetChanged")
                 override fun onResponse(call: Call, response: Response) {
                     val body=response.body?.string()
                     if (body != null) {
@@ -322,9 +314,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     else{
                         Log.v("data","empty")
                     }
-                    val jsonObject= JSONObject(body)
-                    Log.d("TAG", "onResponse: "+jsonObject)
-
+                    val jsonObject= JSONObject(body!!)
                     if (jsonObject.has("id")) {
                         val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
                         val textResult = jsonArray.getJSONObject(0).getString("text")
@@ -336,15 +326,13 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                         val msg:String=error.getString("message")
 
                         parentActivity.sendChatGptResponce(msg,"err:")
-                        activity?.runOnUiThread(Runnable {
-                            //  Toast.makeText(this@ChatGptActivity,msg, Toast.LENGTH_SHORT).show()
-//                            txtResponse.text = msg
-                            val singleChat = ChatModel(1,"R",msg)
+                        activity?.runOnUiThread {
+                            val singleChat = ChatModel(1, "R", msg)
                             chatMessages.add(singleChat)
                             scrollToBottom()
                             chatAdapter.notifyDataSetChanged()
 
-                        })
+                        }
                     }
                 }
             })
@@ -354,23 +342,35 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
     }
 
+    /**
+     * Not being used
+     */
     override fun onUrlClick(position: Int, url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         startActivity(intent)
     }
 
+    /**
+     * Method to show full screen image
+     */
     override fun onImageClick(position: Int, url: String, bitmap: Bitmap?) {
         val fullScreenPopup = FullScreenPopup(parentActivity, url,bitmap)
         fullScreenPopup.show()
     }
 
+    /**
+     * Not being used
+     */
     override fun onStabilityApiClick(position: Int, chatModel: ChatModel) {
-       // gotoStabilityApi()
-       // stabilityChangeApiKey()
+        // gotoStabilityApi()
+        // stabilityChangeApiKey()
     }
 
+    /**
+     * Not being used
+     */
     override fun onOpenApiClick(position: Int, chatModel: ChatModel) {
-      //  openChangeApiKey()
+        //  openChangeApiKey()
     }
 
 

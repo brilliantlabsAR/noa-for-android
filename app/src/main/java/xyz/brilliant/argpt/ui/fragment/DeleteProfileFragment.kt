@@ -19,12 +19,10 @@ import android.widget.Button
 import android.widget.TextView
 
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.activity.BaseActivity
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
@@ -34,15 +32,16 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class DeleteProfileFragment : Fragment() {
-    // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
     private lateinit var parentActivity: BaseActivity
-    lateinit var btnDelete: Button
-    lateinit var btngoBack: Button
+    private lateinit var btnDelete: Button
+    private lateinit var btnGoBack: Button
+    private lateinit var mView: View
 
-
-    lateinit var mView: View
+    /**
+     * Method to attach activity context
+     */
     override fun onAttach(context: Context) {
         super.onAttach(context)
         parentActivity = context as BaseActivity
@@ -55,7 +54,11 @@ class DeleteProfileFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
-    fun onBackPressed() {
+
+    /**
+     * Method to back from current screen
+     */
+    private fun onBackPressed() {
         // Get the fragment manager
         val fragmentManager: FragmentManager = requireActivity().supportFragmentManager
 
@@ -65,27 +68,31 @@ class DeleteProfileFragment : Fragment() {
             fragmentManager.popBackStack()
         } else {
             // If there are no fragments in the back stack, perform the default back press action
-            requireActivity().onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_delete_profile, container, false)
         btnDelete = mView.findViewById(R.id.btnDelete)
-        btngoBack= mView.findViewById(R.id.btngoBack)
+        btnGoBack= mView.findViewById(R.id.btngoBack)
+        /**
+         * On Click event for delete account
+         */
         btnDelete.setOnClickListener {
             // Handle button click
            parentActivity.deleteAccount()
         }
-
-        btngoBack.setOnClickListener {
+        /**
+         * On Click event for go back current screen
+         */
+        btnGoBack.setOnClickListener {
             // Handle button click
             onBackPressed()
         }
-
         val privacyPolicyTextView: TextView = mView.findViewById(R.id.privacyPolicy)
 
         val myString =
@@ -93,17 +100,15 @@ class DeleteProfileFragment : Fragment() {
 
         val clickableSpan: ClickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
-                //var d = "click1";
-                gotoTerms("privacy");
+                gotoTerms("privacy")
             }
         }
 
         val clickableSpan1: ClickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
-                gotoTerms("terms");
+                gotoTerms("terms")
             }
         }
-
         myString.setSpan(clickableSpan, 20, 34, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(clickableSpan1, 48, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(
@@ -120,12 +125,12 @@ class DeleteProfileFragment : Fragment() {
         )
         privacyPolicyTextView.movementMethod = LinkMovementMethod.getInstance()
         privacyPolicyTextView.text = myString
-
-
-
-
-        return mView;
+        return mView
     }
+
+    /**
+     * Method to go terms & privacy policy
+     */
     private fun gotoTerms(url: String) {
 
         if(url=="terms") {

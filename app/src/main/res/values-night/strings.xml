@@ -3,7 +3,12 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-
+    <string name="translate">Translate</string>
+    <string name="delete_profile">Delete Profile</string>
+    <string name="logout_amp_unpair_monocle"><![CDATA[Logout & unpair Monocle]]></string>
+    <string name="user_profile_deletion_page">User Profile Deletion Page</string>
+    <string name="go_back">Go Back</string>
+    <string name="start_scan">Start Scan</string>
     <string name="choose_app_role">Choose the device role:</string>
     <string name="button_role_peripheral">Peripheral/Server</string>
     <string name="button_role_central">Central/Client</string>

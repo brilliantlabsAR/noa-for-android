@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
@@ -39,14 +37,14 @@
             android:id="@+id/let_s_pair_"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_marginLeft="38dp"
             android:textAlignment="center"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_marginRight="38dp"
             android:layout_alignParentTop="true"
             android:layout_marginTop="198dp"
-            android:text="User Profile Deletion Page"
+            android:text="@string/user_profile_deletion_page"
             android:textColor="@color/text_Color"
             android:textSize="20sp"
 
@@ -83,13 +81,9 @@
             android:layout_marginStart="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:layout_marginBottom="@dimen/_10pxh"
-            android:text="Delete Profile"
-            android:layout_above="@+id/btngoBack"
-
+            android:text="@string/delete_profile"
             android:background="@drawable/round_white_background"
-
             android:maxLines="1" />
 
         <Button
@@ -98,11 +92,8 @@
             android:layout_marginStart="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Go Back"
-
+            android:text="@string/go_back"
             android:background="@drawable/round_white_background"
-
             android:maxLines="1" />
 
 

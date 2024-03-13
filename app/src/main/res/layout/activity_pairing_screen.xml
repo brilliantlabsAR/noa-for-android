@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
  >
@@ -21,9 +20,10 @@
                 android:id="@+id/settingBtn"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:scaleType="centerCrop"
+                android:contentDescription="@string/app_name"
                 android:src="@drawable/settings"/>
 
         </RelativeLayout>
@@ -57,12 +57,12 @@
             android:id="@+id/let_s_pair_"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginLeft="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="36dp"
             android:layout_marginTop="199dp"
-            android:layout_marginRight="40dp"
+            android:layout_marginEnd="40dp"
             android:gravity="top"
             android:text="@string/let_s_pair_"
             android:textColor="@color/text_Color"
@@ -86,8 +86,8 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:background="@drawable/rounded_button"
-        android:text="Start Scan"
-        android:textSize="18dp"
+        android:text="@string/start_scan"
+        android:textSize="18sp"
         android:visibility="gone"
         android:id="@+id/btnStartScan"
         />
@@ -132,6 +132,7 @@
                 android:scaleType="centerCrop"
                 android:layout_below="@+id/deviceCloseTextView"
                 android:layout_centerHorizontal="true"
+                android:contentDescription="@string/app_name"
                 android:src="@drawable/logo_button"/>
 
             <RelativeLayout
