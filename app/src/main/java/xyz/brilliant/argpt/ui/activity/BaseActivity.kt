@@ -1325,7 +1325,7 @@ class BaseActivity : AppCompatActivity() {
 
 
         Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
-
+        // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
         val request = Request.Builder()
             .url("https://api.openai.com/v1/audio/translations")
             //.addHeader("Content-Type", "application/json")
@@ -1485,6 +1485,7 @@ class BaseActivity : AppCompatActivity() {
 
     fun getResponse(question: String) {
         if(globalJpegFilePath.isNullOrEmpty()) {
+            // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
             try {
 
                 val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
@@ -1815,10 +1816,9 @@ class BaseActivity : AppCompatActivity() {
                 R.drawable.openai_website
             ).toString()
         )
-
+    // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
         val messagelist = listOf(
             ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false, ""),
-
             ChatModel(
                 1, "R", "Tap either of the touch pads and speak.\n\n" +
                         "Ask me any question, and I’ll then respond directly on your Monocle.", false, getThumbnailUrl("https://platform.openai.com"),

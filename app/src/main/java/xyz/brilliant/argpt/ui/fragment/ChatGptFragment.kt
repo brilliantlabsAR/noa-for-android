@@ -248,14 +248,14 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     }
     private fun gotoOpenApi() {
 
-
+            // TODO: Change this to AGiXT API or an environment variable
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
             startActivity(intent)
     }
 
     private fun gotoStabilityApi() {
 
-
+        // TODO: Find everything using stability API and remove it except allowing the image to display coming from AGiXT in Markdown format.
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://key.stabediffusion.com"))
         startActivity(intent)
     }
@@ -340,7 +340,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
 
             etMessage.setText("")
 
-
+            // TODO: Change this to AGiXT API or an environment variable
             val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
 
             val requestBody="""
