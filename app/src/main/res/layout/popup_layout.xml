@@ -67,11 +67,18 @@
             android:layout_width="50dp"
             android:layout_height="0dp"
             android:layout_weight="1"/>
+        
+        <Switch
+            android:id="@+id/switchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:thumbTint="@drawable/switch_thumb_color_selector"
+            android:layout_marginStart="25dp"/>
 
         <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@drawable/settings"
+            android:src="@drawable/ic_settings"
             android:layout_marginStart="25dp"
             android:layout_gravity="center"
             app:tint="@color/text_Color" />

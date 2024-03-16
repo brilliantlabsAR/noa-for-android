@@ -384,7 +384,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             popupWindow.dismiss()
         }
         val unpairMonocle = popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
-        /*
+        
         val switchButton = popupView.findViewById<Switch>(R.id.switchButton)
     
         switchButton.isChecked = parentActivity.translateEnabled
@@ -393,7 +393,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             parentActivity.translateEnabled = switchButton.isChecked
             popupWindow.dismiss()
         }
-        */
+        
         unpairMonocle.setOnClickListener {
             popupWindow.dismiss()
             parentActivity.unpairMonocle()
