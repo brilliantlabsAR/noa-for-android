@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
@@ -48,6 +47,7 @@
         android:background="@color/gray"/>
 
     <LinearLayout
+        android:id="@+id/settings_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -58,7 +58,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Translate"
+            android:text="Settings"
             android:textSize="16sp"
             android:textColor="@color/text_Color"
             android:layout_gravity="center"/>
@@ -68,12 +68,14 @@
             android:layout_height="0dp"
             android:layout_weight="1"/>
 
-        <Switch
-            android:id="@+id/switchButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:thumbTint="@drawable/switch_thumb_color_selector"
-            android:layout_marginStart="25dp"/>
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/settings"
+            android:layout_marginStart="25dp"
+            android:layout_gravity="center"
+            app:tint="@color/text_Color" />
+
     </LinearLayout>
 
 

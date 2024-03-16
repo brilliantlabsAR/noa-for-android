@@ -54,13 +54,20 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private lateinit var openaiModel: String
     private lateinit var openaiSystemMessage: String
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         arguments?.let {
             openaiApiKey = it.getString(ARG_API_KEY) ?: "none"
             openaiEndpoint = it.getString(ARG_ENDPOINT) ?: "https://api.openai.com/v1"
             openaiModel = it.getString(ARG_MODEL) ?: "gpt-3.5-turbo"
             openaiSystemMessage = it.getString(ARG_SYSTEM_MESSAGE) ?: "You are a helpful assistant."
+        }
+        settingBtn.setOnClickListener {
+            val settingsFragment = SettingsFragment()
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, settingsFragment)
+                .addToBackStack(null)
+                .commit()
         }
     }
     private val client = OkHttpClient()
@@ -363,17 +370,22 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         chatView.scrollToPosition(chatMessages.size-1)
     }
 
-    fun getResponse(question: String, callback: (String) -> Unit) {
+    private fun getResponse(question: String, callback: (String) -> Unit) {
+        val preferencesHelper = PreferencesHelper.getInstance(requireContext())
+        val apiKey = preferencesHelper.getApiKey()
+        val apiServer = preferencesHelper.getApiServer()
+        val systemMessage = preferencesHelper.getSystemMessage()
+        val model = preferencesHelper.getModel()
         try {
-            val url = "$openaiEndpoint/chat/completions"
+            val url = "$apiServer/chat/completions"
     
             val requestBody = """
                 {
-                    "model": "$openaiModel",
+                    "model": "$model",
                     "messages": [
                         {
                             "role": "system",
-                            "content": "$openaiSystemMessage"
+                            "content": "$systemMessage"
                         },
                         {
                             "role": "user",
@@ -388,7 +400,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer $openaiApiKey")
+                .addHeader("Authorization", "Bearer $apiKey")
                 .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
                 .build()
 

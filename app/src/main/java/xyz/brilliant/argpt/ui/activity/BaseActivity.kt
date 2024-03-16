@@ -217,29 +217,20 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    fun getStoredApiKey(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
-    }
-
-    fun getStoredStabilityApiKey(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_STABILITY_API_KEY, "") ?: ""
-    }
-
-    fun getStoredApiEndpoint(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPENAI_ENDPOINT, "https://api.openai.com/v1") ?: "https://api.openai.com/v1"
+    private fun getStoredApiKey(): String {
+        return PreferencesHelper.getInstance(applicationContext).getApiKey()
     }
     
-    fun getStoredModel(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPENAI_MODEL, "gpt-3.5-turbo") ?: "gpt-3.5-turbo"
+    private fun getStoredApiEndpoint(): String {
+        return PreferencesHelper.getInstance(applicationContext).getApiServer()
     }
-
-    fun getStoredSystemMessage(): String {
-        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_SYSTEM_MESSAGE, "You are a helpful assistant") ?: "You are a helpful assistant"
+    
+    private fun getStoredModel(): String {
+        return PreferencesHelper.getInstance(applicationContext).getModel()
+    }
+    
+    private fun getStoredSystemMessage(): String {
+        return PreferencesHelper.getInstance(applicationContext).getSystemMessage()
     }
 
     private fun storeDeviceAddress(deviceAddress: String) {
@@ -1777,7 +1768,12 @@ class BaseActivity : AppCompatActivity() {
         replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
-            val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel(), getStoredSystemMessage())
+            val preferencesHelper = PreferencesHelper.getInstance(applicationContext)
+            val apiKey = preferencesHelper.getApiKey()
+            val apiServer = preferencesHelper.getApiServer()
+            val systemMessage = preferencesHelper.getSystemMessage()
+            val model = preferencesHelper.getModel()
+            val fragment = ChatGptFragment.newInstance(apiKey, apiServer, systemMessage, model)
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
             val apikeyStored = getStoredApiKey()
