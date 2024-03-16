@@ -190,6 +190,8 @@ class BaseActivity : AppCompatActivity() {
     private val PREFS_KEY_DEVICE_ADDRESS = "DeviceAddress"
     private val PREFS_OPEN_API_KEY = "OpenAi"
     private val PREFS_STABILITY_API_KEY = "stability"
+    private val PREFS_OPENAI_ENDPOINT = "openai_endpoint"
+    private val PREFS_OPENAI_MODEL = "openai_model"
     private var currentScannedDevice: BluetoothDevice? = null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
@@ -222,6 +224,16 @@ class BaseActivity : AppCompatActivity() {
     fun getStoredStabilityApiKey(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_STABILITY_API_KEY, "") ?: ""
+    }
+
+    fun getStoredApiEndpoint(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_OPENAI_ENDPOINT, "https://api.openai.com/v1") ?: "https://api.openai.com/v1"
+    }
+    
+    fun getStoredModel(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_OPENAI_MODEL, "gpt-3.5-turbo") ?: "gpt-3.5-turbo"
     }
 
     private fun storeDeviceAddress(deviceAddress: String) {
@@ -281,7 +293,7 @@ class BaseActivity : AppCompatActivity() {
                 pushFragmentsStatic(fragmentManager, fragment, false, "start_scan")
             } else {
                 currentAppState = AppState.RUNNING
-                val fragment = ChatGptFragment()
+                val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel())
                 pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
             }
 
@@ -1325,10 +1337,8 @@ class BaseActivity : AppCompatActivity() {
 
 
         Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
-        // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
         val request = Request.Builder()
-            .url("https://api.openai.com/v1/audio/translations")
-            //.addHeader("Content-Type", "application/json")
+            .url("${getStoredApiEndpoint()}/audio/translations")
             .addHeader("Authorization", "Bearer $apiKey")
             .post(requestBody)
             .build()
@@ -1484,34 +1494,41 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun getResponse(question: String) {
-        if(globalJpegFilePath.isNullOrEmpty()) {
-            // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
+        if (globalJpegFilePath.isNullOrEmpty()) {
             try {
-
-                val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-
+                val url = "${getStoredApiEndpoint()}/chat/completions"
+    
                 val requestBody = """
-            {
-            "prompt": "$question",
-            "max_tokens": 500,
-            "temperature": 0
-            }
-        """.trimIndent()
-
+                    {
+                        "model": "${getStoredModel()}",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are a helpful assistant."
+                            },
+                            {
+                                "role": "user",
+                                "content": "$question"
+                            }
+                        ],
+                        "max_tokens": 500,
+                        "temperature": 0
+                    }
+                """.trimIndent()
+    
                 val request = Request.Builder()
                     .url(url)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Authorization", "Bearer $apiKey")
                     .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
                     .build()
-
+    
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         Log.e("error", "API failed", e)
                         updatechatList("R", e.message.toString())
-
                     }
-
+    
                     override fun onResponse(call: Call, response: Response) {
                         val body = response.body?.string()
                         if (body != null) {
@@ -1519,21 +1536,21 @@ class BaseActivity : AppCompatActivity() {
                         } else {
                             Log.v("data", "empty")
                         }
+    
                         val jsonObject = JSONObject(body)
-                        Log.d("TAG", "onResponse: " + jsonObject)
-
-                        if (jsonObject.has("id")) {
+                        Log.d("TAG", "onResponse: $jsonObject")
+    
+                        if (jsonObject.has("choices")) {
                             val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                            val textResult = jsonArray.getJSONObject(0).getString("text")
-
+                            val messageObject = jsonArray.getJSONObject(0).getJSONObject("message")
+                            val textResult = messageObject.getString("content")
+    
                             sendChatGptResponce(textResult, "res:")
-//                        callback(textResult)
                         } else {
                             val error: JSONObject = jsonObject.getJSONObject("error")
                             val msg: String = error.getString("message")
-
+    
                             sendChatGptResponce(msg, "err:")
-
                         }
                     }
                 })
@@ -1541,7 +1558,7 @@ class BaseActivity : AppCompatActivity() {
                 sendChatGptResponce("getResponse: ${ex.message}", "err:")
                 Log.d("ChatGpt", "getResponse: $ex")
             }
-        }else{
+        } else {
             callStabilityAiImagetoImage(question)
         }
     }
@@ -1740,7 +1757,7 @@ class BaseActivity : AppCompatActivity() {
         replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
-            val fragment = ChatGptFragment()
+            val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel())
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
             val apikeyStored = getStoredApiKey()
@@ -1816,7 +1833,6 @@ class BaseActivity : AppCompatActivity() {
                 R.drawable.openai_website
             ).toString()
         )
-    // TODO: Change this from openai to AGiXT or use an environment variable for the base uri.
         val messagelist = listOf(
             ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false, ""),
             ChatModel(

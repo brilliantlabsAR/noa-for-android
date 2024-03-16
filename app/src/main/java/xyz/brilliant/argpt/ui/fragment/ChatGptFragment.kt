@@ -31,6 +31,34 @@ import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
+    companion object {
+        private const val ARG_API_KEY = "api_key"
+        private const val ARG_ENDPOINT = "endpoint"
+        private const val ARG_MODEL = "model"
+
+        fun newInstance(apiKey: String, endpoint: String, model: String): ChatGptFragment {
+            val fragment = ChatGptFragment()
+            val args = Bundle()
+            args.putString(ARG_API_KEY, apiKey)
+            args.putString(ARG_ENDPOINT, endpoint)
+            args.putString(ARG_MODEL, model)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    private lateinit var openaiApiKey: String
+    private lateinit var openaiEndpoint: String
+    private lateinit var openaiModel: String
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            openaiApiKey = it.getString(ARG_API_KEY) ?: ""
+            openaiEndpoint = it.getString(ARG_ENDPOINT) ?: ""
+            openaiModel = it.getString(ARG_MODEL) ?: ""
+        }
+    }
     private val client = OkHttpClient()
     // creating variables on below line.
 //    lateinit var txtResponse: TextView
@@ -247,15 +275,11 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         //popupWindow.showAsDropDown(settingBtn)
     }
     private fun gotoOpenApi() {
-
-            // TODO: Change this to AGiXT API or an environment variable
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
             startActivity(intent)
     }
 
     private fun gotoStabilityApi() {
-
-        // TODO: Find everything using stability API and remove it except allowing the image to display coming from AGiXT in Markdown format.
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://key.stabediffusion.com"))
         startActivity(intent)
     }
@@ -335,26 +359,32 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         chatView.scrollToPosition(chatMessages.size-1)
     }
 
-    fun getResponse(question: String, callback: (String) -> Unit){
+    fun getResponse(question: String, callback: (String) -> Unit) {
         try {
-
-            etMessage.setText("")
-
-            // TODO: Change this to AGiXT API or an environment variable
-            val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
-
-            val requestBody="""
-            {
-            "prompt": "$question",
-            "max_tokens": 500,
-            "temperature": 0
-            }
-        """.trimIndent()
-
+            val url = "$openaiEndpoint/chat/completions"
+    
+            val requestBody = """
+                {
+                    "model": "$openaiModel",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant."
+                        },
+                        {
+                            "role": "user",
+                            "content": "$question"
+                        }
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0
+                }
+            """.trimIndent()
+    
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer ${parentActivity.apiKey}")
+                .addHeader("Authorization", "Bearer $openaiApiKey")
                 .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
                 .build()
 
