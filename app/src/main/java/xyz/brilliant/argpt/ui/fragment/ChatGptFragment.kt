@@ -28,11 +28,113 @@ import org.json.JSONObject
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
-import xyz.brilliant.argpt.ui.fragment.SettingsFragment
 import xyz.brilliant.argpt.ui.model.ChatModel
-import xyz.brilliant.argpt.ui.model.SettingsViewModel
 import java.io.IOException
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
+import android.widget.Button
+import android.widget.EditText
+import android.content.SharedPreferences
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+data class Settings(
+    val apiKey: String,
+    val apiServer: String,
+    val systemMessage: String,
+    val model: String
+)
+class SettingsViewModel(context: Context) : ViewModel() {
 
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("SettingsPreferences", Context.MODE_PRIVATE)
+    
+    private val _settings = MutableLiveData<Settings>()
+    val settings: LiveData<Settings>
+        get() = _settings
+
+    fun saveSettings(apiKey: String, apiServer: String, systemMessage: String, model: String) {
+        sharedPreferences.edit()
+            .putString("api_key", apiKey)
+            .putString("api_server", apiServer)
+            .putString("system_message", systemMessage)
+            .putString("model", model)
+            .apply()
+    }
+
+    fun getApiKey(): String {
+        return sharedPreferences.getString("api_key", "") ?: ""
+    }
+
+    fun getApiServer(): String {
+        return sharedPreferences.getString("api_server", "") ?: ""
+    }
+
+    fun getSystemMessage(): String {
+        return sharedPreferences.getString("system_message", "") ?: ""
+    }
+
+    fun getModel(): String {
+        return sharedPreferences.getString("model", "") ?: ""
+    }
+
+    fun loadSettings() {
+        val settings = Settings(
+            getApiKey(),
+            getApiServer(),
+            getSystemMessage(),
+            getModel()
+        )
+        _settings.value = settings
+    }
+    fun getSettings(): Settings {
+        return _settings.value ?: Settings("", "", "", "")
+    }
+}
+
+class SettingsFragment : Fragment() {
+
+    private lateinit var viewModel: SettingsViewModel
+    val apiKeyEditText: EditText? = view?.findViewById(R.id.api_key_edit_text)
+    val apiServerEditText: EditText? = view?.findViewById(R.id.api_server_edit_text)
+    val systemMessageEditText: EditText? = view?.findViewById(R.id.system_message_edit_text)
+    val modelEditText: EditText? = view?.findViewById(R.id.model_edit_text)
+    val saveButton: Button? = view?.findViewById(R.id.save_button)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.settings_popup, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
+
+        // Load the stored settings
+        viewModel.loadSettings()
+
+        // Observe the settings LiveData and update the UI
+        viewModel.settings.observe(viewLifecycleOwner, Observer { settings: Settings ->
+            apiKeyEditText?.setText(settings.apiKey)
+            apiServerEditText?.setText(settings.apiServer)
+            systemMessageEditText?.setText(settings.systemMessage)
+            modelEditText?.setText(settings.model)
+        })
+
+        // Handle the save button click
+        saveButton?.setOnClickListener {
+            viewModel.saveSettings(
+                apiKeyEditText?.text.toString(),
+                apiServerEditText?.text.toString(),
+                systemMessageEditText?.text.toString(),
+                modelEditText?.text.toString()
+            )
+            dismiss()
+        }
+    }
+
+    private fun dismiss() {
+        parentFragmentManager.popBackStack()
+    }
+}
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     companion object {
         private const val ARG_API_KEY = "api_key"
@@ -286,7 +388,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
-        val switchButton = view?.findViewById<Switch>(R.id.switchButton)
+        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
 
         switchButton.isChecked = parentActivity.translateEnabled
 
