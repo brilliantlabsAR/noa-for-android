@@ -1,10 +1,17 @@
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 
-class SettingsViewModel(context: Context) {
+class SettingsViewModel(context: Context) : ViewModel() {
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("SettingsPreferences", Context.MODE_PRIVATE)
+    
+    private val _settings = MutableLiveData<Settings>()
+    val settings: LiveData<Settings>
+        get() = _settings
 
     fun saveSettings(apiKey: String, apiServer: String, systemMessage: String, model: String) {
         sharedPreferences.edit()
@@ -29,5 +36,18 @@ class SettingsViewModel(context: Context) {
 
     fun getModel(): String {
         return sharedPreferences.getString("model", "") ?: ""
+    }
+
+    fun loadSettings() {
+        val settings = Settings(
+            getApiKey(),
+            getApiServer(),
+            getSystemMessage(),
+            getModel()
+        )
+        _settings.value = settings
+    }
+    fun getSettings(): Settings {
+        return _settings.value ?: Settings("", "", "", "")
     }
 }

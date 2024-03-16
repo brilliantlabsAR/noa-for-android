@@ -1,5 +1,6 @@
 package xyz.brilliant.argpt.ui.activity
 
+import PreferencesHelper
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
@@ -15,14 +16,12 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
-import android.content.ContentUris
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,18 +29,12 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import android.view.View
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -82,7 +75,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -217,20 +209,25 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    private fun getStoredApiKey(): String {
+    fun getStoredApiKey(): String {
         return PreferencesHelper.getInstance(applicationContext).getApiKey()
     }
     
-    private fun getStoredApiEndpoint(): String {
+    fun getStoredApiEndpoint(): String {
         return PreferencesHelper.getInstance(applicationContext).getApiServer()
     }
     
-    private fun getStoredModel(): String {
+    fun getStoredModel(): String {
         return PreferencesHelper.getInstance(applicationContext).getModel()
     }
     
-    private fun getStoredSystemMessage(): String {
+    fun getStoredSystemMessage(): String {
         return PreferencesHelper.getInstance(applicationContext).getSystemMessage()
+    }
+
+    fun getStoredStabilityApiKey(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_STABILITY_API_KEY, "") ?: ""
     }
 
     private fun storeDeviceAddress(deviceAddress: String) {
@@ -1776,10 +1773,6 @@ class BaseActivity : AppCompatActivity() {
             val fragment = ChatGptFragment.newInstance(apiKey, apiServer, systemMessage, model)
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
-            val apikeyStored = getStoredApiKey()
-            if (!apikeyStored.isNullOrEmpty()) {
-                apiKey = apikeyStored
-            }
             updateConnectionStatus("")
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING

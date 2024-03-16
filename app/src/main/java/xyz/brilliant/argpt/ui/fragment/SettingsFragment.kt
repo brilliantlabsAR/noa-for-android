@@ -6,6 +6,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.settings_popup.*
 import xyz.brilliant.argpt.R
+import xyz.brilliant.argpt.ui.model.Settings
+import xyz.brilliant.argpt.ui.model.SettingsViewModel
+
+
 
 class SettingsFragment : Fragment() {
 
@@ -21,9 +25,13 @@ class SettingsFragment : Fragment() {
 
         // Load the stored settings
         viewModel.loadSettings()
-
+        val apiKeyEditText: EditText? = viewModel.findViewById(R.id.api_key_edit_text)
+        val apiServerEditText: EditText? = viewModel.findViewById(R.id.api_server_edit_text)
+        val systemMessageEditText: EditText? = viewModel.findViewById(R.id.system_message_edit_text)
+        val modelEditText: EditText? = viewModel.findViewById(R.id.model_edit_text)
+        val saveButton: Button? = viewModel.findViewById(R.id.save_button)
         // Observe the settings LiveData and update the UI
-        viewModel.settings.observe(viewLifecycleOwner, { settings ->
+        viewModel.settings.observe(viewLifecycleOwner, Observer { settings: Settings ->
             api_key_edit_text.setText(settings.apiKey)
             api_server_edit_text.setText(settings.apiServer)
             system_message_edit_text.setText(settings.systemMessage)

@@ -16,6 +16,7 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,7 +28,9 @@ import org.json.JSONObject
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
+import xyz.brilliant.argpt.ui.fragment.SettingsFragment
 import xyz.brilliant.argpt.ui.model.ChatModel
+import xyz.brilliant.argpt.ui.model.SettingsViewModel
 import java.io.IOException
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
@@ -283,7 +286,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
 
 
-        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+        val switchButton = view?.findViewById<Switch>(R.id.switchButton)
 
         switchButton.isChecked = parentActivity.translateEnabled
 
