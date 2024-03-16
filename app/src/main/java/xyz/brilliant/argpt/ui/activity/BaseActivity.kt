@@ -237,9 +237,9 @@ class BaseActivity : AppCompatActivity() {
         return prefs.getString(PREFS_OPENAI_MODEL, "gpt-3.5-turbo") ?: "gpt-3.5-turbo"
     }
 
-    fun getSystemMessage(): String {
+    fun getStoredSystemMessage(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_SYSTEM_MESSAGE, "") ?: ""
+        return prefs.getString(PREFS_SYSTEM_MESSAGE, "You are a helpful assistant") ?: "You are a helpful assistant"
     }
 
     private fun storeDeviceAddress(deviceAddress: String) {
@@ -319,7 +319,7 @@ class BaseActivity : AppCompatActivity() {
                 pushFragmentsStatic(fragmentManager, fragment, false, "start_scan")
             } else {
                 currentAppState = AppState.RUNNING
-                val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel())
+                val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel(), getStoredSystemMessage())
                 pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
             }
 
@@ -1783,7 +1783,7 @@ class BaseActivity : AppCompatActivity() {
         replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
-            val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel())
+            val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel(), getStoredSystemMessage())
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
             val apikeyStored = getStoredApiKey()
