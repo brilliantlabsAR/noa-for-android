@@ -428,6 +428,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
         val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
         val apiKeyTextStabilityApi = dialog.findViewById<EditText>(R.id.apiKeyTextStabilityApi)
+        val openAiEndpoint = dialog.findViewById<EditText>(R.id.openAiEndpoint)
+        val openAiModel = dialog.findViewById<EditText>(R.id.openAiModel)
+        val systemMessage = dialog.findViewById<EditText>(R.id.systemMessage)
 //        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
         val apiKeyOld =  parentActivity.getStoredApiKey()
         apiKeyText.setText(apiKeyOld)
@@ -449,6 +452,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 parentActivity.apiKey  = apiKeyValue
                 parentActivity.storeStabilityApiKey(apiKeyTextStabilityApi.text.toString().trim())
                 parentActivity.stabilityApiKey  = apiKeyTextStabilityApi.text.toString().trim()
+                parentActivity.storeApiEndpoint(openAiEndpoint.text.toString().trim())
+                parentActivity.openAiEndpoint  = openAiEndpoint.text.toString().trim()
+                parentActivity.storeModel(openAiModel.text.toString().trim())
+                parentActivity.openAiModel  = openAiModel.text.toString().trim()
+                parentActivity.storeSystemMessage(systemMessage.text.toString().trim())
+                parentActivity.systemMessage  = systemMessage.text.toString().trim()
             }else{
 
               //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()

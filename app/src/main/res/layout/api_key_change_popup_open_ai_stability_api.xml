@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="Enter your OpenAI API key"
+        android:text="Enter your OpenAI Credentials"
         android:textColor="@color/text_Color"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -26,7 +26,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginRight="15dp"
         android:gravity="center"
-        android:text="Create your keys on platform.openai.com"
+        android:text="Create your keys on platform.openai.com or use a third-party service that uses OpenAI style endpoints."
         android:textColor="@color/text_Color"
         android:textSize="14sp" />
 
@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/prefixKey"
             android:background="@null"
-            android:hint="OpenAI: sk-... "
+            android:hint="OpenAI API Key: sk-... "
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"
@@ -91,12 +91,13 @@
             android:visibility="gone" />
 
         <EditText
-            android:id="@+id/apiKeyTextOpenAiEndpoint"
+            android:id="@+id/openAiEndpoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/prefixKeyOpenAiEndpoint"
             android:background="@null"
             android:hint="OpenAI Endpoint: https://... (Optional)"
+            android:value="https://api.openai.com/v1"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"
@@ -123,18 +124,19 @@
             android:paddingLeft="5dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:text="gpt-3."
+            android:text="gpt-4"
             android:textColor="@color/gray"
             android:textSize="14sp"
             android:visibility="gone" />
 
         <EditText
-            android:id="@+id/apiKeyTextOpenAiModel"
+            android:id="@+id/openAiModel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/prefixKeyOpenAiModel"
             android:background="@null"
-            android:hint="OpenAI Model: gpt-3. (Optional)"
+            android:hint="OpenAI Model: gpt-4. (Optional)"
+            android:value="gpt-4"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"
@@ -154,12 +156,14 @@
         android:layout_marginEnd="32dp"
         android:background="@drawable/square_white_background_edittext">
 
+        
         <EditText
-            android:id="@+id/apiKeyTextSystemMessage"
+            android:id="@+id/systemMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@null"
             android:hint="System Message: (Optional)"
+            android:value="You are a helpful assistant."
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"

@@ -89,6 +89,9 @@ import kotlin.math.ceil
 class BaseActivity : AppCompatActivity() {
     lateinit var apiKey: String
     lateinit var stabilityApiKey: String
+    lateinit var openAiEndpoint: String
+    lateinit var openAiModel: String
+    lateinit var systemMessage: String
 
     companion object {
         private const val TAG = "BaseActivity"
