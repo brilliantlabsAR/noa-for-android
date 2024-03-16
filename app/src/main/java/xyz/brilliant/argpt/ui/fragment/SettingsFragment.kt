@@ -4,17 +4,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.settings_popup.*
+import androidx.lifecycle.Observer
 import xyz.brilliant.argpt.R
-import xyz.brilliant.argpt.ui.model.Settings
-import xyz.brilliant.argpt.ui.model.SettingsViewModel
-
+import android.widget.Button
+import android.widget.EditText
 
 
 class SettingsFragment : Fragment() {
 
     private lateinit var viewModel: SettingsViewModel
-
+    val apiKeyEditText: EditText? = view?.findViewById(R.id.api_key_edit_text)
+    val apiServerEditText: EditText? = view?.findViewById(R.id.api_server_edit_text)
+    val systemMessageEditText: EditText? = view?.findViewById(R.id.system_message_edit_text)
+    val modelEditText: EditText? = view?.findViewById(R.id.model_edit_text)
+    val saveButton: Button? = view?.findViewById(R.id.save_button)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.settings_popup, container, false)
     }
@@ -25,26 +28,23 @@ class SettingsFragment : Fragment() {
 
         // Load the stored settings
         viewModel.loadSettings()
-        val apiKeyEditText: EditText? = viewModel.findViewById(R.id.api_key_edit_text)
-        val apiServerEditText: EditText? = viewModel.findViewById(R.id.api_server_edit_text)
-        val systemMessageEditText: EditText? = viewModel.findViewById(R.id.system_message_edit_text)
-        val modelEditText: EditText? = viewModel.findViewById(R.id.model_edit_text)
-        val saveButton: Button? = viewModel.findViewById(R.id.save_button)
+
         // Observe the settings LiveData and update the UI
         viewModel.settings.observe(viewLifecycleOwner, Observer { settings: Settings ->
-            api_key_edit_text.setText(settings.apiKey)
-            api_server_edit_text.setText(settings.apiServer)
-            system_message_edit_text.setText(settings.systemMessage)
-            model_edit_text.setText(settings.model)
+            apiKeyEditText?.setText(settings.apiKey)
+            apiServerEditText?.setText(settings.apiServer)
+            systemMessageEditText?.setText(settings.systemMessage)
+            modelEditText?.setText(settings.model)
         })
 
         // Handle the save button click
-        save_button.setOnClickListener {
-            val apiKey = api_key_edit_text.text.toString()
-            val apiServer = api_server_edit_text.text.toString()
-            val systemMessage = system_message_edit_text.text.toString()
-            val model = model_edit_text.text.toString()
-            viewModel.saveSettings(apiKey, apiServer, systemMessage, model)
+        saveButton?.setOnClickListener {
+            viewModel.saveSettings(
+                apiKeyEditText?.text.toString(),
+                apiServerEditText?.text.toString(),
+                systemMessageEditText?.text.toString(),
+                modelEditText?.text.toString()
+            )
             dismiss()
         }
     }
