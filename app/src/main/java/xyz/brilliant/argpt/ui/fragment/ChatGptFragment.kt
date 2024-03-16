@@ -35,13 +35,15 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         private const val ARG_API_KEY = "api_key"
         private const val ARG_ENDPOINT = "endpoint"
         private const val ARG_MODEL = "model"
+        private const val ARG_SYSTEM_MESSAGE = "system_message"
 
-        fun newInstance(apiKey: String, endpoint: String, model: String): ChatGptFragment {
+        fun newInstance(apiKey: String, endpoint: String, model: String, systemMessage: String): ChatGptFragment {
             val fragment = ChatGptFragment()
             val args = Bundle()
             args.putString(ARG_API_KEY, apiKey)
             args.putString(ARG_ENDPOINT, endpoint)
             args.putString(ARG_MODEL, model)
+            args.putString(ARG_SYSTEM_MESSAGE, systemMessage)
             fragment.arguments = args
             return fragment
         }
@@ -50,13 +52,15 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private lateinit var openaiApiKey: String
     private lateinit var openaiEndpoint: String
     private lateinit var openaiModel: String
+    private lateinit var openaiSystemMessage: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            openaiApiKey = it.getString(ARG_API_KEY) ?: ""
-            openaiEndpoint = it.getString(ARG_ENDPOINT) ?: ""
-            openaiModel = it.getString(ARG_MODEL) ?: ""
+            openaiApiKey = it.getString(ARG_API_KEY) ?: "none"
+            openaiEndpoint = it.getString(ARG_ENDPOINT) ?: "https://api.openai.com/v1"
+            openaiModel = it.getString(ARG_MODEL) ?: "gpt-3.5-turbo"
+            openaiSystemMessage = it.getString(ARG_SYSTEM_MESSAGE) ?: "You are a helpful assistant."
         }
     }
     private val client = OkHttpClient()
@@ -369,7 +373,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     "messages": [
                         {
                             "role": "system",
-                            "content": "You are a helpful assistant."
+                            "content": "$openaiSystemMessage"
                         },
                         {
                             "role": "user",

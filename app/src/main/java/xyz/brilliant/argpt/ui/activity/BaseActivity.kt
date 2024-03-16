@@ -192,6 +192,7 @@ class BaseActivity : AppCompatActivity() {
     private val PREFS_STABILITY_API_KEY = "stability"
     private val PREFS_OPENAI_ENDPOINT = "openai_endpoint"
     private val PREFS_OPENAI_MODEL = "openai_model"
+    private val PREFS_SYSTEM_MESSAGE = "system_message"
     private var currentScannedDevice: BluetoothDevice? = null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
@@ -236,6 +237,11 @@ class BaseActivity : AppCompatActivity() {
         return prefs.getString(PREFS_OPENAI_MODEL, "gpt-3.5-turbo") ?: "gpt-3.5-turbo"
     }
 
+    fun getSystemMessage(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_SYSTEM_MESSAGE, "") ?: ""
+    }
+
     private fun storeDeviceAddress(deviceAddress: String) {
         val prefs = getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -269,6 +275,26 @@ class BaseActivity : AppCompatActivity() {
         editor.apply()
     }
 
+    fun storeApiEndpoint(_endpoint: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_OPENAI_ENDPOINT, _endpoint)
+        editor.apply()
+    }
+
+    fun storeModel(_model: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_OPENAI_MODEL, _model)
+        editor.apply()
+    }
+
+    fun storeSystemMessage(message: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_SYSTEM_MESSAGE, message)
+        editor.apply()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1504,7 +1530,7 @@ class BaseActivity : AppCompatActivity() {
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "You are a helpful assistant."
+                                "content": "${getStoredSystemMessage()}"
                             },
                             {
                                 "role": "user",
