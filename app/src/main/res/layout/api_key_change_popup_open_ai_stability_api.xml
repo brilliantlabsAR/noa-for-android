@@ -4,149 +4,259 @@
     android:layout_height="wrap_content"
     android:alpha="0.96"
     android:background="@drawable/square_gray_background">
+
     <TextView
         android:id="@+id/descriptionTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter your OpenAI API key"
-        android:textSize="16sp"
-        android:textColor="@color/text_Color"
-        android:textStyle="bold"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:text="Enter your OpenAI API key"
+        android:textColor="@color/text_Color"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
     <TextView
         android:id="@+id/shortDescriptionTextView"
-        android:layout_below="@+id/descriptionTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="15dp"
+        android:layout_below="@+id/descriptionTextView"
+        android:layout_centerHorizontal="true"
         android:layout_marginLeft="15dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="15dp"
         android:gravity="center"
         android:text="Create your keys on platform.openai.com"
-        android:textSize="14sp"
         android:textColor="@color/text_Color"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp" />
-
+        android:textSize="14sp" />
 
     <RelativeLayout
         android:id="@+id/keyBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/shortDescriptionTextView"
-        android:layout_marginEnd="32dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
         android:background="@drawable/square_white_background_edittext">
+
         <TextView
             android:id="@+id/prefixKey"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="sk- "
-            android:textSize="14sp"
+            android:paddingLeft="5dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:paddingLeft="5dp"
-            android:textColor="@color/gray" />
+            android:text="sk- "
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/apiKeyText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="OpenAI: sk-... "
             android:layout_toRightOf="@+id/prefixKey"
-            android:textColor="@color/black"
             android:background="@null"
-            android:textSize="14sp"
-            android:paddingVertical="5dp"
+            android:hint="OpenAI: sk-... "
             android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:paddingBottom="5dp"
+            android:textColor="@color/black"
             android:textColorHint="@color/gray"
-            android:paddingBottom="5dp" />
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/keyBoxOpenAiEndpoint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/keyBox"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/square_white_background_edittext">
+
+        <TextView
+            android:id="@+id/prefixKeyOpenAiEndpoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="https://"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/apiKeyTextOpenAiEndpoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/prefixKeyOpenAiEndpoint"
+            android:background="@null"
+            android:hint="OpenAI Endpoint: https://... (Optional)"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:paddingBottom="5dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/gray"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/keyBoxOpenAiModel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/keyBoxOpenAiEndpoint"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/square_white_background_edittext">
+
+        <TextView
+            android:id="@+id/prefixKeyOpenAiModel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="gpt-3."
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/apiKeyTextOpenAiModel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/prefixKeyOpenAiModel"
+            android:background="@null"
+            android:hint="OpenAI Model: gpt-3. (Optional)"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:paddingBottom="5dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/gray"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/keyBoxSystemMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/keyBoxOpenAiModel"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/square_white_background_edittext">
+
+        <EditText
+            android:id="@+id/apiKeyTextSystemMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="System Message: (Optional)"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:paddingBottom="5dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/gray"
+            android:textSize="14sp" />
+
     </RelativeLayout>
 
     <TextView
         android:id="@+id/stabilityApiShortDescriptionTextView"
-        android:layout_below="@+id/keyBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="15dp"
+        android:layout_below="@+id/keyBoxSystemMessage"
+        android:layout_centerHorizontal="true"
         android:layout_marginLeft="15dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="15dp"
         android:gravity="center"
         android:text="Create your keys on platform.stability.ai"
-        android:textSize="14sp"
         android:textColor="@color/text_Color"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp" />
+        android:textSize="14sp" />
 
     <RelativeLayout
         android:id="@+id/keyBoxStabilityApi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/stabilityApiShortDescriptionTextView"
-        android:layout_marginEnd="32dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
         android:layout_marginBottom="@dimen/_10sp"
         android:background="@drawable/square_white_background_edittext">
+
         <TextView
             android:id="@+id/prefixKeyStabilityApi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="sk- "
-            android:textSize="14sp"
             android:layout_marginTop="10dp"
+            android:paddingLeft="5dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:paddingLeft="5dp"
-            android:textColor="@color/gray" />
+            android:text="sk- "
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/apiKeyTextStabilityApi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Stability: sk-... (Optional)"
             android:layout_toRightOf="@+id/prefixKeyStabilityApi"
-            android:textColor="@color/black"
             android:background="@null"
-            android:textSize="14sp"
-            android:paddingVertical="5dp"
+            android:hint="Stability: sk-... (Optional)"
             android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:paddingBottom="5dp"
+            android:textColor="@color/black"
             android:textColorHint="@color/gray"
-            android:paddingBottom="5dp" />
+            android:textSize="14sp" />
+
     </RelativeLayout>
 
     <View
         android:id="@+id/viewLine"
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:layout_marginTop="10dp"
         android:layout_below="@+id/keyBoxStabilityApi"
-        android:background="@color/gray"/>
+        android:layout_marginTop="10dp"
+        android:background="@color/gray" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_below="@+id/viewLine"
+        android:orientation="horizontal"
         android:weightSum="100">
+
         <LinearLayout
             android:id="@+id/doneButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_weight="100">
+            android:layout_weight="100"
+            android:gravity="center">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Done"
-                android:textSize="16sp"
-                android:textStyle="bold"
                 android:paddingTop="@dimen/_10sp"
                 android:paddingBottom="@dimen/_10sp"
-                android:textColor="#2196F3" />
+                android:text="Done"
+                android:textColor="#2196F3"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
+
     </LinearLayout>
 
 </RelativeLayout>

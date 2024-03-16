@@ -87,6 +87,8 @@ import kotlin.math.ceil
 
 
 class BaseActivity : AppCompatActivity() {
+    lateinit var apiKey: String
+    lateinit var stabilityApiKey: String
 
     companion object {
         private const val TAG = "BaseActivity"
@@ -140,8 +142,6 @@ class BaseActivity : AppCompatActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var recyclerView: RecyclerView
-    var apiKey = getStoredApiKey()
-    var stabilityApiKey = getStoredStabilityApiKey()
     private val handler = Handler(Looper.getMainLooper())
     private var scanning: Boolean = false
     private var bluetoothGatt: BluetoothGatt? = null
@@ -289,6 +289,8 @@ class BaseActivity : AppCompatActivity() {
         val intentFilter = IntentFilter("ACTION_START_SCAN")
         registerReceiver(scanReceiver, intentFilter)
         setContentView(R.layout.activity_base)
+        apiKey = getStoredApiKey()
+        stabilityApiKey = getStoredStabilityApiKey()
         getAllPermission()
     }
 

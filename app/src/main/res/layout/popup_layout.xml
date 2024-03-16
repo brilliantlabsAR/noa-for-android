@@ -47,7 +47,6 @@
         android:background="@color/gray"/>
 
     <LinearLayout
-        android:id="@+id/settings_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -58,7 +57,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="Translate"
             android:textSize="16sp"
             android:textColor="@color/text_Color"
             android:layout_gravity="center"/>
@@ -75,17 +74,7 @@
             android:thumbTint="@drawable/switch_thumb_color_selector"
             android:layout_marginStart="25dp"/>
 
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/ic_settings"
-            android:layout_marginStart="25dp"
-            android:layout_gravity="center"
-            app:tint="@color/text_Color" />
-
     </LinearLayout>
-
-
 
     <View
         android:layout_width="match_parent"
