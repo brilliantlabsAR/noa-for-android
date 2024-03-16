@@ -5,50 +5,38 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
-
     <EditText
         android:id="@+id/api_key_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="API Key"
-        android:inputType="text"
-        android:layout_marginBottom="8dp"/>
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/api_server_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="API Server"
-        android:inputType="text"
-        android:layout_marginBottom="8dp"/>
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/system_message_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="System Message"
-        android:inputType="text"
-        android:layout_marginBottom="8dp"/>
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/model_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Model"
-        android:inputType="text"
-        android:layout_marginBottom="16dp"/>
+        android:inputType="text" />
 
     <Button
         android:id="@+id/save_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Save"/>
+        android:text="Save" />
 
 </LinearLayout>

@@ -1,34 +1,33 @@
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import xyz.brilliant.argpt.preferences.PreferencesHelper
+import android.content.Context
+import android.content.SharedPreferences
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(context: Context) {
 
-    private val preferencesHelper = PreferencesHelper.getInstance()
-
-    private val _settings = MutableLiveData<Settings>()
-    val settings: LiveData<Settings> = _settings
-
-    fun loadSettings() {
-        val apiKey = preferencesHelper.getApiKey()
-        val apiServer = preferencesHelper.getApiServer()
-        val systemMessage = preferencesHelper.getSystemMessage()
-        val model = preferencesHelper.getModel()
-        _settings.value = Settings(apiKey, apiServer, systemMessage, model)
-    }
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("SettingsPreferences", Context.MODE_PRIVATE)
 
     fun saveSettings(apiKey: String, apiServer: String, systemMessage: String, model: String) {
-        preferencesHelper.saveApiKey(apiKey)
-        preferencesHelper.saveApiServer(apiServer)
-        preferencesHelper.saveSystemMessage(systemMessage)
-        preferencesHelper.saveModel(model)
+        sharedPreferences.edit()
+            .putString("api_key", apiKey)
+            .putString("api_server", apiServer)
+            .putString("system_message", systemMessage)
+            .putString("model", model)
+            .apply()
+    }
+
+    fun getApiKey(): String {
+        return sharedPreferences.getString("api_key", "") ?: ""
+    }
+
+    fun getApiServer(): String {
+        return sharedPreferences.getString("api_server", "") ?: ""
+    }
+
+    fun getSystemMessage(): String {
+        return sharedPreferences.getString("system_message", "") ?: ""
+    }
+
+    fun getModel(): String {
+        return sharedPreferences.getString("model", "") ?: ""
     }
 }
-
-data class Settings(
-    val apiKey: String,
-    val apiServer: String,
-    val systemMessage: String,
-    val model: String
-)

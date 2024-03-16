@@ -174,6 +174,36 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
      //   parentActivity.sendHelloRaw("")
         return mView
     }
+    private fun showSettingsPopup() {
+        val view = layoutInflater.inflate(R.layout.settings_popup, null)
+        val apiKeyEditText: EditText = view.findViewById(R.id.api_key_edit_text)
+        val apiServerEditText: EditText = view.findViewById(R.id.api_server_edit_text)
+        val systemMessageEditText: EditText = view.findViewById(R.id.system_message_edit_text)
+        val modelEditText: EditText = view.findViewById(R.id.model_edit_text)
+        val saveButton: Button = view.findViewById(R.id.save_button)
+    
+        val settingsViewModel = SettingsViewModel(requireContext())
+        apiKeyEditText.setText(settingsViewModel.getApiKey())
+        apiServerEditText.setText(settingsViewModel.getApiServer())
+        systemMessageEditText.setText(settingsViewModel.getSystemMessage())
+        modelEditText.setText(settingsViewModel.getModel())
+    
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(view)
+            .create()
+    
+        saveButton.setOnClickListener {
+            val apiKey = apiKeyEditText.text.toString()
+            val apiServer = apiServerEditText.text.toString()
+            val systemMessage = systemMessageEditText.text.toString()
+            val model = modelEditText.text.toString()
+    
+            settingsViewModel.saveSettings(apiKey, apiServer, systemMessage, model)
+            dialog.dismiss()
+        }
+    
+        dialog.show()
+    }
     fun updatechatList( type : String , msg : String){
         activity?.runOnUiThread {
 
@@ -371,11 +401,11 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     }
 
     private fun getResponse(question: String, callback: (String) -> Unit) {
-        val preferencesHelper = PreferencesHelper.getInstance(requireContext())
-        val apiKey = preferencesHelper.getApiKey()
-        val apiServer = preferencesHelper.getApiServer()
-        val systemMessage = preferencesHelper.getSystemMessage()
-        val model = preferencesHelper.getModel()
+        val settingsViewModel = SettingsViewModel(requireContext())
+        val apiKey = settingsViewModel.getApiKey()
+        val apiServer = settingsViewModel.getApiServer()
+        val systemMessage = settingsViewModel.getSystemMessage()
+        val model = settingsViewModel.getModel()
         try {
             val url = "$apiServer/chat/completions"
     
