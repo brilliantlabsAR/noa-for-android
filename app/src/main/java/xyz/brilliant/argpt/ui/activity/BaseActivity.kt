@@ -148,8 +148,8 @@ class BaseActivity : AppCompatActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var recyclerView: RecyclerView
-    var apiKey = ""
-    var stabilityApiKey = ""
+    var apiKey = getStoredApiKey()
+    var stabilityApiKey = getStoredStabilityApiKey()
     private val handler = Handler(Looper.getMainLooper())
     private var scanning: Boolean = false
     private var bluetoothGatt: BluetoothGatt? = null
@@ -1427,8 +1427,6 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun callStabilityAiImagetoImage(prompt: String) {
-        val apiKey = stabilityApiKey//"sk-sb1h86seqfVQrvwIT6MNX4Y82SFmiurrhBSwXLlaFPCbt4cb"
-
         val imageFilePath = globalJpegFilePath // Replace with the actual path to your image file
         val prompt = prompt
         val strength = 0.5f
@@ -1456,7 +1454,7 @@ class BaseActivity : AppCompatActivity() {
         // Create a request with headers and the prepared request body
         val request = Request.Builder()
             .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Authorization", "Bearer $stabilityApiKey")
             .addHeader("Stability-Client-ID", "Noa/Android")
             .post(requestBody)
             .build()
