@@ -168,8 +168,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         }
 
         settingBtn.setOnClickListener {
-            //showAtAnchor(mainView)
-            showPopup()
+            showSettingsPopup()
         }
      //   parentActivity.sendHelloRaw("")
         return mView
