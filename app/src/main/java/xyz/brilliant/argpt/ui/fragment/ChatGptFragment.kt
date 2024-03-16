@@ -38,103 +38,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-data class Settings(
-    val apiKey: String,
-    val apiServer: String,
-    val systemMessage: String,
-    val model: String
-)
-class SettingsViewModel(context: Context) : ViewModel() {
 
-    private val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("SettingsPreferences", Context.MODE_PRIVATE)
-    
-    private val _settings = MutableLiveData<Settings>()
-    val settings: LiveData<Settings>
-        get() = _settings
-
-    fun saveSettings(apiKey: String, apiServer: String, systemMessage: String, model: String) {
-        sharedPreferences.edit()
-            .putString("api_key", apiKey)
-            .putString("api_server", apiServer)
-            .putString("system_message", systemMessage)
-            .putString("model", model)
-            .apply()
-    }
-
-    fun getApiKey(): String {
-        return sharedPreferences.getString("api_key", "") ?: ""
-    }
-
-    fun getApiServer(): String {
-        return sharedPreferences.getString("api_server", "") ?: ""
-    }
-
-    fun getSystemMessage(): String {
-        return sharedPreferences.getString("system_message", "") ?: ""
-    }
-
-    fun getModel(): String {
-        return sharedPreferences.getString("model", "") ?: ""
-    }
-
-    fun loadSettings() {
-        val settings = Settings(
-            getApiKey(),
-            getApiServer(),
-            getSystemMessage(),
-            getModel()
-        )
-        _settings.value = settings
-    }
-    fun getSettings(): Settings {
-        return _settings.value ?: Settings("", "", "", "")
-    }
-}
-
-class SettingsFragment : Fragment() {
-
-    private lateinit var viewModel: SettingsViewModel
-    val apiKeyEditText: EditText? = view?.findViewById(R.id.api_key_edit_text)
-    val apiServerEditText: EditText? = view?.findViewById(R.id.api_server_edit_text)
-    val systemMessageEditText: EditText? = view?.findViewById(R.id.system_message_edit_text)
-    val modelEditText: EditText? = view?.findViewById(R.id.model_edit_text)
-    val saveButton: Button? = view?.findViewById(R.id.save_button)
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.settings_popup, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
-
-        // Load the stored settings
-        viewModel.loadSettings()
-
-        // Observe the settings LiveData and update the UI
-        viewModel.settings.observe(viewLifecycleOwner, Observer { settings: Settings ->
-            apiKeyEditText?.setText(settings.apiKey)
-            apiServerEditText?.setText(settings.apiServer)
-            systemMessageEditText?.setText(settings.systemMessage)
-            modelEditText?.setText(settings.model)
-        })
-
-        // Handle the save button click
-        saveButton?.setOnClickListener {
-            viewModel.saveSettings(
-                apiKeyEditText?.text.toString(),
-                apiServerEditText?.text.toString(),
-                systemMessageEditText?.text.toString(),
-                modelEditText?.text.toString()
-            )
-            dismiss()
-        }
-    }
-
-    private fun dismiss() {
-        parentFragmentManager.popBackStack()
-    }
-}
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     companion object {
         private const val ARG_API_KEY = "api_key"
@@ -166,13 +70,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             openaiEndpoint = it.getString(ARG_ENDPOINT) ?: "https://api.openai.com/v1"
             openaiModel = it.getString(ARG_MODEL) ?: "gpt-3.5-turbo"
             openaiSystemMessage = it.getString(ARG_SYSTEM_MESSAGE) ?: "You are a helpful assistant."
-        }
-        settingBtn.setOnClickListener {
-            val settingsFragment = SettingsFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, settingsFragment)
-                .addToBackStack(null)
-                .commit()
         }
     }
     private val client = OkHttpClient()
@@ -272,41 +169,8 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             }
         }
 
-        settingBtn.setOnClickListener {
-            showSettingsPopup()
-        }
      //   parentActivity.sendHelloRaw("")
         return mView
-    }
-    private fun showSettingsPopup() {
-        val view = layoutInflater.inflate(R.layout.settings_popup, null)
-        val apiKeyEditText: EditText = view.findViewById(R.id.api_key_edit_text)
-        val apiServerEditText: EditText = view.findViewById(R.id.api_server_edit_text)
-        val systemMessageEditText: EditText = view.findViewById(R.id.system_message_edit_text)
-        val modelEditText: EditText = view.findViewById(R.id.model_edit_text)
-        val saveButton: Button = view.findViewById(R.id.save_button)
-    
-        val settingsViewModel = SettingsViewModel(requireContext())
-        apiKeyEditText.setText(settingsViewModel.getApiKey())
-        apiServerEditText.setText(settingsViewModel.getApiServer())
-        systemMessageEditText.setText(settingsViewModel.getSystemMessage())
-        modelEditText.setText(settingsViewModel.getModel())
-    
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(view)
-            .create()
-    
-        saveButton.setOnClickListener {
-            val apiKey = apiKeyEditText.text.toString()
-            val apiServer = apiServerEditText.text.toString()
-            val systemMessage = systemMessageEditText.text.toString()
-            val model = modelEditText.text.toString()
-    
-            settingsViewModel.saveSettings(apiKey, apiServer, systemMessage, model)
-            dialog.dismiss()
-        }
-    
-        dialog.show()
     }
     fun updatechatList( type : String , msg : String){
         activity?.runOnUiThread {
@@ -504,21 +368,15 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     }
 
     private fun getResponse(question: String, callback: (String) -> Unit) {
-        val settingsViewModel = SettingsViewModel(requireContext())
-        val apiKey = settingsViewModel.getApiKey()
-        val apiServer = settingsViewModel.getApiServer()
-        val systemMessage = settingsViewModel.getSystemMessage()
-        val model = settingsViewModel.getModel()
         try {
-            val url = "$apiServer/chat/completions"
-    
+            val url = "$openaiEndpoint/chat/completions"
             val requestBody = """
                 {
-                    "model": "$model",
+                    "model": "$openaiModel",
                     "messages": [
                         {
                             "role": "system",
-                            "content": "$systemMessage"
+                            "content": "$openaiSystemMessage"
                         },
                         {
                             "role": "user",
@@ -533,7 +391,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Authorization", "Bearer $openaiApiKey")
                 .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
                 .build()
 
