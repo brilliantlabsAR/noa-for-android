@@ -371,37 +371,29 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private fun showPopup() {
         val inflater = LayoutInflater.from(activity)
         val popupView = inflater.inflate(R.layout.popup_layout, null)
-
-
-
+    
         // Set up the popup window
         popupWindow = PopupWindow(
             popupView,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        val ll_changeApiKey =popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
+        val ll_changeApiKey = popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
         ll_changeApiKey.setOnClickListener {
             openChangeApiKey()
             popupWindow.dismiss()
         }
-        val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
-
-
-        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
-
+        val unpairMonocle = popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
+        /*
+        val switchButton = popupView.findViewById<Switch>(R.id.switchButton)
+    
         switchButton.isChecked = parentActivity.translateEnabled
-
+    
         switchButton.setOnClickListener {
-            // Access the parent activity
-
-           // if (parentActivity != null) {
-                // Modify the boolean value in the parent activity
-                parentActivity.translateEnabled =switchButton.isChecked
+            parentActivity.translateEnabled = switchButton.isChecked
             popupWindow.dismiss()
-           // }
         }
-
+        */
         unpairMonocle.setOnClickListener {
             popupWindow.dismiss()
             parentActivity.unpairMonocle()
@@ -409,15 +401,13 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         // Set up any additional settings for the popup window
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
-
+    
         // Show the popup below the icon
         val location = IntArray(2)
         settingBtn.getLocationOnScreen(location)
         val x = location[0] + settingBtn.width - popupWindow.width // Adjust the space here
         val y = location[1] - popupWindow.height
-        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y+10)
-
-        //popupWindow.showAsDropDown(settingBtn)
+        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y + 10)
     }
     private fun gotoOpenApi() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
