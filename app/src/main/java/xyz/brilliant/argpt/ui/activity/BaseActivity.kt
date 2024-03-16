@@ -1350,14 +1350,10 @@ class BaseActivity : AppCompatActivity() {
     // OPEN AI
     private fun uploadAudioFile(audioFile: File, byteCallback: Callback) {
         val client = OkHttpClient()
-
-        // Replace 'YOUR_API_KEY' with your actual OpenAI API key
-//        val apiKey = "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"
-
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "whisper-1")
+            .addFormDataPart("model", "base.en")
             // Add additional parameters if required
             .build()
 
@@ -1365,7 +1361,7 @@ class BaseActivity : AppCompatActivity() {
         Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
         val request = Request.Builder()
             .url("${getStoredApiEndpoint()}/audio/translations")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
             .post(requestBody)
             .build()
 
