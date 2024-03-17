@@ -20,9 +20,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import xyz.brilliant.argpt.R
@@ -65,7 +62,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             openaiSystemMessage = it.getString(ARG_SYSTEM_MESSAGE) ?: "You are a helpful assistant."
         }
     }
-    private val client = OkHttpClient()
     // creating variables on below line.
 //    lateinit var txtResponse: TextView
 //    lateinit var idTVQuestion: TextView
