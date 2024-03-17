@@ -16,7 +16,6 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +26,7 @@ import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
+import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
@@ -193,29 +193,37 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private fun showPopup() {
         val inflater = LayoutInflater.from(activity)
         val popupView = inflater.inflate(R.layout.popup_layout, null)
-    
+
+
+
         // Set up the popup window
         popupWindow = PopupWindow(
             popupView,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        val ll_changeApiKey = popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
+        val ll_changeApiKey =popupView.findViewById<LinearLayout>(R.id.ll_changeApiKey)
         ll_changeApiKey.setOnClickListener {
             openChangeApiKey()
             popupWindow.dismiss()
         }
-        val unpairMonocle = popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
-        
-        val switchButton = popupView.findViewById<Switch>(R.id.switchButton)
-    
+        val unpairMonocle =popupView.findViewById<LinearLayout>(R.id.unpair_monocle)
+
+
+        val switchButton =popupView.findViewById<Switch>(R.id.switchButton)
+
         switchButton.isChecked = parentActivity.translateEnabled
-    
+
         switchButton.setOnClickListener {
-            parentActivity.translateEnabled = switchButton.isChecked
+            // Access the parent activity
+
+           // if (parentActivity != null) {
+                // Modify the boolean value in the parent activity
+                parentActivity.translateEnabled =switchButton.isChecked
             popupWindow.dismiss()
+           // }
         }
-        
+
         unpairMonocle.setOnClickListener {
             popupWindow.dismiss()
             parentActivity.unpairMonocle()
@@ -223,20 +231,26 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         // Set up any additional settings for the popup window
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
-    
+
         // Show the popup below the icon
         val location = IntArray(2)
         settingBtn.getLocationOnScreen(location)
         val x = location[0] + settingBtn.width - popupWindow.width // Adjust the space here
         val y = location[1] - popupWindow.height
-        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y + 10)
+        popupWindow.showAtLocation(settingBtn, Gravity.NO_GRAVITY, x, y+10)
+
+        //popupWindow.showAsDropDown(settingBtn)
     }
     private fun gotoOpenApi() {
+
+
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.openai.com"))
             startActivity(intent)
     }
 
     private fun gotoStabilityApi() {
+
+
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://key.stabediffusion.com"))
         startActivity(intent)
     }
