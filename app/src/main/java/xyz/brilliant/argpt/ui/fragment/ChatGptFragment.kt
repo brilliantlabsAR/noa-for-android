@@ -125,7 +125,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             connectionStatus.visibility = View.VISIBLE
            // connectionStatus.text = parentActivity.connectionStatus
         }
-        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
+        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
 
                 // setting response tv on below line.
@@ -136,7 +136,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
               //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
 
-                    getResponse(question) { response ->
+                    getResponse(question) { _ ->
                         activity?.runOnUiThread {
 //                            txtResponse.text = response
                         }
@@ -384,7 +384,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 put("top_p", 0.9)
             }.toString()
     
-            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
             val body = requestBody.toRequestBody(mediaType)
             
             val request = Request.Builder()
@@ -398,7 +398,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.e("ChatGpt", "API request failed", e)
                     parentActivity.runOnUiThread {
-                        sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
+                        parentActivity.sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
                     }
                     callback("Failed to get response: ${e.localizedMessage}")
                 }
@@ -412,7 +412,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                                 val textResult = jsonArray.getJSONObject(0).getString("text").trim()
     
                                 parentActivity.runOnUiThread {
-                                    sendChatGptResponse(textResult, "res:")
+                                    parentActivity.sendChatGptResponse(textResult, "res:")
                                 }
                                 callback(textResult)
                             } else {
@@ -421,21 +421,21 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     
                                 Log.e("ChatGpt", "Error in response: $errorMsg")
                                 parentActivity.runOnUiThread {
-                                    sendChatGptResponse(errorMsg, "err:")
+                                    parentActivity.sendChatGptResponse(errorMsg, "err:")
                                 }
                                 callback(errorMsg)
                             }
-                        } catch (e: JSONException) {
+                        } catch (e: Exception) {
                             Log.e("ChatGpt", "JSON parsing error", e)
                             parentActivity.runOnUiThread {
-                                sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
+                                parentActivity.sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
                             }
                             callback("Error parsing response: ${e.localizedMessage}")
                         }
                     } ?: run {
                         Log.e("ChatGpt", "Empty response body")
                         parentActivity.runOnUiThread {
-                            sendChatGptResponse("Received empty response", "err:")
+                            parentActivity.sendChatGptResponse("Received empty response", "err:")
                         }
                         callback("Received empty response")
                     }
@@ -444,7 +444,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         } catch (ex: Exception) {
             Log.e("ChatGpt", "getResponse exception", ex)
             parentActivity.runOnUiThread {
-                sendChatGptResponse("Exception during request preparation: ${ex.localizedMessage}", "err:")
+                parentActivity.sendChatGptResponse("Exception during request preparation: ${ex.localizedMessage}", "err:")
             }
             callback("Exception during request preparation: ${ex.localizedMessage}")
         }

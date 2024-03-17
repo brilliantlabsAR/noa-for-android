@@ -1416,7 +1416,7 @@ class BaseActivity : AppCompatActivity() {
                 val error: JSONObject = jsonObject.getJSONObject("error")
                 val msg: String = error.getString("message")
 
-                sendChatGptResponce(msg, "err:")
+                sendChatGptResponse(msg, "err:")
 
             }
         }
@@ -1562,17 +1562,17 @@ class BaseActivity : AppCompatActivity() {
                             val messageObject = jsonArray.getJSONObject(0).getJSONObject("message")
                             val textResult = messageObject.getString("content")
     
-                            sendChatGptResponce(textResult, "res:")
+                            sendChatGptResponse(textResult, "res:")
                         } else {
                             val error: JSONObject = jsonObject.getJSONObject("error")
                             val msg: String = error.getString("message")
     
-                            sendChatGptResponce(msg, "err:")
+                            sendChatGptResponse(msg, "err:")
                         }
                     }
                 })
             } catch (ex: Exception) {
-                sendChatGptResponce("getResponse: ${ex.message}", "err:")
+                sendChatGptResponse("getResponse: ${ex.message}", "err:")
                 Log.d("ChatGpt", "getResponse: $ex")
             }
         } else {
@@ -1580,7 +1580,7 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    fun sendChatGptResponce(data: String, prefix: String) {
+    fun sendChatGptResponse(data: String, prefix: String) {
         updatechatList("R", data)
         val data = prefix + data //err:
         dataSendBle(data)
@@ -2430,13 +2430,13 @@ class BaseActivity : AppCompatActivity() {
             if (jsonResponse != null) {
                 val jsonObject = JSONObject(jsonResponse)
                 if (jsonObject.has("message")) {
-                    sendChatGptResponce(jsonObject.get("message").toString(), "err:")
+                    sendChatGptResponse(jsonObject.get("message").toString(), "err:")
                 }
                 if (jsonObject.has("transcript")) {
                     updatechatList("S", jsonObject.get("transcript").toString())
                 }
                 if (jsonObject.has("reply")) {
-                    sendChatGptResponce(jsonObject.get("reply").toString(), "res:")
+                    sendChatGptResponse(jsonObject.get("reply").toString(), "res:")
                 }
             }
         } else {
@@ -2452,7 +2452,7 @@ class BaseActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         // Code to handle the exception
                     } finally {
-                        sendChatGptResponce(msg.toString(), "err:")
+                        sendChatGptResponse(msg.toString(), "err:")
                         // Code that will be executed regardless of whether an exception occurred or not
                     }
 
