@@ -30,14 +30,7 @@ import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.Observer
-import android.widget.Button
 import android.widget.EditText
-import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     companion object {
@@ -370,76 +363,94 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private fun getResponse(question: String, callback: (String) -> Unit) {
         try {
             val url = "$openaiEndpoint/chat/completions"
-            val requestBody = """
-                {
-                    "model": "$openaiModel",
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "$openaiSystemMessage"
-                        },
-                        {
-                            "role": "user",
-                            "content": "$question"
-                        }
-                    ],
-                    "max_tokens": 500,
-                    "temperature": 0.5,
-                    "top_p": 0.9
-                }
-            """.trimIndent()
+            
+            // Constructing the JSON body using org.json
+            val messages = JSONArray().apply {
+                put(JSONObject().apply {
+                    put("role", "system")
+                    put("content", openaiSystemMessage)
+                })
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", question)
+                })
+            }
+            
+            val requestBody = JSONObject().apply {
+                put("model", openaiModel)
+                put("messages", messages)
+                put("max_tokens", 500)
+                put("temperature", 0.5)
+                put("top_p", 0.9)
+            }.toString()
     
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val body = requestBody.toRequestBody(mediaType)
+            
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Authorization", "Bearer $openaiApiKey")
-                .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
+                .post(body)
                 .build()
-
+    
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e("error","API failed",e)
+                    Log.e("ChatGpt", "API request failed", e)
+                    parentActivity.runOnUiThread {
+                        sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
+                    }
+                    callback("Failed to get response: ${e.localizedMessage}")
                 }
-
+    
                 override fun onResponse(call: Call, response: Response) {
-                    val body=response.body?.string()
-                    if (body != null) {
-                        Log.v("data",body)
-                    }
-                    else{
-                        Log.v("data","empty")
-                    }
-                    val jsonObject= JSONObject(body)
-                    Log.d("TAG", "onResponse: "+jsonObject)
-
-                    if (jsonObject.has("id")) {
-                        val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                        val textResult = jsonArray.getJSONObject(0).getString("text")
-
-                        parentActivity.sendChatGptResponce(textResult,"res:")
-                        callback(textResult)
-                    }else{
-                        val error: JSONObject = jsonObject.getJSONObject("error")
-                        val msg:String=error.getString("message")
-
-                        parentActivity.sendChatGptResponce(msg,"err:")
-                        activity?.runOnUiThread(Runnable {
-                            //  Toast.makeText(this@ChatGptActivity,msg, Toast.LENGTH_SHORT).show()
-//                            txtResponse.text = msg
-                            val singleChat = ChatModel(1,"R",msg)
-                            chatMessages.add(singleChat)
-                            scrollToBottom()
-                            chatAdapter.notifyDataSetChanged()
-
-                        })
+                    response.body?.string()?.let { body ->
+                        try {
+                            val jsonObject = JSONObject(body)
+                            if (jsonObject.has("choices")) {
+                                val jsonArray = jsonObject.getJSONArray("choices")
+                                val textResult = jsonArray.getJSONObject(0).getString("text").trim()
+    
+                                parentActivity.runOnUiThread {
+                                    sendChatGptResponse(textResult, "res:")
+                                }
+                                callback(textResult)
+                            } else {
+                                val errorMsg = jsonObject.optJSONObject("error")?.getString("message")
+                                    ?: "Unknown error occurred"
+    
+                                Log.e("ChatGpt", "Error in response: $errorMsg")
+                                parentActivity.runOnUiThread {
+                                    sendChatGptResponse(errorMsg, "err:")
+                                }
+                                callback(errorMsg)
+                            }
+                        } catch (e: JSONException) {
+                            Log.e("ChatGpt", "JSON parsing error", e)
+                            parentActivity.runOnUiThread {
+                                sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
+                            }
+                            callback("Error parsing response: ${e.localizedMessage}")
+                        }
+                    } ?: run {
+                        Log.e("ChatGpt", "Empty response body")
+                        parentActivity.runOnUiThread {
+                            sendChatGptResponse("Received empty response", "err:")
+                        }
+                        callback("Received empty response")
                     }
                 }
             })
-        }catch (ex:Exception){
-            parentActivity.sendChatGptResponce("getResponse: $ex","err:")
-            Log.d("ChatGpt", "getResponse: $ex")
+        } catch (ex: Exception) {
+            Log.e("ChatGpt", "getResponse exception", ex)
+            parentActivity.runOnUiThread {
+                sendChatGptResponse("Exception during request preparation: ${ex.localizedMessage}", "err:")
+            }
+            callback("Exception during request preparation: ${ex.localizedMessage}")
         }
     }
+    
+    
 
     override fun onUrlClick(position: Int, url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
