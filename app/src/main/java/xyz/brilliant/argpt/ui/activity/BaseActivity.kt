@@ -1392,8 +1392,7 @@ class BaseActivity : AppCompatActivity() {
                     if (translateEnabled) {
                         sendTranslatedResponce("Couldn't translate....try again!", "err:")
                     } else {
-                        updatechatList("S", " ")
-                        getResponse(" ")
+                        updatechatList("S", "Text not readable... try again!!")
                     }
                 } else {
                     if (translateEnabled) {
@@ -1405,7 +1404,11 @@ class BaseActivity : AppCompatActivity() {
 
 
                         if (globalJpegFilePath.isNullOrEmpty()) {
-                            getResponse(textResult)
+                            getResponse(textResult.trim()) { response ->
+                                runOnUiThread {
+                                    updatechatList("R", response)
+                                }
+                            }
                         } else {
                             callStabilityAiImagetoImage(textResult.trim())
                         }
@@ -1510,7 +1513,7 @@ class BaseActivity : AppCompatActivity() {
 
     }
 
-    fun getResponse(question: String) {
+    fun getResponse(question: String, callback: (String) -> Unit){
         try {
             val url = "${getStoredApiEndpoint()}/chat/completions"
             val userContent: Any
@@ -1564,6 +1567,7 @@ class BaseActivity : AppCompatActivity() {
                         runOnUiThread {
                             sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
                         }
+                        callback("Failed to get response: ${e.localizedMessage}")
                     }
         
                     override fun onResponse(call: Call, response: Response) {
@@ -1577,6 +1581,7 @@ class BaseActivity : AppCompatActivity() {
                                     runOnUiThread {
                                         sendChatGptResponse(textResult, "res:")
                                     }
+                                    callback(textResult)
                                 } else {
                                     val errorMsg = jsonObject.optJSONObject("error")?.getString("message")
                                         ?: "Unknown error occurred"
@@ -1585,24 +1590,28 @@ class BaseActivity : AppCompatActivity() {
                                     runOnUiThread {
                                         sendChatGptResponse(errorMsg, "err:")
                                     }
+                                    callback(errorMsg)
                                 }
                             } catch (e: Exception) {
                                 Log.e("ChatGpt", "JSON parsing error", e)
                                 runOnUiThread {
                                     sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
                                 }
+                                callback("Error parsing response: ${e.localizedMessage}")
                             }
                         } ?: run {
                             Log.e("ChatGpt", "Empty response body")
                             runOnUiThread {
                                 sendChatGptResponse("Received empty response", "err:")
                             }
+                            callback("Received empty response")
                         }
                     }
                 })
             } catch (ex: Exception) {
             sendChatGptResponse("getResponse: ${ex.message}", "err:")
             Log.d("ChatGpt", "getResponse: $ex")
+            callback("getResponse: ${ex.message}")
         }
     }
 
