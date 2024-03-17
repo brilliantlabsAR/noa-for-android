@@ -1406,7 +1406,7 @@ class BaseActivity : AppCompatActivity() {
                         if (globalJpegFilePath.isNullOrEmpty()) {
                             getResponse(textResult.trim()) { response ->
                                 runOnUiThread {
-                                    updatechatList("R", response)
+                                    //
                                 }
                             }
                         } else {
@@ -1584,8 +1584,7 @@ class BaseActivity : AppCompatActivity() {
                                     callback(textResult)
                                 } else {
                                     val errorMsg = jsonObject.optJSONObject("error")?.getString("message")
-                                        ?: "Unknown error occurred"
-        
+                                        ?: "Unknown error occurred: ${jsonObject.toString(2)}"
                                     Log.e("ChatGpt", "Error in response: $errorMsg")
                                     runOnUiThread {
                                         sendChatGptResponse(errorMsg, "err:")
@@ -1608,7 +1607,7 @@ class BaseActivity : AppCompatActivity() {
                         }
                     }
                 })
-            } catch (ex: Exception) {
+        } catch (ex: Exception) {
             sendChatGptResponse("getResponse: ${ex.message}", "err:")
             Log.d("ChatGpt", "getResponse: $ex")
             callback("getResponse: ${ex.message}")

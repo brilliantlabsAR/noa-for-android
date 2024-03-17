@@ -132,10 +132,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
               //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
                     parentActivity.getResponse(question) { response ->
-                        val singleChat = ChatModel(1,"S",response)
-                        chatMessages.add(singleChat)
-                        chatAdapter.notifyDataSetChanged()
-                        scrollToBottom()
+                        parentActivity.runOnUiThread {
+                            //
+                        }
                     }
                 }
                 return@OnEditorActionListener true
@@ -151,10 +150,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     chatMessages.add(singleChat)
                     chatAdapter.notifyDataSetChanged()
                     parentActivity.getResponse(question) { response ->
-                        val singleChat = ChatModel(1,"S",response)
-                        chatMessages.add(singleChat)
-                        chatAdapter.notifyDataSetChanged()
-                        scrollToBottom()
+                        parentActivity.runOnUiThread {
+                            //
+                        }
                     }
                     etMessage.text.clear()
                 }
