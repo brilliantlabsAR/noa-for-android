@@ -363,8 +363,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private fun getResponse(question: String, callback: (String) -> Unit) {
         try {
             val url = "$openaiEndpoint/chat/completions"
-            
-            // Constructing the JSON body using org.json
             val messages = JSONArray().apply {
                 put(JSONObject().apply {
                     put("role", "system")

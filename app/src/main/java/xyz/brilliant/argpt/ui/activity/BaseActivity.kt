@@ -1510,73 +1510,96 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun getResponse(question: String) {
-        if (globalJpegFilePath.isNullOrEmpty()) {
-            try {
-                val url = "${getStoredApiEndpoint()}/chat/completions"
-    
-                val requestBody = """
-                    {
-                        "model": "${getStoredModel()}",
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": "${getStoredSystemMessage()}"
-                            },
-                            {
-                                "role": "user",
-                                "content": "$question"
-                            }
-                        ],
-                        "max_tokens": 500,
-                        "temperature": 0.5
-                        "top_p": 0.9
-                    }
-                """.trimIndent()
-    
-                val request = Request.Builder()
-                    .url(url)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                    .build()
-    
+        try {
+            val url = "${getStoredApiEndpoint()}/chat/completions"
+            val userContent: Any
+            if (globalJpegFilePath.isNullOrEmpty()) {
+                userContent = question
+            } else {
+                userContent = JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("type", "text")
+                        put("text", question)
+                    })
+                    put(JSONObject().apply {
+                        put("type", "image_url")
+                        put("image_url", "data:image/jpeg;base64,${Base64.encodeToString(File(globalJpegFilePath).readBytes(), Base64.DEFAULT)}")
+                    })
+                }
+            }
+            val messages = JSONArray().apply {
+                put(JSONObject().apply {
+                    put("role", "system")
+                    put("content", getStoredSystemMessage())
+                })
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", userContent)
+                })
+            }
+            val requestBody = JSONObject().apply {
+                put("model", getStoredModel())
+                put("messages", messages)
+                put("max_tokens", 500)
+                put("temperature", 0.5)
+                put("top_p", 0.9)
+            }.toString()
+            
+            val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+            val body = requestBody.toRequestBody(mediaType)
+
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
+                .post(body)
+                .build()
+
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
-                        Log.e("error", "API failed", e)
-                        updatechatList("R", e.message.toString())
-                    }
-    
-                    override fun onResponse(call: Call, response: Response) {
-                        val body = response.body?.string()
-                        if (body != null) {
-                            Log.v("data", body)
-                        } else {
-                            Log.v("data", "empty")
+                        Log.e("ChatGpt", "API request failed", e)
+                        runOnUiThread {
+                            sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
                         }
-    
-                        val jsonObject = JSONObject(body)
-                        Log.d("TAG", "onResponse: $jsonObject")
-    
-                        if (jsonObject.has("choices")) {
-                            val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                            val messageObject = jsonArray.getJSONObject(0).getJSONObject("message")
-                            val textResult = messageObject.getString("content")
-    
-                            sendChatGptResponse(textResult, "res:")
-                        } else {
-                            val error: JSONObject = jsonObject.getJSONObject("error")
-                            val msg: String = error.getString("message")
-    
-                            sendChatGptResponse(msg, "err:")
+                    }
+        
+                    override fun onResponse(call: Call, response: Response) {
+                        response.body?.string()?.let { body ->
+                            try {
+                                val jsonObject = JSONObject(body)
+                                if (jsonObject.has("choices")) {
+                                    val jsonArray = jsonObject.getJSONArray("choices")
+                                    val textResult = jsonArray.getJSONObject(0).getString("text").trim()
+        
+                                    runOnUiThread {
+                                        sendChatGptResponse(textResult, "res:")
+                                    }
+                                } else {
+                                    val errorMsg = jsonObject.optJSONObject("error")?.getString("message")
+                                        ?: "Unknown error occurred"
+        
+                                    Log.e("ChatGpt", "Error in response: $errorMsg")
+                                    runOnUiThread {
+                                        sendChatGptResponse(errorMsg, "err:")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ChatGpt", "JSON parsing error", e)
+                                runOnUiThread {
+                                    sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
+                                }
+                            }
+                        } ?: run {
+                            Log.e("ChatGpt", "Empty response body")
+                            runOnUiThread {
+                                sendChatGptResponse("Received empty response", "err:")
+                            }
                         }
                     }
                 })
             } catch (ex: Exception) {
-                sendChatGptResponse("getResponse: ${ex.message}", "err:")
-                Log.d("ChatGpt", "getResponse: $ex")
-            }
-        } else {
-            callStabilityAiImagetoImage(question)
+            sendChatGptResponse("getResponse: ${ex.message}", "err:")
+            Log.d("ChatGpt", "getResponse: $ex")
         }
     }
 
