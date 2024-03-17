@@ -315,7 +315,7 @@ class BaseActivity : AppCompatActivity() {
                 pushFragmentsStatic(fragmentManager, fragment, false, "start_scan")
             } else {
                 currentAppState = AppState.RUNNING
-                val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel(), getStoredSystemMessage())
+                val fragment = ChatGptFragment()
                 pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
             }
 
@@ -1808,7 +1808,7 @@ class BaseActivity : AppCompatActivity() {
         replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
-            val fragment = ChatGptFragment.newInstance(getStoredApiKey(), getStoredApiEndpoint(), getStoredModel(), getStoredSystemMessage())
+            val fragment = ChatGptFragment()
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
             updateConnectionStatus("")
