@@ -218,17 +218,17 @@ class BaseActivity : AppCompatActivity() {
     
     fun getStoredApiEndpoint(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPENAI_ENDPOINT, "") ?: ""
+        return prefs.getString(PREFS_OPENAI_ENDPOINT, "https://api.openai.com/v1") ?: "https://api.openai.com/v1"
     }
     
     fun getStoredModel(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_OPENAI_MODEL, "") ?: ""
+        return prefs.getString(PREFS_OPENAI_MODEL, "gpt-4-vision-preview") ?: "gpt-4-vision-preview"
     }
     
     fun getStoredSystemMessage(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
-        return prefs.getString(PREFS_SYSTEM_MESSAGE, "") ?: ""
+        return prefs.getString(PREFS_SYSTEM_MESSAGE, "The assistant is Noa, the user's AR AI companion.") ?: "The assistant is Noa, the user's AR AI companion."
     }
 
     fun getStoredStabilityApiKey(): String {

@@ -160,7 +160,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:hint="System Prompt: You are a helpful assistant. (Default)"
+            android:hint="System Prompt: The assistant is Noa, the user's AR AI companion. (Default)"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"
