@@ -1523,7 +1523,9 @@ class BaseActivity : AppCompatActivity() {
                     })
                     put(JSONObject().apply {
                         put("type", "image_url")
-                        put("image_url", "data:image/jpeg;base64,${Base64.encodeToString(File(globalJpegFilePath).readBytes(), Base64.DEFAULT)}")
+                        put("image_url", put(JSONObject().apply {
+                           put("url", "data:image/jpeg;base64,${Base64.encodeToString(File(globalJpegFilePath).readBytes(), Base64.DEFAULT)}")
+                        }))
                     })
                 }
             }
