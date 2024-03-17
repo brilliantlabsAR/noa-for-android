@@ -126,68 +126,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 }
             }
         }
-
+        settingBtn.setOnClickListener {
+            //showAtAnchor(mainView)
+            showPopup()
+        }
      //   parentActivity.sendHelloRaw("")
         return mView
-    }
-    fun updatechatList( type : String , msg : String){
-        activity?.runOnUiThread {
-
-            if(parentActivity.translateEnabled)
-            {
-                val singleChat = ChatModel(1, type, msg.trim(),true)
-                chatMessages.add(singleChat)
-            }
-            else
-            {
-                val singleChat = ChatModel(1, type, msg.trim(),false)
-                chatMessages.add(singleChat)
-            }
-
-
-            scrollToBottom()
-            chatAdapter.notifyDataSetChanged()
-        }
-    }
-
-    fun updatechatList(id : Int ,type : String,msg : String, image :String){
-        activity?.runOnUiThread {
-
-            if(parentActivity.translateEnabled)
-            {
-                val singleChat = ChatModel(id, type, msg.trim(),true,image)
-                chatMessages.add(singleChat)
-            }
-            else
-            {
-                val singleChat = ChatModel(id, type, msg.trim(),false,image)
-                chatMessages.add(singleChat)
-            }
-
-
-            scrollToBottom()
-            chatAdapter.notifyDataSetChanged()
-        }
-    }
-
-    fun updatechatList(id : Int ,type : String,msg : String, image :Bitmap?){
-        activity?.runOnUiThread {
-
-            if(parentActivity.translateEnabled)
-            {
-                val singleChat = ChatModel(id, type, msg.trim(),true,"",image)
-                chatMessages.add(singleChat)
-            }
-            else
-            {
-                val singleChat = ChatModel(id, type, msg.trim(),false,"",image)
-                chatMessages.add(singleChat)
-            }
-
-
-            scrollToBottom()
-            chatAdapter.notifyDataSetChanged()
-        }
     }
 
     private fun showPopup() {
