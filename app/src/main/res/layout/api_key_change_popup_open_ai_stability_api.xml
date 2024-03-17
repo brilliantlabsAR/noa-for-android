@@ -123,7 +123,7 @@
             android:paddingLeft="5dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:text="gpt-4"
+            android:text="gpt-4-vision-preview"
             android:textColor="@color/gray"
             android:textSize="14sp"
             android:visibility="gone" />
@@ -134,7 +134,7 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/prefixKeyOpenAiModel"
             android:background="@null"
-            android:hint="Model: gpt-4 (Default)"
+            android:hint="Model: gpt-4-vision-preview (Default)"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"

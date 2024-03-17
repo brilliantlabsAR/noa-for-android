@@ -68,7 +68,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         arguments?.let {
             openaiApiKey = it.getString(ARG_API_KEY) ?: "none"
             openaiEndpoint = it.getString(ARG_ENDPOINT) ?: "https://api.openai.com/v1"
-            openaiModel = it.getString(ARG_MODEL) ?: "gpt-3.5-turbo"
+            openaiModel = it.getString(ARG_MODEL) ?: "gpt-4-vision-preview"
             openaiSystemMessage = it.getString(ARG_SYSTEM_MESSAGE) ?: "You are a helpful assistant."
         }
     }
