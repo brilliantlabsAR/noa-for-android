@@ -1528,7 +1528,8 @@ class BaseActivity : AppCompatActivity() {
                             }
                         ],
                         "max_tokens": 500,
-                        "temperature": 0
+                        "temperature": 0.5
+                        "top_p": 0.9
                     }
                 """.trimIndent()
     
