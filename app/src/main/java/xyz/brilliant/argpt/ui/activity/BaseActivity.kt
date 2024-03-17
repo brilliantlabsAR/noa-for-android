@@ -296,6 +296,7 @@ class BaseActivity : AppCompatActivity() {
         registerReceiver(scanReceiver, intentFilter)
         setContentView(R.layout.activity_base)
         apiKey = getStoredApiKey()
+        stabilityApiKey = getStoredStabilityApiKey()
         getAllPermission()
     }
 
