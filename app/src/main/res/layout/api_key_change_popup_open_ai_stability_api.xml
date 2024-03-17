@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/prefixKeyOpenAiEndpoint"
             android:background="@null"
-            android:hint="OpenAI API URL: https://api.openai.com/v1 (Default)"
+            android:hint="API URL: https://api.openai.com/v1 (Default)"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
             android:paddingBottom="5dp"
