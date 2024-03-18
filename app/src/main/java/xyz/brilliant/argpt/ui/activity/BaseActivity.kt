@@ -1075,56 +1075,70 @@ MESSAGE_END_FLAG = "\x16"
             imageBuffer += data.sliceArray(1 until data.size)
         }
         // end of message
-//        if (state == 0x16.toByte()) {
-//            println("[FRAME MESSAGE END]\n")
-//            if (audioBuffer.size > 0) {
-//                val path = applicationContext.filesDir
-//                val f2 = File(path, "test.wav")
-//                if (f2.exists()) {
-//                    f2.delete()
-//                }
-//                try {
-//                    rawToWave(
-//                        signed8ToUnsigned16(audioBuffer),
-//                        f2,
-//                        sampleRate,
-//                        bitPerSample,
-//                        channels
-//                    ) { success ->
-//                        if (success) {
-//                            println("[AUDIO PARSED SENDING TO CHATGPT]\n")
+        if (state == 0x16.toByte()) {
+            println("[FRAME MESSAGE END]\n")
+            if (audioBuffer.size > 0) {
+                val path = applicationContext.filesDir
+                val f2 = File(path, "test.wav")
+                if (f2.exists()) {
+                    f2.delete()
+                }
+                try {
+                    rawToWave(
+                        signed8ToUnsigned16(audioBuffer),
+                        f2,
+                        sampleRate,
+                        bitPerSample,
+                        channels
+                    ) { success ->
+                        if (success) {
+                            println("[AUDIO PARSED SENDING TO CHATGPT]\n")
 //                            if (USE_CUSTOM_SERVER) {
 //                                getGPTResult(f2)
 //                            } else {
-//                                lastAudioFile = f2
+                                lastAudioFile = f2
 //                                if (translateEnabled) {
 //                                    translateAudio(f2)
 //                                } else {
 //                                    if (globalJpegFilePath.isNullOrEmpty()) {
 //                                        uploadAudioToGpt(f2)
 //                                    } else {
-//                                        callStabilityApi(f2)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                }
-//            }
-//            if (imageBuffer.size > 0) {
-//                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
-//                if (bitmap != null) {
-//                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
-//                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
-//                    if (jpegFile != null) {
-//                        globalJpegFilePath = jpegFile.absolutePath
-//                    }
-//                    updateChatList(1, "S", "", bitmap!!)
-//                }
-//            }
-//        }
+
+
+                            if (imageBuffer.size > 0) {
+                                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
+                                if (bitmap != null) {
+                                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+                                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
+                                    if (jpegFile != null) {
+                                        globalJpegFilePath = jpegFile.absolutePath
+                                    }
+                                    updateChatList(1, "S", "", bitmap!!)
+                                }
+                            }
+
+                                        callStabilityApi(f2)
+                                   // }
+                               // }
+                           // }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            if (imageBuffer.size > 0) {
+                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
+                if (bitmap != null) {
+                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
+                    if (jpegFile != null) {
+                        globalJpegFilePath = jpegFile.absolutePath
+                    }
+                    updateChatList(1, "S", "", bitmap!!)
+                }
+            }
+        }
 
     }
 
@@ -1458,7 +1472,7 @@ MESSAGE_END_FLAG = "\x16"
             .setType(MultipartBody.FORM)
             .addFormDataPart(AUDIO, "audio.wav", audioFile.asRequestBody())
             .addFormDataPart(MESSAGES, jsonPayload)
-            .addFormDataPart(PROMPT, ".")
+          //  .addFormDataPart(PROMPT, ".")
             .addFormDataPart(
                 IMAGE, "Output.jpg",
                 File(imageFilePath.toString()).asRequestBody("image/jpg".toMediaTypeOrNull())
@@ -1467,7 +1481,14 @@ MESSAGE_END_FLAG = "\x16"
             .build()
         val callStabilityApiCallback = object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                sendChatGptResponce(e.message.toString(), "err:")
+
+                if(currentDeviceName.contains("Frame",true))
+                {
+                    // Send error response to Frame
+                }
+                else {
+                    sendChatGptResponce(e.message.toString(), "err:")
+                }
                 globalJpegFilePath = null
            }
 
@@ -1491,6 +1512,8 @@ MESSAGE_END_FLAG = "\x16"
 
                             addMessage("assistant", assistantResponse)
                             //  updatechatList("R",assistantResponse)
+
+
 
                             sendChatGptResponce(assistantResponse.toString(), "res:")
 
@@ -1565,10 +1588,21 @@ MESSAGE_END_FLAG = "\x16"
     /**
      * Method to send data to chat GPT
      */
-    fun sendChatGptResponce(data: String, prefix: String) {
+     fun sendChatGptResponce(data: String, prefix: String) {
+
+
         updateChatList("R", data)
-        val dataSend = prefix + data //err:
-        dataSendBle(dataSend)
+
+        if(currentDeviceName.contains("Monocle",true)) {
+            val dataSend = prefix + data //err:
+            dataSendBle(dataSend)
+        }
+        else
+        {
+            lifecycleScope.launch {
+                frameSendBle(byteArrayOf(0x11) + data.toByteArray())
+            }
+        }
     }
 
 
