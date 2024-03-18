@@ -1576,7 +1576,7 @@ class BaseActivity : AppCompatActivity() {
                                 val jsonObject = JSONObject(body)
                                 if (jsonObject.has("choices")) {
                                     val jsonArray = jsonObject.getJSONArray("choices")
-                                    val textResult = jsonArray.getJSONObject(0).getString("text").trim()
+                                    val textResult = jsonArray.getJSONObject(0).getJSONObject("message").getString("content")
         
                                     runOnUiThread {
                                         sendChatGptResponse(textResult, "res:")
