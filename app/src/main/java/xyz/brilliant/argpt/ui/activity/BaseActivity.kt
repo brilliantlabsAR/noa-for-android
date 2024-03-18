@@ -147,7 +147,7 @@ class BaseActivity : AppCompatActivity() {
     private var writingREPLProgress: Boolean = false
     val fragmentManager = supportFragmentManager
     var translateEnabled: Boolean = false
-
+    var isPairing: Boolean = false
     private var rawRxCharacteristic: BluetoothGattCharacteristic? = null
     private var rawTxCharacteristic: BluetoothGattCharacteristic? = null
 
@@ -219,6 +219,7 @@ class BaseActivity : AppCompatActivity() {
                         }
 
                         BluetoothDevice.BOND_BONDED -> {
+                            isPairing = true
                             bluetoothGatt!!.requestMtu(GATT_MAX_MTU_SIZE)
                         }
 
@@ -660,6 +661,7 @@ class BaseActivity : AppCompatActivity() {
                 }
                 // }
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+                isPairing = false
                 currentDeviceName = ""
                 disconnectGatt()
                 if (currentAppState == AppState.FIRST_PAIR || currentAppState == AppState.RUNNING) {
@@ -903,10 +905,16 @@ class BaseActivity : AppCompatActivity() {
         }
 
         private fun handleFrameData(value: ByteArray) {
-            val receivedData = String(value)
-            if (frameResponseCallback != null) {
-                frameResponseCallback!!(receivedData)
+            // if first byte is 0x01, then it is audio or photo data except 01, it is response
+            if (value[0]==0x01.toByte()){
+                frameReceived(value.sliceArray(1 until value.size))
+            }else{
+                val receivedData = String(value)
+                if (frameResponseCallback != null) {
+                    frameResponseCallback!!(receivedData)
+                }
             }
+
         }
     }
 
@@ -1040,7 +1048,85 @@ class BaseActivity : AppCompatActivity() {
 ////            dataSendBle(responseData)
 //        }
     }
+    fun frameReceived(data: ByteArray) {
+        /*
+MESSAGE_START_FLAG = "\x10"
+MESSAGE_AUDIO_FLAG = "\x12"
+MESSAGE_IMAGE_FLAG = "\x13"
+MESSAGE_END_FLAG = "\x16"
+*/
+//        // take first byte as state
+        val state = data[0]
+        // message start , set  audio, photo buffer to empty
+        if (state == 0x10.toByte()) {
+            audioBuffer = byteArrayOf(0)
+            imageBuffer = byteArrayOf(0)
+            // start of message
+            println("[FRAME MESSAGE START]\n")
+        }
+        // audio data
+        if (state == 0x12.toByte()) {
+            println("[FRAME AUDIO RECEIVING]\n")
+            audioBuffer += data.sliceArray(1 until data.size)
+        }
+        // image data
+        if (state == 0x13.toByte()) {
+            println("[FRAME IMAGE RECEIVING]\n")
+            imageBuffer += data.sliceArray(1 until data.size)
+        }
+        // end of message
+//        if (state == 0x16.toByte()) {
+//            println("[FRAME MESSAGE END]\n")
+//            if (audioBuffer.size > 0) {
+//                val path = applicationContext.filesDir
+//                val f2 = File(path, "test.wav")
+//                if (f2.exists()) {
+//                    f2.delete()
+//                }
+//                try {
+//                    rawToWave(
+//                        signed8ToUnsigned16(audioBuffer),
+//                        f2,
+//                        sampleRate,
+//                        bitPerSample,
+//                        channels
+//                    ) { success ->
+//                        if (success) {
+//                            println("[AUDIO PARSED SENDING TO CHATGPT]\n")
+//                            if (USE_CUSTOM_SERVER) {
+//                                getGPTResult(f2)
+//                            } else {
+//                                lastAudioFile = f2
+//                                if (translateEnabled) {
+//                                    translateAudio(f2)
+//                                } else {
+//                                    if (globalJpegFilePath.isNullOrEmpty()) {
+//                                        uploadAudioToGpt(f2)
+//                                    } else {
+//                                        callStabilityApi(f2)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                }
+//            }
+//            if (imageBuffer.size > 0) {
+//                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
+//                if (bitmap != null) {
+//                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+//                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
+//                    if (jpegFile != null) {
+//                        globalJpegFilePath = jpegFile.absolutePath
+//                    }
+//                    updateChatList(1, "S", "", bitmap!!)
+//                }
+//            }
+//        }
 
+    }
 
 
     /**
@@ -1832,9 +1918,10 @@ class BaseActivity : AppCompatActivity() {
 
         }
 //        if (currentAppState == AppState.SCRIPT_UPDATE) {
-        // always upload files
-        startFileUpload()
-//        }
+        // only on first pair
+        if (isPairing) {
+            startFileUpload()
+        }
         frameSendBle(byteArrayOf(0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
