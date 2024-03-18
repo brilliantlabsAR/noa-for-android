@@ -5,6 +5,7 @@ package xyz.brilliant.argpt.ui.activity
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
+
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
@@ -31,9 +32,7 @@ import android.os.ParcelUuid
 import android.util.Base64
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
+
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -61,12 +60,24 @@ import org.jsoup.nodes.Document
 import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.helpers.PermissionHelper
 import xyz.brilliant.argpt.helpers.SharedPreferencesHelper
+import xyz.brilliant.argpt.network.RequestAPICallBack
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.DeleteProfileFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
 import xyz.brilliant.argpt.ui.login.SocialLoginActivity
 import xyz.brilliant.argpt.ui.model.ChatModel
+import xyz.brilliant.argpt.utils.ActivityUtil
+import xyz.brilliant.argpt.utils.Constant.API_CALL_UPLOAD_FILE
+import xyz.brilliant.argpt.utils.Constant.API_DELETE_ACCOUNT
+import xyz.brilliant.argpt.utils.Constant.API_SIGNOUT
+import xyz.brilliant.argpt.utils.Constant.API_TRANSLATE
+import xyz.brilliant.argpt.utils.Constant.AUDIO
+import xyz.brilliant.argpt.utils.Constant.CONFIG
+import xyz.brilliant.argpt.utils.Constant.ERROR_RESPONSE
+import xyz.brilliant.argpt.utils.Constant.IMAGE
+import xyz.brilliant.argpt.utils.Constant.MESSAGES
+import xyz.brilliant.argpt.utils.Constant.PROMPT
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -76,6 +87,7 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.UUID
+
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -120,24 +132,8 @@ class BaseActivity : AppCompatActivity() {
         private const val FPGA_TEST = false
         private const val BACKEND_URL = ""
         private const val USE_CUSTOM_SERVER = false
-        fun pushFragmentsStatic(
-            fragmentManager: FragmentManager,
-            fragment: Fragment,
-            shouldAdd: Boolean,
-            tag: String?
-        ) {
-            val ft: FragmentTransaction = fragmentManager.beginTransaction()
-            //ft.setCustomAnimations(R.anim.enter_from_left, R.anim.exit_to_right);
-            ft.replace(R.id.fragmentContainer, fragment, tag)
-            if (shouldAdd) {
-                ft.addToBackStack("ScreenStack")
-            } else {
-                fragmentManager.popBackStack(null, 0)
-            }
-            ft.commit()
-        }
-    }
 
+    }
     private lateinit var bluetoothAdapter: BluetoothAdapter
     var apiKey = ""
     var stabilityApiKey = ""
@@ -187,6 +183,8 @@ class BaseActivity : AppCompatActivity() {
     private var overlallSoftwareSize = 0
     private var currentConnectionStatus = false
     private var accessToken: String = ""
+    private var lastAudioFile: File? = null
+
     private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
 
     private lateinit var permissionHelper: PermissionHelper
@@ -234,7 +232,9 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
-
+    /**
+     * Method to unpair monocle device
+     */
     fun unpairMonocle() {
         try {
             bluetoothGatt!!.device::class.java.getMethod("removeBond")
@@ -248,33 +248,21 @@ class BaseActivity : AppCompatActivity() {
         currentDevice = ""
         currentScannedDevice = null
         overlallSoftwareProgress = 0
-        // finish()
         performLogout()
-        // startActivity(intent)
     }
 
+    /**
+     * Method to logout current Session
+     */
     fun performLogout() {
         // Retrieve the token from SharedPreferences
         val token = sharedPreferencesHelper.getTokenFromSharedPreferences()
-
-        val client = OkHttpClient()
         val mediaType = "text/plain".toMediaType()
         val body = "".toRequestBody(mediaType)
-
-
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/signout")
-            .post(body)
-            .addHeader("Authorization", token)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
+        val signOutApiCallback = (object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    // Toast.makeText(this@BaseActivity, "failure", Toast.LENGTH_LONG).show()
-
-
-                    // Finish the current activity if you want to
+                   // Finish the current activity if you want to
                     finish()
                 }
                 // Handle network errors or request failures
@@ -284,9 +272,7 @@ class BaseActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     // Clear SharedPreferences when logout is successful
                     sharedPreferencesHelper.clearSharedPreferences()
-
-                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
-                    startActivity(intent)
+                   ActivityUtil.navigateToActivity(this@BaseActivity,SocialLoginActivity::class.java)
                     // Finish the current activity if you want to
                     finish()
                     // Logout was successful, perform any necessary post-logout actions
@@ -297,6 +283,8 @@ class BaseActivity : AppCompatActivity() {
                 }
             }
         })
+
+        RequestAPICallBack.apiCallBackRequest(body,token, API_SIGNOUT,signOutApiCallback)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -330,11 +318,12 @@ class BaseActivity : AppCompatActivity() {
             if (storedDeviceAddress.isBlank()) {
                 currentAppState = AppState.FIRST_PAIR
                 val fragment = ScanningFragment()
-                pushFragmentsStatic(fragmentManager, fragment, false, "start_scan")
+                ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "start_scan")
             } else {
                 currentAppState = AppState.RUNNING
                 val fragment = ChatGptFragment()
-                pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
+                ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "chat_gpt")
+
             }
 
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -408,6 +397,9 @@ class BaseActivity : AppCompatActivity() {
             })
     }
 
+    /**
+     * Method to start bluetooth service in background
+     */
     private fun startBluetoothBackground() {
         val foregroundServiceIntent = Intent(this, ForegroundService::class.java)
 
@@ -417,6 +409,9 @@ class BaseActivity : AppCompatActivity() {
             startService(foregroundServiceIntent)
         }
     }
+    /**
+     * Method to update connection status
+     */
     fun updateConnectionStatus(status: String) {
         connectionStatus = status
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
@@ -424,14 +419,19 @@ class BaseActivity : AppCompatActivity() {
             fragment.updateConnectionStatus(status)
         }
     }
-
-    fun updatechatList(type: String, msg: String) {
+    /**
+     * Method to update chat list with string data
+     */
+    fun updateChatList(type: String, msg: String) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
             fragment.updatechatList(type, msg)
         }
     }
 
+    /**
+     * Method to update popup text
+     */
     fun updateProgressDialog(deviceCloseText: String, btnText: String) {
 
         //   val newDeviceCloseText = deviceCloseText
@@ -455,7 +455,9 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-
+    /**
+     * Method to know application is background or foreground
+     */
     fun isAppInBackground(context: Context): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val appProcesses = activityManager.runningAppProcesses
@@ -471,6 +473,10 @@ class BaseActivity : AppCompatActivity() {
         return true // App is considered in the background if the process is not found
     }
 
+
+    /**
+     * Method to start BLE scan
+     */
     @SuppressLint("MissingPermission")
     private fun startScan() {
         if (scanning) {
@@ -503,6 +509,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to stop BLE scan
+     */
     @SuppressLint("MissingPermission")
     private fun stopScan() {
         if (scanning) {
@@ -511,7 +520,9 @@ class BaseActivity : AppCompatActivity() {
             currentScannedDevice = null
         }
     }
-
+    /**
+     * Method to show scan result
+     */
     private val scanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission", "SuspiciousIndentation")
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -563,27 +574,22 @@ class BaseActivity : AppCompatActivity() {
             Log.e(TAG, "Scan failed with error code: $errorCode")
         }
     }
+
+    /**
+     * Method to connect h/w device
+     */
     fun connectDevice() {
         try {
             if (currentScannedDevice != null) {
                 connectDevice(currentScannedDevice!!.address)
-//                currentScannedDevice = null
             }
-//            val firstItem: ScanResult? = if (mArrayList.size == 1) {
-//                mArrayList[0]
-//            } else if (mArrayList.size > 1) {
-//                mArrayList.minByOrNull { it.rssi }
-//            } else {
-//                null
-//            }
-//            if (firstItem != null) {
-//                stopScan()
-//                connectDevice(firstItem.device.address)
-//            }
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
     }
+    /**
+     * Method to connect h/w device with address
+     */
     @SuppressLint("MissingPermission")
     private fun connectDevice(deviceAddress: String) {
 
@@ -607,6 +613,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to connected device result
+     */
     private val gattCallback = object : BluetoothGattCallback() {
         @SuppressLint("MissingPermission")
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -717,6 +726,7 @@ class BaseActivity : AppCompatActivity() {
                 println("[DISCOVERY FAILED]\n")
             }
         }
+
 
         @SuppressLint("MissingPermission")
         suspend fun connectMonocleServices(
@@ -870,7 +880,7 @@ class BaseActivity : AppCompatActivity() {
         }
 
         fun handleAudioData(value: ByteArray) {
-            monocleRecieved(value)
+            monocleReceived(value)
         }
 
         private fun handleReplData(value: ByteArray) {
@@ -900,6 +910,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to disconnect device
+     */
     @SuppressLint("MissingPermission")
     private fun disconnectGatt() {
         if (bluetoothGatt != null) {
@@ -917,8 +930,10 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-
-    fun monocleRecieved(data: ByteArray) {
+    /**
+     * Method to receive monocle data
+     */
+    fun monocleReceived(data: ByteArray) {
         if (data.size < 4) {
             println("Received on data " + String(data))
             return
@@ -949,7 +964,7 @@ class BaseActivity : AppCompatActivity() {
                 if (jpegFile != null) {
                     globalJpegFilePath = jpegFile.absolutePath
                 }
-                updatechatList(1, "S", "", bitmap!!)
+                updateChatList(1, "S", "", bitmap!!)
             }
 
             val responseData = "ick:"
@@ -998,13 +1013,13 @@ class BaseActivity : AppCompatActivity() {
                                 lastAudioFile = f2
 
                                 if (translateEnabled) {
-                                    translateAudio(f2, translateAudioCallback)
+                                    translateAudio(f2)
                                 } else {
 
                                     if (globalJpegFilePath.isNullOrEmpty()) {
-                                        uploadAudioToGpt(f2, uploadAudioToGptCallback)
+                                        uploadAudioToGpt(f2)
                                     } else {
-                                        callStabilityApi(f2, callStabilityApiCallback)
+                                        callStabilityApi(f2)
                                     }
                                 }
 
@@ -1028,14 +1043,19 @@ class BaseActivity : AppCompatActivity() {
 
 
 
-
-    private fun updatechatList(id: Int, type: String, msg: String, image: Bitmap?) {
+    /**
+     * Method to update chat list with bitmap image
+     */
+    private fun updateChatList(id: Int, type: String, msg: String, image: Bitmap?) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
             fragment.updatechatList(id, type, msg, image)
         }
     }
 
+    /**
+     * Method to update chat list with network image
+     */
     private fun updatechatListWithNetworkImg(id: Int, type: String, msg: String, image: String) {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment is ChatGptFragment) {
@@ -1043,6 +1063,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to save bitmap image to JPEG
+     */
     private fun saveBitmapAsJPEG(bitmap: Bitmap, quality: Int = 100): File? {
         try {
             // Generate a unique file name using a timestamp
@@ -1066,6 +1089,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to update bitmap image height/width
+     */
     private fun resizeBitmapToMultipleOf64(bitmap: Bitmap): Bitmap {
 // Get the original width and height of the bitmap
         val oldWidth = bitmap.width
@@ -1174,151 +1200,139 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-    // OPEN AI
-    private var lastAudioFile: File? = null
+
+    /**
+     * Method to upload audio to chat GPT
+     */
     private fun uploadAudioToGpt(
         audioFile: File,
-        byteCallback: Callback
     ) {
-        val client = OkHttpClient()
-
         val jsonPayload = apiMessagePayload.toString()
         val jsonConfigPayload = apiConfigPayload.toString()
 
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-                .addFormDataPart("messages", jsonPayload)
-                .addFormDataPart("prompt", ".")
-                .addFormDataPart("config", jsonConfigPayload)
+                .addFormDataPart(AUDIO, "audio.wav", audioFile.asRequestBody())
+                .addFormDataPart(MESSAGES, jsonPayload)
+                .addFormDataPart(PROMPT, ".")
+                .addFormDataPart(CONFIG, jsonConfigPayload)
                 .build()
+        /**
+         * REST API upload audio response callback
+         */
+        val uploadAudioToGptCallback = object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                updateChatList("S", e.message.toString())
+                sendChatGptResponce(e.message.toString(), "err:")
+                // Handle failure
+                // client.close()
+            }
 
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/mm") // Replace {{host}} with your actual base URL
-            .addHeader(
-                "Authorization",
-                accessToken
-            ) // Assuming apiKey is the authorization token
-            .post(audioRequestBody)
-            .build()
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    if (!response.isSuccessful) {
+                        sendChatGptResponce(ERROR_RESPONSE, "err:")
+                        // Handle unsuccessful response
+                        if (response.code == 401) {
+                            unpairMonocle()
+                        }
+                    } else {
+                        val responseBody = response.body?.string()
+                        if (responseBody != null) {
+                            // Parse the JSON response
+                            val jsonResponse = JSONObject(responseBody)
 
-        client.newCall(request).enqueue(byteCallback)
-    }
-
-    private val uploadAudioToGptCallback = object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            updatechatList("S", e.message.toString())
-            sendChatGptResponce(e.message.toString(), "err:")
-            // Handle failure
-            // client.close()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            try {
-                if (!response.isSuccessful) {
-                    sendChatGptResponce("Something is wrong...try again!!", "err:")
-                    // Handle unsuccessful response
-
-
-                    if (response.code == 401) {
-                        unpairMonocle()
-                    }
-                } else {
-                    val responseBody = response.body?.string()
-                    if (responseBody != null) {
-                        // Parse the JSON response
-                        val jsonResponse = JSONObject(responseBody)
-
-                        // Extract relevant information
+                            // Extract relevant information
 //                        val completionId = jsonResponse.getString("id")
 //                        val modelUsed = jsonResponse.getString("model")
-                        val promptUsed = jsonResponse.getString("user_prompt")
-                        addMessage("user", promptUsed)
+                            val promptUsed = jsonResponse.getString("user_prompt")
+                            addMessage("user", promptUsed)
 
-                        updatechatList("S", promptUsed)
-                        // Extract the assistant's response
+                            updateChatList("S", promptUsed)
+                            // Extract the assistant's response
 
-                        val assistantResponse = jsonResponse.getString("response")
+                            val assistantResponse = jsonResponse.getString("response")
 
-                        addMessage("assistant", assistantResponse)
-                        //  updatechatList("R",assistantResponse)
+                            addMessage("assistant", assistantResponse)
+                            //  updatechatList("R",assistantResponse)
 
-                        sendChatGptResponce(assistantResponse.toString(), "res:")
+                            sendChatGptResponce(assistantResponse.toString(), "res:")
 
 
+                        }
                     }
+                } catch (e: JSONException) {
+                    sendChatGptResponce("Something is wrong...try again!!", "err:")
+                    // Handle JSON parsing error
+                } finally {
+                    //client.close()
                 }
-            } catch (e: JSONException) {
-                sendChatGptResponce("Something is wrong...try again!!", "err:")
-                // Handle JSON parsing error
-            } finally {
-                //client.close()
             }
         }
+
+        /**
+         * REST API call to upload audio file
+         */
+        RequestAPICallBack.apiCallBackMultiPartRequest(audioRequestBody,accessToken,
+            API_CALL_UPLOAD_FILE,uploadAudioToGptCallback)
     }
 
+    /**
+     * Method to translate audio
+     */
     private fun translateAudio(
         audioFile: File,
-        byteCallback: Callback
     ) {
         val client = OkHttpClient()
 
 
         val audioRequestBody =
             MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-
+                .addFormDataPart(AUDIO, "audio.wav", audioFile.asRequestBody())
                 .build()
+        /**
+         * REST API translate audio response callback
+         */
+        val translateAudioCallback = object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                sendChatGptResponce(e.message.toString(), "err:")
+            }
 
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/translate") // Replace {{host}} with your actual base URL
-            .addHeader(
-                "Authorization",
-                accessToken
-            ) // Assuming apiKey is the authorization token
-            .post(audioRequestBody)
-            .build()
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    if (!response.isSuccessful) {
+                        //  updatechatList("S","Something is wrong!! try again..")
+                        sendChatGptResponce(ERROR_RESPONSE, "err:")
+                        // Handle unsuccessful response
+                    } else {
+                        val responseBody = response.body?.string()
+                        if (responseBody != null) {
+                            // Parse the JSON response
+                            val jsonResponse = JSONObject(responseBody)
 
-        client.newCall(request).enqueue(byteCallback)
-    }
-
-    val translateAudioCallback = object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            // updatechatList("S", e.message.toString())
-            sendChatGptResponce(e.message.toString(), "err:")
-            // Handle failure
-            // client.close()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            try {
-                if (!response.isSuccessful) {
-                    //  updatechatList("S","Something is wrong!! try again..")
-                    sendChatGptResponce("Something is wrong!! try again..", "err:")
-                    // Handle unsuccessful response
-                } else {
-                    val responseBody = response.body?.string()
-                    if (responseBody != null) {
-                        // Parse the JSON response
-                        val jsonResponse = JSONObject(responseBody)
-
-                        // Extract relevant information
-                        val reply = jsonResponse.getString("reply")
+                            // Extract relevant information
+                            val reply = jsonResponse.getString("reply")
 
 
-                        sendChatGptResponce(reply, "res:")
-                        // updatechatList("S",reply)
-                        // Extract the assistant's response
+                            sendChatGptResponce(reply, "res:")
+                            // updatechatList("S",reply)
+                            // Extract the assistant's response
 
+                        }
                     }
+                } catch (e: JSONException) {
+                    sendChatGptResponce(ERROR_RESPONSE, "err:")
+                    // Handle JSON parsing error
+                } finally {
+                    //client.close()
                 }
-            } catch (e: JSONException) {
-                sendChatGptResponce("Something is wrong!! try again..", "err:")
-                // Handle JSON parsing error
-            } finally {
-                //client.close()
             }
         }
+
+        /**
+         * REST API call to upload audio file to translate
+         */
+        RequestAPICallBack.apiCallBackMultiPartRequest(audioRequestBody,accessToken, API_TRANSLATE,translateAudioCallback)
     }
 
 
@@ -1349,167 +1363,124 @@ class BaseActivity : AppCompatActivity() {
 
 
     private fun callStabilityApi(
-        audioFile: File,
-        callStabilityApiCallback: Callback
+        audioFile: File
     ) {
-        val client = OkHttpClient()
         val imageFilePath = globalJpegFilePath
         val jsonPayload = apiMessagePayload.toString()
         val jsonConfigPayload = apiConfigPayload.toString()
-
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("audio", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("messages", jsonPayload)
-            .addFormDataPart("prompt", ".")
+            .addFormDataPart(AUDIO, "audio.wav", audioFile.asRequestBody())
+            .addFormDataPart(MESSAGES, jsonPayload)
+            .addFormDataPart(PROMPT, ".")
             .addFormDataPart(
-                "image", "Output.jpg",
+                IMAGE, "Output.jpg",
                 File(imageFilePath.toString()).asRequestBody("image/jpg".toMediaTypeOrNull())
             )
-            .addFormDataPart("config", jsonConfigPayload)
-
+            .addFormDataPart(CONFIG, jsonConfigPayload)
             .build()
+        val callStabilityApiCallback = object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                sendChatGptResponce(e.message.toString(), "err:")
+                globalJpegFilePath = null
+           }
 
-        // Create a request with headers and the prepared request body
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/mm") // Replace {{host}} with your actual base URL
-            .addHeader("Authorization", accessToken)
-            .post(requestBody)
-            .build()
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    println(response.body)
+                    if (response.isSuccessful) {
+                        globalJpegFilePath = null
+                        val responseBody = response.body?.string()
+                        if (responseBody != null) {
+                            // Parse JSON response
+                            val jsonResponse = JSONObject(responseBody)
+
+                            val promptUsed = jsonResponse.getString("user_prompt")
+                            addMessage("user", promptUsed)
+
+                            updateChatList("S", promptUsed)
+                            // Extract the assistant's response
+
+                            val assistantResponse = jsonResponse.getString("response")
+
+                            addMessage("assistant", assistantResponse)
+                            //  updatechatList("R",assistantResponse)
+
+                            sendChatGptResponce(assistantResponse.toString(), "res:")
+
+                        }
 
 
+                    } else {
+                        val responseData = response.body?.string()
 
+                        try {
+                            val jsonObject = responseData?.let { JSONObject(it) }
+                            if (jsonObject != null) {
+                                if (jsonObject.has("message")) {
+                                    println(jsonObject.get("message"))
+                                    sendChatGptResponce(jsonObject.get("message").toString(), "err:")
+                                    globalJpegFilePath = null
+                                }
+                            }
+                        } catch (e: java.lang.Exception) {
+                            println(responseData)
+                            println(e.printStackTrace())
+                            sendChatGptResponce(e.message.toString(), "err:")
+                            globalJpegFilePath = null
+                        }
 
-        client.newCall(request).enqueue(callStabilityApiCallback)
-    }
+                        // Handle the API error here
+                        // Log error or show an error message to the user
+                    }
 
-    val callStabilityApiCallback = object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            // updatechatList("S", e.message.toString())
-            sendChatGptResponce(e.message.toString(), "err:")
-            globalJpegFilePath = null
-            // Handle failure
-            // client.close()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            try {
-                println(response.body)
-                if (response.isSuccessful) {
-
+                } catch (e: JSONException) {
+                    sendChatGptResponce(ERROR_RESPONSE, "err:")
 
                     globalJpegFilePath = null
-                    val responseBody = response.body?.string()
-                    if (responseBody != null) {
-                        // Parse the JSON response
-                        val jsonResponse = JSONObject(responseBody)
-
-                        val promptUsed = jsonResponse.getString("user_prompt")
-                        addMessage("user", promptUsed)
-
-                        updatechatList("S", promptUsed)
-                        // Extract the assistant's response
-
-                        val assistantResponse = jsonResponse.getString("response")
-
-                        addMessage("assistant", assistantResponse)
-                        //  updatechatList("R",assistantResponse)
-
-                        sendChatGptResponce(assistantResponse.toString(), "res:")
-
-                    }
-
-
-                } else {
-                    val responseData = response.body?.string()
-
-                    try {
-                        val jsonObject = responseData?.let { JSONObject(it) }
-                        if (jsonObject != null) {
-                            if (jsonObject.has("message")) {
-                                println(jsonObject.get("message"))
-                                sendChatGptResponce(jsonObject.get("message").toString(), "err:")
-                                globalJpegFilePath = null
-                            }
-                        }
-                    } catch (e: java.lang.Exception) {
-                        println(responseData)
-                        println(e.printStackTrace())
-                        sendChatGptResponce(e.message.toString(), "err:")
-                        globalJpegFilePath = null
-                    }
-
-                    // Handle the API error here
-                    // Log error or show an error message to the user
+                    // Handle JSON parsing error
+                } finally {
+                    //client.close()
                 }
-
-            } catch (e: JSONException) {
-                sendChatGptResponce("Something is wrong...Try again!!", "err:")
-
-                globalJpegFilePath = null
-                // Handle JSON parsing error
-            } finally {
-                //client.close()
             }
         }
+        RequestAPICallBack.apiCallBackMultiPartRequest(requestBody,accessToken, API_CALL_UPLOAD_FILE,callStabilityApiCallback)
     }
 
+    /**
+     * Method to delete account
+     */
     fun deleteAccount() {
-        deleteAccount(deleteAccountCallback)
-    }
-
-    fun deleteAccount(deleteAccountCallback: Callback) {
-        val client = OkHttpClient()
         val mediaType = "text/plain".toMediaType()
         val body = "".toRequestBody(mediaType)
-        // Create a request with headers
-        val request = Request.Builder()
-            .url("https://api.brilliant.xyz/noa/delete_account")
-            .addHeader("Authorization", accessToken)
-            .post(body)
-            .build()
-
-        client.newCall(request).enqueue(deleteAccountCallback)
-    }
-
-    private val deleteAccountCallback = object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            // Handle failure
-            // e.message.toString()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            try {
-                if (response.isSuccessful) {
-
-
+        val deleteAccountCallback = object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle failure
+                // e.message.toString()
+            }
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    // Handle Response
+                        sharedPreferencesHelper.clearSharedPreferences()
+                        ActivityUtil.navigateToActivity(this@BaseActivity, SocialLoginActivity::class.java)
+                   } catch (e: Exception) {
+                    // Handle exceptions
                     sharedPreferencesHelper.clearSharedPreferences()
+                    ActivityUtil.navigateToActivity(this@BaseActivity, SocialLoginActivity::class.java)
 
-                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
-                    startActivity(intent)
-                    // Handle successful response
-                } else {
-
-                    sharedPreferencesHelper.clearSharedPreferences()
-
-                    val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
-                    startActivity(intent)
-                    // Handle unsuccessful response
                 }
-            } catch (e: Exception) {
-
-                sharedPreferencesHelper.clearSharedPreferences()
-
-                val intent = Intent(this@BaseActivity, SocialLoginActivity::class.java)
-                startActivity(intent)
-                // Handle exceptions
             }
         }
+        RequestAPICallBack.apiCallBackRequest(body, accessToken,API_DELETE_ACCOUNT,deleteAccountCallback)
+
     }
 
 
+    /**
+     * Method to send data to chat GPT
+     */
     fun sendChatGptResponce(data: String, prefix: String) {
-        updatechatList("R", data)
+        updateChatList("R", data)
         val dataSend = prefix + data //err:
         dataSendBle(dataSend)
     }
@@ -1518,6 +1489,9 @@ class BaseActivity : AppCompatActivity() {
 
 
     // MONOCLE COMMUNICATION
+    /**
+     * Method to write raw bytearray to monocle
+     */
     @SuppressLint("MissingPermission")
     private fun rawBleWrite(data: ByteArray) {
         val characteristic = rawRxCharacteristic
@@ -1531,6 +1505,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to send data to monocle
+     */
     private fun dataSendBle(data: String) {
         thread {
             val chunkSize = 90
@@ -1764,6 +1741,9 @@ class BaseActivity : AppCompatActivity() {
 
 
     // MAIN FLOW AFTER CONNECTION TO MONOCLE
+    /**
+     * Method to first send data after connect to monocle device
+     */
     suspend fun startBleProcess() {
         replSendBle(byteArrayOf(0x3, 0x3, 0x1))
         //   firmware check and update
@@ -1801,8 +1781,7 @@ class BaseActivity : AppCompatActivity() {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
             val fragment = ChatGptFragment()
-            pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
-
+            ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "chat_gpt")
             val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
             if (apikeyStored.isNotEmpty()) {
                 apiKey = apikeyStored
@@ -1824,6 +1803,9 @@ class BaseActivity : AppCompatActivity() {
     }
 
     //MAIN FLOW AFTER CONNECTION TO FRAME
+    /**
+     * Method to first send data after connect to frame device
+     */
     suspend fun startFrameBleProcess() {
         frameSendBle(byteArrayOf(0x03))
         frameSendBle("frame.imu.tap_callback(nil);print(nil)")
@@ -1857,8 +1839,7 @@ class BaseActivity : AppCompatActivity() {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
             val fragment1 = ChatGptFragment()
-            pushFragmentsStatic(fragmentManager, fragment1, false, "chat_gpt")
-
+            ActivityUtil.navigateToFragment(fragmentManager, fragment1, false, "chat_gpt")
             val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
             if (apikeyStored.isNotEmpty()) {
                 apiKey = apikeyStored
@@ -1916,9 +1897,9 @@ class BaseActivity : AppCompatActivity() {
         return ""
     }
 
-    /// Changes done private to public for test by ayan
-
-
+    /**
+     * Method to show intro messages to chat screen
+     */
     fun showIntroMessages() {
         val coroutineScope = CoroutineScope(Dispatchers.Default)
         Log.d(
@@ -1990,13 +1971,15 @@ class BaseActivity : AppCompatActivity() {
                         message.image
                     )
                 else
-                    updatechatList(message.id, message.userInfo, message.message, message.bitmap)
+                    updateChatList(message.id, message.userInfo, message.message, message.bitmap)
                 delay(1000) // Delay for 1 second between calls
             }
         }
     }
 
-    // SCRIPTS UPLOAD
+    /**
+     * Method to read monocle script from assets folder
+     */
     private fun readScriptFileFromAssets(fileName: String): String {
         val assetManager: AssetManager = applicationContext.assets
         return assetManager.open("Scripts/$fileName").bufferedReader().use {
@@ -2004,6 +1987,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to read frame script from assets folder
+     */
     private fun readFrameScriptFileFromAssets(fileName: String): String {
         val assetManager: AssetManager = applicationContext.assets
         return assetManager.open("Frame Scripts/$fileName").bufferedReader().use {
@@ -2011,9 +1997,10 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to start file upload to devices
+     */
     private suspend fun startFileUpload(): String {
-
-
         var fileNames = FILES
         if (currentDeviceName.equals("frame", true)) {
             fileNames = FRAME_FILES
@@ -2054,6 +2041,9 @@ class BaseActivity : AppCompatActivity() {
     }
 
     // file upload for frame
+    /**
+     * Method to upload files to frame device
+     */
     @SuppressLint("MissingPermission")
     private suspend fun frameFileUpload(
         files: MutableList<Pair<String, String>>
@@ -2107,12 +2097,14 @@ class BaseActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * Method to upload files to monocle device
+     */
     @SuppressLint("MissingPermission")
     private suspend fun fileUpload(
         files: MutableList<Pair<String, String>>,
         version: String
     ): String {
-
         val finalResults = mutableListOf<Int>()
         coroutineScope {
             for (file in files) {
@@ -2168,6 +2160,9 @@ class BaseActivity : AppCompatActivity() {
         return versionString.toString()
     }
 
+    /**
+     * Method to check firmware of monocle device
+     */
     private suspend fun firmwareCheckUpdate(): String {
 
         val response = replSendBle("import device;print(device.VERSION)")
@@ -2188,6 +2183,9 @@ class BaseActivity : AppCompatActivity() {
         return "Updated"
     }
 
+    /**
+     * Method to check firmware of frame device
+     */
     @SuppressLint("SuspiciousIndentation")
     private suspend fun frameFirmwareCheckUpdate(): String {
 
@@ -2210,6 +2208,9 @@ class BaseActivity : AppCompatActivity() {
         return "Updated"
     }
 
+    /**
+     * Method to read FPGA files from assets folder
+     */
     private suspend fun fpgaCheckUpdate(): String {
         val fpga = readFPGAFromAssets()
         val zipData = readFirmwareFromAssets()
@@ -2231,6 +2232,9 @@ class BaseActivity : AppCompatActivity() {
         return "Updated"
     }
 
+    /**
+     * Method to read FPGA files from assets folder
+     */
     private fun readFPGAFromAssets(): Fpga {
         val assetManager: AssetManager = applicationContext.assets
         val packageZips = assetManager.list("FPGA/")
@@ -2247,6 +2251,9 @@ class BaseActivity : AppCompatActivity() {
         return Fpga(null, null)
     }
 
+    /**
+     * Method to update FPGA files
+     */
     suspend fun updateFPGA(asciiFile: String, dfuSize: Int): String {
         println("[Starting FPGA update]")
         replSendBle("import ubinascii, update, device, bluetooth, fpga")
@@ -2297,6 +2304,9 @@ class BaseActivity : AppCompatActivity() {
     // NORDIC DFU
 
     // DFU COMMUNICATION
+    /**
+     * Method to nordic control write
+     */
     @SuppressLint("MissingPermission")
     private fun nordicControlWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
 
@@ -2329,6 +2339,9 @@ class BaseActivity : AppCompatActivity() {
         resultDeferred.complete("Done")
     }
 
+    /**
+     * Method to nordic packet write
+     */
     @SuppressLint("MissingPermission")
     private fun nordicPacketWrite(data: ByteArray, resultDeferred: CompletableDeferred<String>) {
 
@@ -2361,6 +2374,9 @@ class BaseActivity : AppCompatActivity() {
         resultDeferred.complete("Done")
     }
 
+    /**
+     * Method to send nordic control
+     */
     private suspend fun nordicControlSend(data: ByteArray): ByteArray {
         return coroutineScope {
 
@@ -2400,6 +2416,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to send nordic packet
+     */
     private suspend fun nordicPacketSend(data: ByteArray): String {
         return coroutineScope {
             val resultDeferred = CompletableDeferred<String>()
@@ -2420,6 +2439,9 @@ class BaseActivity : AppCompatActivity() {
     }
 
     // MAIN FLOW AFTER CONNECTION TO DFU
+    /**
+     * Method to start DFU process after connection
+     */
     @SuppressLint("MissingPermission")
     suspend fun startDfuProcess() {
         val zipData = readFirmwareFromAssets()
@@ -2448,12 +2470,18 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to update firmware progress
+     */
     private fun firmwareUpdateProgress(perc: Double, fileSize: Int = 0, offset: Int) {
         val chunkComplete = offset + fileSize
         overlallSoftwareProgress = ((100.0 / overlallSoftwareSize) * chunkComplete).toInt()
         updateProgressDialog("Updating software ${overlallSoftwareProgress}%", "Keep the app open")
     }
 
+    /**
+     * Method to read firmware from assets
+     */
     private fun readFirmwareFromAssets(): ExtractedData {
         val assetManager: AssetManager = applicationContext.assets
 
@@ -2507,6 +2535,9 @@ class BaseActivity : AppCompatActivity() {
         return ExtractedData(null, null, null)
     }
 
+    /**
+     * Method to read firmware from assets
+     */
     suspend fun transferFile(data: ByteArray, fileType: String) {
         var response: ByteArray
         // Select command
@@ -2602,6 +2633,9 @@ class BaseActivity : AppCompatActivity() {
         return crc32.value
     }
     // for server api
+    /**
+     * Method to get result from chat GPT
+     */
     private fun getGPTResult(file: File) {
         val client = OkHttpClient()
         val mediaType = "application/octet-stream".toMediaType()
@@ -2621,7 +2655,7 @@ class BaseActivity : AppCompatActivity() {
                 sendChatGptResponce(jsonObject.get("message").toString(), "err:")
             }
             if (jsonObject.has("transcript")) {
-                updatechatList("S", jsonObject.get("transcript").toString())
+                updateChatList("S", jsonObject.get("transcript").toString())
             }
             if (jsonObject.has("reply")) {
                 sendChatGptResponce(jsonObject.get("reply").toString(), "res:")
@@ -2646,11 +2680,13 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method to delete profile
+     */
     fun gotoDeleteProfile() {
-
         currentAppState = AppState.RUNNING
         val fragment = DeleteProfileFragment()
-        pushFragmentsStatic(fragmentManager, fragment, false, "delete_profile") // for testing**
+         ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "delete_profile")//// for testing**
     }
 
 }
