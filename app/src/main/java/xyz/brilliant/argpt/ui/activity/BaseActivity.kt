@@ -1645,11 +1645,8 @@ MESSAGE_END_FLAG = "\x16"
                 writingREPLProgress = true
                 rawBleWrite(chunk.toByteArray())
                 offset += length
-
             }
         }
-
-
     }
 
 

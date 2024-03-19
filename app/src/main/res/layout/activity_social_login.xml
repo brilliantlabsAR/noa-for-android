@@ -52,13 +52,12 @@
                     android:textSize="15sp" />
         </RelativeLayout>
 
-
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGmail"
+            android:id="@+id/btnGmail2"
             style="@style/ButtonTextStyle"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_60pxh"
-            android:layout_above="@+id/btnDiscord"
+            android:layout_above="@+id/btnDiscord2"
             android:layout_centerInParent="true"
             android:layout_marginStart="@dimen/_35pxh"
             android:layout_marginEnd="@dimen/_35pxh"
@@ -69,11 +68,10 @@
             app:icon="@drawable/googleg_standard_color_18"
             app:iconPadding="10dp"
             app:iconTint="#00100D0D"
-            app:iconTintMode="src_atop"
-            />
+            app:iconTintMode="src_atop" />
 
         <LinearLayout
-            android:id="@+id/btnDiscord"
+            android:id="@+id/btnDiscord2"
             android:layout_height="@dimen/_50pxh"
             android:layout_marginTop="@dimen/_20pxv"
             android:layout_above="@+id/privacyPolicy"
@@ -112,7 +110,6 @@
                      />
         </LinearLayout>
 
-
         <TextView
             android:id="@+id/privacyPolicy"
             android:layout_width="match_parent"
@@ -125,10 +122,4 @@
             android:text="@string/privacy_policy2"
             android:textColor="@color/text_Color"
             android:textSize="14sp" />
-
-
-
-
-
-
 </RelativeLayout>

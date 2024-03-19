@@ -33,7 +33,7 @@ class ScanningFragment : Fragment() {
     private lateinit var deviceCloseTextView: TextView
     private lateinit var popUpBtn: TextView
     private lateinit var myCardView: CardView
-    private lateinit var searchBox: RelativeLayout
+    private lateinit var searchBox: LinearLayout
     private lateinit var settingBtn: ImageView
     private lateinit var popupWindow: PopupWindow
     override fun onAttach(context: Context) {

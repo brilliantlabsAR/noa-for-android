@@ -17,6 +17,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -56,13 +57,13 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
             finish()
             return // Exit the function
         }
-        setContentView(R.layout.activity_social_login)
+        setContentView(R.layout.activity_login_new)
 
-        val btnGmail = findViewById<MaterialButton>(R.id.btnGmail)
+        val btnGmail = findViewById<AppCompatButton>(R.id.btnGmail)
        // btnGmail.setSize(SignInButton.SIZE_STANDARD);
 
        // val btnApple = findViewById<Button>(R.id.btnApple)
-        val btnDiscord = findViewById<LinearLayout>(R.id.btnDiscord)
+        val btnDiscord = findViewById<AppCompatButton>(R.id.btnDiscord)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -88,18 +89,18 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
             }
         }
 
-        myString.setSpan(clickableSpan, 20, 34, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        myString.setSpan(clickableSpan1, 48, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(clickableSpan, 0, 14, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(clickableSpan1, 19, 39, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(
             ForegroundColorSpan(Color.parseColor("#E82E87")),
-            20,
-            34,
+            0,
+            14,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         myString.setSpan(
             ForegroundColorSpan(Color.parseColor("#E82E87")),
-            48,
-            68,
+            19,
+            39,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         privacyPolicyTextView.movementMethod = LinkMovementMethod.getInstance()

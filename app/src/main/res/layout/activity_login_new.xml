@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout android:id="@+id/linearColumnbrilliantLogoOne"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    style="@style/groupStylegray_900"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+        <ScrollView android:clipToPadding="false"
+            android:fillViewport="true"
+            android:gravity="center_horizontal"
+            android:id="@+id/scrollViewScrollview"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/_34pxv"
+            android:layout_weight="1" android:layout_width="match_parent">
+            <LinearLayout android:id="@+id/linearLogin"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_44pxv"
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:paddingEnd="@dimen/_50pxh" android:paddingStart="@dimen/_50pxh">
+                <ImageView
+                    android:id="@+id/topLogo"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_27pxh"
+                    android:layout_width="@dimen/_143pxh"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/img_brilliant_logo"
+                    tools:ignore="ContentDescription"
+                    tools:src="@drawable/img_brilliant_logo"/>
+                <ImageView
+                    android:id="@+id/imageNoalogoOne"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_50pxh"
+                    android:layout_marginTop="@dimen/_151pxv"
+                    android:layout_width="@dimen/_150pxh"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/img_noa_logo"
+                    tools:ignore="ContentDescription" tools:src="@drawable/img_noa_logo"/>
+                <androidx.appcompat.widget.AppCompatButton
+                    android:drawablePadding="@dimen/_11pxh"
+                    android:drawableStart="@drawable/img_apple_icon"
+                    android:ellipsize="end" android:gravity="center"
+                    android:id="@+id/btnApple"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_50pxv"
+                    android:layout_marginTop="@dimen/_205pxv"
+                    android:layout_width="@dimen/_290pxh"
+                    android:lineSpacingExtra="@dimen/_3pxh"
+                    android:paddingBottom="@dimen/_16pxv"
+                    android:paddingEnd="@dimen/_30pxh"
+                    android:paddingStart="@dimen/_30pxh"
+                    android:paddingTop="@dimen/_16pxv"
+                    android:singleLine="true"
+                    android:text="@string/msg_sign_in_with_apple"
+                    android:textAllCaps="false"
+                    style="@style/btnRoundedOutline" tools:text="@string/msg_sign_in_with_apple"/>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:drawablePadding="@dimen/_9pxh"
+                    android:drawableStart="@drawable/img_google_icon"
+                    android:ellipsize="end" android:gravity="center"
+                    android:id="@+id/btnGmail"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_50pxv"
+                    android:layout_marginTop="@dimen/_20pxv"
+                    android:layout_width="@dimen/_290pxh"
+                    android:lineSpacingExtra="@dimen/_3pxh"
+                    android:paddingBottom="@dimen/_16pxv"
+                    android:paddingEnd="@dimen/_30pxh"
+                    android:paddingStart="@dimen/_30pxh"
+                    android:paddingTop="@dimen/_16pxv"
+                    android:singleLine="true"
+                    android:text="@string/msg_sign_in_with_google"
+                    android:textAllCaps="false"
+                    style="@style/btnRoundedOutline" tools:text="@string/msg_sign_in_with_google"/>
+                <androidx.appcompat.widget.AppCompatButton
+                    android:drawablePadding="@dimen/_10pxh"
+                    android:drawableStart="@drawable/drawable_img_vector"
+                    android:ellipsize="end" android:gravity="center"
+                    android:id="@+id/btnDiscord"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_50pxv"
+                    android:layout_marginTop="@dimen/_20pxv"
+                    android:layout_width="@dimen/_290pxh"
+                    android:lineSpacingExtra="@dimen/_3pxh"
+                    android:paddingBottom="@dimen/_16pxv"
+                    android:paddingEnd="@dimen/_30pxh"
+                    android:paddingStart="@dimen/_30pxh"
+                    android:paddingTop="@dimen/_16pxv"
+                    android:singleLine="true"
+                    android:text="@string/msg_sign_in_with_discord"
+                    android:textAllCaps="false"
+                    style="@style/btnRoundedOutline" tools:text="@string/msg_sign_in_with_discord"/>
+                <TextView android:ellipsize="end"
+                    android:id="@+id/privacyPolicy"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_91pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_2pxh"
+
+                    style="@style/txtSFProDisplayregular10" tools:text="@string/msg_privacy_policy_and"/>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>

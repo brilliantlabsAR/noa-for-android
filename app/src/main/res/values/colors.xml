@@ -32,7 +32,16 @@
     <color name="message_background">#E9E9EB</color>
     <color name="chat_background">#FFFFFF</color>
     <color name="chat_background_stroke">#BDBDBD</color>
-    <color name="status_bar_color">@android:color/transparent</color>
+    <color name="status_bar_color">#0C0C0C</color>
     <color name="layout_color">#F5F5F5</color>
+
+
+    <color name="gray_500">#949494</color>
+    <color name="black_900">#000000</color>
+    <color name="gray_900">#282828</color>
+    <color name="white_A700">#ffffff</color>
+    <color name="red_A700">#dc0000</color>
+    <color name="gray_300">#dce0e5</color>
+    <color name="pink_200">#f288bf</color>
 
 </resources>

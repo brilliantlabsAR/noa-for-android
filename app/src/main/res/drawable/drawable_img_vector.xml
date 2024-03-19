@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <size android:height="@dimen/_21pxh" android:width="@dimen/_28pxh"/>
+        </shape>
+    </item>
+    <item android:drawable="@drawable/img_vector1"
+        android:gravity="center" android:height="@dimen/_21pxh" android:width="@dimen/_28pxh"/>
+</layer-list>

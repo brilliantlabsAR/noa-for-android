@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<RelativeLayout android:id="@+id/linearColumnbrilliantLogoOne"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    style="@style/groupStylegray_900"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <RelativeLayout android:id="@+id/linearScan"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                >
+                <RelativeLayout
+                    android:id="@+id/topPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    android:layout_marginTop="@dimen/_10pxh"
+                    android:layout_marginRight="@dimen/_7pxh"
+                    android:layout_marginBottom="@dimen/_15pxh">
+
+
+                    <ImageView
+                        android:id="@+id/settingBtn"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/app_name"
+                        android:src="@drawable/settings"/>
+
+                </RelativeLayout>
+
+                <ImageView android:id="@+id/imageBrilliantlogo"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="@dimen/_27pxh"
+                    android:layout_width="@dimen/_143pxh"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="@dimen/_34pxv"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/img_brilliant_logo"
+                    tools:ignore="ContentDescription" tools:src="@drawable/img_brilliant_logo"/>
+
+                <TextView
+                    android:id="@+id/let_s_pair_"
+                    style="@style/txtSFProDisplaythin32"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/imageBrilliantlogo"
+                    android:layout_marginTop="@dimen/_100pxh"
+                    android:ellipsize="end"
+                    android:gravity="center_horizontal"
+                    android:lineSpacingExtra="@dimen/_7pxh"
+                    android:singleLine="true"
+                    android:text="@string/msg_bring_your_device"
+                    tools:text="@string/msg_bring_your_device" />
+                <TextView
+                    android:id="@+id/privacyPolicy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/let_s_pair_"
+                    android:layout_centerInParent="true"
+                    android:autoLink="web"
+                    android:visibility="gone"
+                    android:gravity="center"
+                    android:linksClickable="true"
+                    android:text="@string/privacy_policy2"
+                    android:textColor="@color/white_A700"
+                    android:textSize="14sp" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/myCardView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/square_gray_background_for_pairing"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    app:cardCornerRadius="20dp"
+                    android:visibility="visible"
+                    app:cardElevation="4dp">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible"
+                        android:background="@color/white">
+                    <ImageButton
+                        android:background="@drawable/rectangle_bg_gray_900_radius_11"
+                        android:id="@+id/btnCloseOne"
+                        android:layout_gravity="end"
+                        android:layout_height="@dimen/_22pxh"
+                        android:layout_width="@dimen/_22pxh"
+                        android:paddingHorizontal="@dimen/_6pxh"
+                        android:paddingVertical="@dimen/_6pxv"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone"
+                        android:src="@drawable/img_close" tools:ignore="ContentDescription"/>
+                    <TextView
+                        android:id="@+id/deviceCloseTextView"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_30pxh"
+                        android:layout_width="match_parent"
+                        android:singleLine="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:text="@string/msg_bring_your_device"
+                        style="@style/txtSFProDisplaybold24"
+                        tools:text="@string/msg_bring_your_device"/>
+
+                    <ImageView android:gravity="center_horizontal"
+                        android:id="@+id/logoBtn"
+                        android:layout_height="@dimen/_120pxh"
+                        android:layout_marginTop="@dimen/_20pxv"
+                        android:layout_width="match_parent"
+                        android:layout_below="@+id/deviceCloseTextView"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/img_image"
+                        tools:ignore="ContentDescription" tools:src="@drawable/img_image"/>
+                    <LinearLayout
+                        android:id="@+id/searchBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/logoBtn">
+                    <TextView
+                        android:gravity="center"
+                        android:id="@+id/popUpbtn"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/_10pxv"
+                        android:layout_marginEnd="@dimen/_12pxh"
+                        android:layout_marginStart="@dimen/_12pxh"
+                        android:layout_marginTop="@dimen/_24pxv"
+                        android:layout_width="match_parent"
+                        android:paddingBottom="@dimen/_14pxv"
+                        android:paddingEnd="@dimen/_30pxh"
+                        android:paddingStart="@dimen/_30pxh"
+                        android:paddingTop="@dimen/_14pxv"
+                        android:singleLine="true"
+                        android:text="@string/lbl_searching"
+                        style="@style/btnSolidRounded"
+                        tools:text="@string/lbl_searching"/>
+                    </LinearLayout>
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+</RelativeLayout>

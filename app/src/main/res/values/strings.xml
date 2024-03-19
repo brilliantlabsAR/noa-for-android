@@ -4,7 +4,7 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="translate">Translate</string>
-    <string name="delete_profile">Delete Profile</string>
+    <string name="delete_profile">Delete Profile   </string>
     <string name="logout_amp_unpair_monocle"><![CDATA[Logout & unpair Monocle]]></string>
     <string name="user_profile_deletion_page">User Profile Deletion Page</string>
     <string name="go_back">Go Back</string>
@@ -73,4 +73,11 @@
     <!--    510809410914-o5q5ip4q676rp1376n9jqt3297ve94ls.apps.googleusercontent.com-->
     <!--    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-->
     <!--    662025261192-qvk2un4n71nvv3b6ll988glu34hnh1hb.apps.googleusercontent.com-->
+
+    <string name="msg_sign_in_with_apple">Sign in with Apple</string>
+    <string name="msg_sign_in_with_google">Sign in with Google</string>
+    <string name="msg_sign_in_with_discord">Sign in with Discord</string>
+    <string name="msg_privacy_policy_and">Privacy Policy and Terms and Conditions of Noa</string>
+    <string name="msg_bring_your_device">Bring your device close</string>
+    <string name="lbl_searching">Searching</string>
 </resources>
