@@ -28,6 +28,7 @@
                         android:id="@+id/settingBtn"
                         android:layout_width="30dp"
                         android:layout_height="30dp"
+
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:scaleType="centerCrop"
@@ -115,7 +116,7 @@
 
                     <ImageView android:gravity="center_horizontal"
                         android:id="@+id/logoBtn"
-                        android:layout_height="@dimen/_120pxh"
+                        android:layout_height="@dimen/_160pxh"
                         android:layout_marginTop="@dimen/_20pxv"
                         android:layout_width="match_parent"
                         android:layout_below="@+id/deviceCloseTextView"

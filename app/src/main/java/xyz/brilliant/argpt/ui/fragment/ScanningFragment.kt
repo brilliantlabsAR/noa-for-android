@@ -148,7 +148,7 @@ class ScanningFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.activity_pairing_screen, container, false)
+        val view = inflater.inflate(R.layout.activity_scan_new, container, false)
         val privacyPolicyTextView: TextView = view.findViewById(R.id.privacyPolicy)
         val myString =
             SpannableString(getString(R.string.privecy_txt))
