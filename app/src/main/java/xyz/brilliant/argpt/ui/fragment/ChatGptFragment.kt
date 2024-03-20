@@ -35,7 +35,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private lateinit var etMessage: EditText
     private lateinit var chatSend: ImageView
     private lateinit var popupWindow: PopupWindow
-    private lateinit var settingBtn: ImageView
+    private lateinit var profileBtn: ImageView
     private lateinit var mainView: RelativeLayout
     private lateinit var chatView: RecyclerView
     lateinit var chatAdapter: ChatAdapter
@@ -44,6 +44,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private lateinit var mView: View
     private lateinit var parentActivity: BaseActivity
     private lateinit var connectionStatus : ImageView
+    private lateinit var btnTune : TextView
 
     @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -52,17 +53,18 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
-        mView= inflater.inflate(R.layout.activity_chat_gpt, container, false)
-
+        //mView= inflater.inflate(R.layout.activity_chat_gpt, container, false)
+        mView= inflater.inflate(R.layout.activity_noa, container, false)
         etMessage=mView.findViewById(R.id.etMessage)
         chatSend=mView.findViewById(R.id.chatSend)
-        settingBtn=mView.findViewById(R.id.settingBtn)
+        profileBtn=mView.findViewById(R.id.profileBtn)
         mainView=mView.findViewById(R.id.mainView)
         chatView=mView.findViewById(R.id.chatView)
         layoutManager = LinearLayoutManager(activity)
         layoutManager.stackFromEnd = true
         chatView.layoutManager = layoutManager
         connectionStatus=mView.findViewById(R.id.connectionStatus)
+        btnTune=mView.findViewById(R.id.btnTune)
         chatAdapter = ChatAdapter(chatMessages,this)
         chatView.adapter = chatAdapter
         if(parentActivity.connectionStatus.isNotEmpty()){
@@ -77,6 +79,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 if(question.isNotEmpty()){
                     getResponse(question) {
                         activity?.runOnUiThread {
+
                         }
                     }
                 }
@@ -104,8 +107,29 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         /**
          * On Click event for open setting popup
          */
-        settingBtn.setOnClickListener {
-            showPopup(settingBtn)
+//        settingBtn.setOnClickListener {
+//            showPopup(settingBtn)
+//        }
+
+        profileBtn.setOnClickListener {
+            parentActivity.gotoProfileScreen()
+        }
+
+
+        /**
+         * On Click event for go to tune screen
+         */
+        btnTune.setOnClickListener {
+            parentActivity.gotoTuneScreen()
+        }
+        val tuneBox =mView.findViewById<LinearLayout>(R.id.tuneBox)
+        val hackScreen =mView.findViewById<LinearLayout>(R.id.hackBox)
+
+        tuneBox.setOnClickListener {
+            parentActivity.gotoTuneScreen()
+        }
+        hackScreen.setOnClickListener {
+            parentActivity.gotoHackScreen()
         }
         return mView
     }
@@ -136,7 +160,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     @SuppressLint("NotifyDataSetChanged")
     fun updatechatList(type : String, msg : String){
         activity?.runOnUiThread {
-
             if(parentActivity.translateEnabled)
             {
                 val singleChat = ChatModel(1, type, msg.trim(),true)
@@ -147,8 +170,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 val singleChat = ChatModel(1, type, msg.trim(),false)
                 chatMessages.add(singleChat)
             }
-
-
             scrollToBottom()
             chatAdapter.notifyDataSetChanged()
         }

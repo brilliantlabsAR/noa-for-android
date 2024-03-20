@@ -58,4 +58,94 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+
+    <string name="lbl_noa">Noa</string>
+    <string name="lbl_chat">Chat</string>
+    <string name="lbl_9_23">9:23</string>
+    <string name="lbl_tune">Tune</string>
+    <string name="lbl_hack">Hack</string>
+    <string name="lbl_in_the_style_of">In the style of</string>
+    <string name="lbl_ali_g">Ali G</string>
+    <string name="lbl_tone">Tone</string>
+    <string name="msg_political_hyperbole">Political hyperbole as if addressing the nation</string>
+    <string name="lbl_format_as">Format as</string>
+    <string name="msg_a_series_of_tweets">A series of tweets</string>
+    <string name="lbl_temperature">Temperature</string>
+    <string name="lbl_1_0">1.0</string>
+    <string name="lbl_response_length">Response length</string>
+    <string name="lbl_short">short</string>
+
+
+    <string name="msg_43_4f_4d_49_4e_47">         43 4F 4D 49 4E 47 20
+         53 48 4F 52 54 4C 59         </string>
+    <string name="msg_2f_32_14_49_14_48">2F 32 14 49 14 48 04 F0 43 FF 23 68 03 F0 1F 02 C0
+5B 09 22 60 1A D0 01 2B 10 D0 0E 49 0E 48 4F F4 D3
+4E 72 04 F0 35 FF 00 20 10 BD 03 F0 1F 03 4F F6 60
+FF 72 DA 40 D2 07 48 BF 03 60 E0 D5 07 48 10 BD DF
+4F F0 FF 32 22 FA 03 F3 D9 07 D8 D5 4F F0 A0 40 40
+10 BD 00 BF 68 7F 05 00 8C 7F 05 00 00 03 00 50 83
+00 B5 83 B0 03 46 01 A8 01 93 FF F7 C1 FF 01 9A 8F
+06 4B 00 EB 82 00 D0 F8 00 27 13 40 43 F0 03 03 05
+C0 F8 00 37 03 B0 5D F8 04 FB 00 BF F0 F8 FC FF 96
+00 B5 83 B0 01 90 01 A8 FF F7 AA FF 01 9A 01 23 9E
+93 40 C0 F8 08 35 03 B0 5D F8 04 FB 00 00 00 00 3F
+80 B5 82 B0 80 46 FF F7 3B FF 3D 49 DF F8 00 91 B3
+3C 4F 3D 4E 59 22 04 F0 03 FE 00 20 FF F7 38 FF 1B
+00 23 0F 22 28 21 03 20 05 F0 22 F8 34 49 03 46 49
+5E 22 C0 B2 AD                      20 23 1A 46 7D
+10 21 03 20 05                      61 22 C0 B2 B5
+AD F8 00 30 00 25 04 F0 E3 FD 12 E0 D4 F8 40 37 AB
+03 EA 09 03 43 F0 02 03 C4 F8 40 37 D4 F8 00 3A 34
+01 35 03 EA 09 03 43 F0 02 03 10 2D C4 F8 00 3A F4
+18 D0 AC 00 04 F1 A0 44 05 F1 10 01 D4 F8 00 37 06
+4F F0 FF 32 03 EA 09 03 43 F0 02 03 CA 40 C4 F8 06
+00 37 D3 07 DA D4 40 F2 2F 32 39 46 30 46 04 F0 22
+97 FE D3 E7 4F F0 A0 42 D2 F8 44 37 03 EA 09 03 9F
+43 F4 40 33 C2 F8 44 37 B8 F1 00 0F 0E D1 4F F0 88
+80 44 4F F0 0F 13 C4 F8 00 34 0C 48 27 F0 64 FA 4F
+01 23 C4 F8 00 35 BF F3 4F 8F FE E7 D2 F8 14 3A 7B
+03 EA 09 03 43 F4 40 33 C2 F8 14 3A E7 E7 00 BF D5
+60 7F 05 00 68 7F 05 00 8C 7F 05 00 9C 7F 05 00 FD
+F0 F8 FC FF 00 00 00 00 00 00 00 00 00 00 00 00 0A</string>
+    <string name="msg_those_look_like2">Those look like some nice designer kicks! If you\u2019re on a budget check these out from </string>
+    <string name="msg_32_14_49_14_48_04">   32 14 49 14 48 04 F0 43 FF 23 68 03 F0 1F 02 C0
+5B 09 22 60 1A    01 2B 10 D0 0E 49 0E 48 4F F4 D3
+4E 72 04 F0 35 FF 00 20 10    03    1F 03 4F F6 60
+FF 72 DA 40 D2 07 48 BF 03 60 E0 D5 07 48 10 BD DF
+4F F0 FF 32    FA 03 F3 D9 07 D8 D5 4F F0 A0 40 40
+10 BD 00 BF 68 7F 05 00 8C 7F 05 00 00 03 00 50 83
+   B5 83 B0 03 46 01 A8 01 93 FF F7 C1 FF 01 9A 8F
+06 4B 00 EB 82    D0 F8 00 27 13 40 43 F0 03 03 05
+C0 F8 00    03 B0 5D    04 FB 00 BF F0 F8 FC FF 96
+00 B5 83 B0 01 90 01 A8 FF F7 AA FF 01 9A 01 23 9E
+93 40 C0 F8 08 35 03 B0 5D F8 04    00 00 00 00 3F
+   B5 82 B0 80 46 FF F7 3B FF 3D 49 DF F8 00 91 B3
+3C 4F    4E 59 22 04 F0 03    00 20 FF F7 38 FF 1B
+00 23 0F 22 28 21 03 20 05 F0 22 F8 34 49    46 49
+5E 22 C0 B2 AD                      20    1A 46 7D
+10 21 03 20 05                         22 C0 B2 B5
+AD F8    30 00 25 04 F0 E3 FD 12 E0 D4 F8 40 37 AB
+03 EA 09 03    F0 02 03 C4 F8 40 37 D4    00 3A 34
+01 35 03 EA 09 03 43    02 03 10 2D C4 F8 00 3A F4
+18 D0 AC 00    F1 A0 44 05 F1 10    D4 F8 00    06
+4F    FF 32 03 EA 09 03    F0 02 03 CA 40 C4 F8 06
+00 37 D3 07 DA    40 F2 2F 32 39 46 30    04 F0
+97 FE D3 E7 4F F0 A0 42 D2 F8 44 37    EA 09 03 9F
+43 F4    33 C2 F8 44 37 B8 F1 00 0F 0E D1 4F F0 88
+80 44 4F F0 0F 13 C4 F8    34 0C    27 F0 64 FA 4F
+01 23 C4    00 35 BF F3 4F 8F FE E7 D2 F8 14 3A 7B
+03 EA 09 03 43 F4    33 C2 F8 14 3A E7 E7    BF D5
+60 7F 05 00 68 7F 05 00 8C 7F 05 00 9C 7F 05 00 FD
+F0 F8 FC    00 00 00    00 00 00 00    00 00 00 0A</string>
+    <string name="lbl_account">Account</string>
+    <string name="lbl_tokens_used">Tokens used</string>
+    <string name="lbl_230_1000">230 / 1000</string>
+    <string name="lbl_plan">Plan</string>
+    <string name="lbl_free_upgrade">Free (Upgrade)</string>
+    <string name="lbl_logout">Logout</string>
+    <string name="lbl_privacy_policy">Privacy Policy</string>
+    <string name="lbl_del_account">Delete Account</string>
+
+
+
 </resources>

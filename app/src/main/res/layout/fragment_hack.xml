@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linearColumnhack"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/_15pxh"
+    android:paddingTop="@dimen/_44pxv"
+    style="@style/groupStylegray_900"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+        <ScrollView android:clipToPadding="false"
+            android:fillViewport="true"
+            android:gravity="center_horizontal"
+            android:id="@+id/scrollViewScrollview"
+            android:layout_height="0dp" android:layout_weight="1" android:layout_width="match_parent">
+            <LinearLayout android:id="@+id/linearHack"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_5pxv"
+                android:paddingEnd="@dimen/_42pxh"
+                android:paddingStart="@dimen/_42pxh"
+                android:layout_width="match_parent" android:orientation="vertical">
+                <RelativeLayout android:id="@+id/topPanel"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/txtTune"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:layout_centerVertical="true"
+                        android:textAllCaps="true"
+                        style="@style/txtSFProDisplayheavy18"
+                        android:text="@string/lbl_hack"
+                        android:textColor="@color/white"
+                        tools:text="@string/lbl_hack"/>
+                    <ImageView android:id="@+id/profileBtn"
+                        android:layout_height="@dimen/_20pxh"
+                        android:layout_width="@dimen/_20pxh"
+                        android:src="@drawable/account_icon"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        tools:ignore="ContentDescription"
+                        tools:src="@drawable/account_icon"
+                        app:tint="@color/white" />
+
+                </RelativeLayout>
+                <FrameLayout android:gravity="center_horizontal"
+                    android:id="@+id/frameStack434f4d494e"
+                    android:layout_height="@dimen/_580pxv"
+                    android:layout_marginTop="@dimen/_36pxv" android:layout_width="match_parent">
+                    <TextView android:id="@+id/txt434f4d494e"
+                        android:layout_gravity="center"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:lineSpacingExtra="@dimen/_6pxh"
+                        android:text="@string/msg_43_4f_4d_49_4e_47"
+                        android:textAllCaps="true"
+                        style="@style/txtSometypeMonoregular14" tools:text="@string/msg_43_4f_4d_49_4e_47"/>
+                    <FrameLayout android:id="@+id/frameStackdescriptio"
+                        android:layout_gravity="center"
+                        android:layout_height="@dimen/_580pxv" android:layout_width="match_parent">
+                        <TextView android:gravity="top|center"
+                            android:id="@+id/txtDescription"
+                            android:layout_gravity="center"
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:lineSpacingExtra="@dimen/_6pxh"
+                            android:text="@string/msg_2f_32_14_49_14_48"
+                            android:textAllCaps="true"
+                            style="@style/txtSometypeMonoregular14_1" tools:text="@string/msg_2f_32_14_49_14_48"/>
+                        <TextView android:gravity="top|center"
+                            android:id="@+id/txtDescription1"
+                            android:layout_gravity="top|center"
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:lineSpacingExtra="@dimen/_6pxh"
+                            android:text="@string/msg_32_14_49_14_48_04"
+                            android:textAllCaps="true"
+                            style="@style/txtSometypeMonoregular14_2" tools:text="@string/msg_32_14_49_14_48_04"/>
+                    </FrameLayout>
+                </FrameLayout>
+            </LinearLayout>
+        </ScrollView>
+
+    <LinearLayout android:id="@+id/btnNavigateBox"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_25pxh"
+        android:layout_marginStart="@dimen/_25pxh"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        style="@style/groupStylegray_300cornerRadius">
+        <LinearLayout
+            android:id="@+id/chatBox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="32">
+            <TextView  android:id="@+id/btnChat"
+                android:layout_gravity="center_vertical"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:singleLine="true"
+                android:textAllCaps="true"
+                android:gravity="center"
+                android:text="@string/lbl_chat"
+                style="@style/txtSFProDisplayheavy14"
+                tools:text="@string/lbl_chat"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/tuneBox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="32">
+            <TextView android:ellipsize="end" android:id="@+id/btnTune"
+                android:layout_gravity="center_vertical"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textAllCaps="true"
+                android:text="@string/lbl_tune"
+                style="@style/txtSFProDisplayheavy14"
+                tools:text="@string/lbl_tune"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="32">
+            <RelativeLayout
+                android:layout_height="@dimen/_52pxv"
+                android:layout_width="match_parent">
+                <androidx.appcompat.widget.AppCompatButton
+                    android:ellipsize="end" android:gravity="center"
+                    android:id="@+id/btnHack"
+                    android:layout_gravity="center_vertical"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:singleLine="true"
+                    android:text="@string/lbl_hack"
+                    android:textAllCaps="true"
+                    style="@style/btnSolidRounded_4"
+                    tools:text="@string/lbl_hack"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -3,30 +3,27 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/backgroundLayout"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        style="@style/backgroundLayout"
         android:layout_marginBottom="5dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_gravity="start"
             android:orientation="vertical">
         <LinearLayout
             android:id="@+id/layoutMsg"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:layout_marginStart="@dimen/_40sp"
+            android:layout_gravity="start"
+            android:layout_marginStart="@dimen/_15pxh"
             android:layout_marginEnd="@dimen/_25sp"
-            android:background="@drawable/chat_right"
             android:orientation="vertical">
 
             <ImageView
@@ -44,7 +41,7 @@
                 android:id="@+id/messageText"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_gravity="end"
+                android:layout_gravity="start"
                 android:layout_marginEnd="12dp"
                 android:autoLink="all"
                 android:maxWidth="@dimen/_300sp"
@@ -52,10 +49,9 @@
                 android:paddingTop="6dp"
                 android:paddingRight="12dp"
                 android:paddingBottom="@dimen/_10sp"
-                android:textColor="@android:color/white"
                 android:textColorLink="#E85DA0"
-                android:textSize="16sp"
-                tools:text="This is a message" />
+                tools:text="This is a message"
+                style="@style/txtSFProDisplaylight14"/>
 
 
 
@@ -67,6 +63,7 @@
             android:layout_width="@dimen/_12sp"
             android:layout_height="16dp"
             android:layout_gravity="end"
+            android:visibility="gone"
             android:background="@drawable/corner_green"
             />
         </LinearLayout>

@@ -64,7 +64,10 @@ import xyz.brilliant.argpt.network.RequestAPICallBack
 import xyz.brilliant.argpt.service.ForegroundService
 import xyz.brilliant.argpt.ui.fragment.ChatGptFragment
 import xyz.brilliant.argpt.ui.fragment.DeleteProfileFragment
+import xyz.brilliant.argpt.ui.fragment.HackFragment
+import xyz.brilliant.argpt.ui.fragment.ProfileFragment
 import xyz.brilliant.argpt.ui.fragment.ScanningFragment
+import xyz.brilliant.argpt.ui.fragment.TuneFragment
 import xyz.brilliant.argpt.ui.login.SocialLoginActivity
 import xyz.brilliant.argpt.ui.model.ChatModel
 import xyz.brilliant.argpt.utils.ActivityUtil
@@ -2806,5 +2809,50 @@ MESSAGE_END_FLAG = "\x16"
         val fragment = DeleteProfileFragment()
          ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "delete_profile")//// for testing**
     }
+
+
+
+
+    /**
+     * Method to popup fragment from stack
+     */
+    fun closeFragment(){
+        fragmentManager.popBackStack()
+    }
+
+    /**
+     * Method to navigate chat screen
+     */
+    fun gotoNext(){
+        val fragment = ChatGptFragment()
+        ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "chat_gpt")
+
+    }
+
+    /**
+     * Method to navigate tune screen
+     */
+    fun gotoTuneScreen(){
+        val fragment = TuneFragment()
+        ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "tune")
+
+    }
+    /**
+     * Method to navigate hack screen
+     */
+    fun gotoHackScreen(){
+        val fragment = HackFragment()
+        ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "hack")
+    }
+    /**
+     * Method to navigate profile screen
+     */
+    fun gotoProfileScreen(){
+        val fragment = ProfileFragment()
+        ActivityUtil.navigateToFragment(fragmentManager, fragment, true, "profile")
+    }
+
+
+
 
 }

@@ -74,7 +74,7 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
         val privacyPolicyTextView: TextView = findViewById(R.id.privacyPolicy)
 
         val myString =
-            SpannableString(getString(R.string.privecy_txt))
+            SpannableString(getString(R.string.msg_privacy_policy_and))
 
         val clickableSpan: ClickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
@@ -89,12 +89,12 @@ class SocialLoginActivity : AppCompatActivity() , GoogleApiClient.OnConnectionFa
             }
         }
 
-        myString.setSpan(clickableSpan, 0, 14, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        myString.setSpan(clickableSpan, 0, 15, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(clickableSpan1, 19, 39, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         myString.setSpan(
             ForegroundColorSpan(Color.parseColor("#E82E87")),
             0,
-            14,
+            15,
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         myString.setSpan(

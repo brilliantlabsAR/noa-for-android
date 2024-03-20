@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<LinearLayout android:id="@+id/linearColumnaccount"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    style="@style/groupStylewhite_A700"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+        <ScrollView android:clipToPadding="false"
+            android:fillViewport="true"
+            android:gravity="center_horizontal"
+            android:id="@+id/scrollViewScrollview"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/_44pxv"
+            android:layout_weight="1" android:layout_width="match_parent">
+            <LinearLayout android:id="@+id/linearAccount"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_137pxv"
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:paddingEnd="@dimen/_42pxh" android:paddingStart="@dimen/_42pxh">
+
+                <RelativeLayout android:id="@+id/topPanel"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/txtTune"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:layout_centerVertical="true"
+                        android:textAllCaps="true"
+                        style="@style/txtSFProDisplayheavy18"
+                        android:text="@string/lbl_account"
+                        tools:text="@string/lbl_account"/>
+                    <ImageView android:id="@+id/closeBtn"
+                        android:layout_height="@dimen/_20pxh"
+                        android:layout_width="@dimen/_20pxh"
+                        android:src="@drawable/img_x_icon"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        tools:ignore="ContentDescription"
+                        tools:src="@drawable/img_x_icon"/>
+
+                </RelativeLayout>
+
+
+                <TextView android:ellipsize="end"
+                    android:id="@+id/txtTokensused"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_35pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_3pxh"
+                    android:singleLine="true"
+                    android:text="@string/lbl_tokens_used"
+                    style="@style/txtSFProDisplayheavy14_1" tools:text="@string/lbl_tokens_used"/>
+                <TextView android:ellipsize="end"
+                    android:id="@+id/txtTwoMillionThreeHundredOneThousand"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_4pxh"
+                    android:singleLine="true"
+                    android:text="@string/lbl_230_1000"
+                    android:textAllCaps="true"
+                    style="@style/txtSFProDisplayheavy18" tools:text="@string/lbl_230_1000"/>
+                <TextView android:ellipsize="end"
+                    android:id="@+id/txtPlan"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_35pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_3pxh"
+                    android:singleLine="true"
+                    android:text="@string/lbl_plan"
+                    style="@style/txtSFProDisplayheavy14_1" tools:text="@string/lbl_plan"/>
+                <TextView android:ellipsize="end"
+                    android:id="@+id/txtFreeupgrade"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_4pxh"
+                    android:singleLine="true"
+                    android:text="@string/lbl_free_upgrade"
+                    android:textAllCaps="true"
+                    style="@style/txtSFProDisplayheavy18" tools:text="@string/lbl_free_upgrade"/>
+                <TextView android:id="@+id/btnLogout"
+                    android:layout_gravity="start"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_350pxv"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_10pxh"
+                    android:textSize="@dimen/_20sp"
+                    android:text="@string/lbl_logout"
+                    style="@style/txtSFProDisplayregular14"
+                    android:padding="@dimen/_5pxv"
+                    tools:text="@string/lbl_logout"/>
+                <TextView android:id="@+id/btnPrivacyPolicy"
+                    android:layout_gravity="start"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:textSize="@dimen/_20sp"
+                    android:lineSpacingExtra="@dimen/_10pxh"
+                    android:text="@string/lbl_privacy_policy"
+                    style="@style/txtSFProDisplayregular14"
+                    android:padding="@dimen/_2pxv"
+                    tools:text="@string/lbl_privacy_policy"/>
+                <TextView android:id="@+id/btnDelAccount"
+                    android:layout_gravity="start"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:lineSpacingExtra="@dimen/_10pxh"
+                    android:text="@string/lbl_del_account"
+                    style="@style/txtSFProDisplayregular14" tools:text="@string/lbl_del_account"
+                    android:textSize="@dimen/_20sp"
+                    android:textColor="@color/red"
+                    android:padding="@dimen/_2pxv"/>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>

@@ -22,7 +22,7 @@ object Constant {
     const val IMAGE="image"
     const val CONFIG="config"
 
-
+    const val PRIVACY_POLICY_URL = "https://brilliant.xyz/pages/privacy-policy"
 
     /** ERROR response*/
     const val ERROR_RESPONSE="Something is wrong...try again!!"
