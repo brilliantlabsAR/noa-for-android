@@ -1347,21 +1347,15 @@ class BaseActivity : AppCompatActivity() {
     private fun uploadAudioFile(audioFile: File, byteCallback: Callback) {
         val client = OkHttpClient()
         val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM) // file needs to be the base64 encoded string
+            .setType(MultipartBody.FORM)
             .addFormDataPart("file", audioFile.name, audioFile.asRequestBody("audio/wav".toMediaTypeOrNull()))
-            .addFormDataPart("audio_format", "wav")
             .addFormDataPart("model", "base.en")
-            // Add additional parameters if required
             .build()
-
-
-        Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
         val request = Request.Builder()
             .url("${getStoredApiEndpoint()}/audio/transcriptions")
             .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
             .post(requestBody)
             .build()
-
         client.newCall(request).enqueue(byteCallback)
     }
 
