@@ -19,9 +19,6 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import xyz.brilliant.argpt.R
@@ -29,9 +26,10 @@ import xyz.brilliant.argpt.ui.activity.BaseActivity
 import xyz.brilliant.argpt.ui.adapter.ChatAdapter
 import xyz.brilliant.argpt.ui.model.ChatModel
 import java.io.IOException
+import androidx.appcompat.app.AlertDialog
+import android.widget.EditText
 
 class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
-    private val client = OkHttpClient()
     // creating variables on below line.
 //    lateinit var txtResponse: TextView
 //    lateinit var idTVQuestion: TextView
@@ -91,7 +89,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             connectionStatus.visibility = View.VISIBLE
            // connectionStatus.text = parentActivity.connectionStatus
         }
-        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
+        etMessage.setOnEditorActionListener(TextView.OnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
 
                 // setting response tv on below line.
@@ -101,10 +99,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 val question = etMessage.text.toString().trim()
               //  Toast.makeText(activity,question, Toast.LENGTH_SHORT).show()
                 if(question.isNotEmpty()){
-
-                    getResponse(question) { response ->
-                        activity?.runOnUiThread {
-//                            txtResponse.text = response
+                    parentActivity.getResponse(question) { response ->
+                        parentActivity.runOnUiThread {
+                            //
                         }
                     }
                 }
@@ -113,8 +110,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             false
         })
 
-
-
         chatSend.setOnClickListener {
             if(etMessage.text.trim().isNotEmpty()){
                 val question = etMessage.text.toString().trim()
@@ -122,16 +117,16 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                     val singleChat = ChatModel(1,"S",question)
                     chatMessages.add(singleChat)
                     chatAdapter.notifyDataSetChanged()
-                    parentActivity.getResponse(question)
+                    parentActivity.getResponse(question) { response ->
+                        parentActivity.runOnUiThread {
+                            //
+                        }
+                    }
                     etMessage.text.clear()
                 }
             }
         }
 
-        settingBtn.setOnClickListener {
-            //showAtAnchor(mainView)
-            showPopup()
-        }
      //   parentActivity.sendHelloRaw("")
         return mView
     }
@@ -269,6 +264,9 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         val doneButton = dialog.findViewById<LinearLayout>(R.id.doneButton)
         val apiKeyText = dialog.findViewById<EditText>(R.id.apiKeyText)
         val apiKeyTextStabilityApi = dialog.findViewById<EditText>(R.id.apiKeyTextStabilityApi)
+        val openAiEndpoint = dialog.findViewById<EditText>(R.id.openAiEndpoint)
+        val openAiModel = dialog.findViewById<EditText>(R.id.openAiModel)
+        val systemMessage = dialog.findViewById<EditText>(R.id.systemMessage)
 //        val closeButton = dialog.findViewById<LinearLayout>(R.id.closeButton)
         val apiKeyOld =  parentActivity.getStoredApiKey()
         apiKeyText.setText(apiKeyOld)
@@ -290,6 +288,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 parentActivity.apiKey  = apiKeyValue
                 parentActivity.storeStabilityApiKey(apiKeyTextStabilityApi.text.toString().trim())
                 parentActivity.stabilityApiKey  = apiKeyTextStabilityApi.text.toString().trim()
+                parentActivity.storeApiEndpoint(openAiEndpoint.text.toString().trim())
+                parentActivity.openAiEndpoint  = openAiEndpoint.text.toString().trim()
+                parentActivity.storeModel(openAiModel.text.toString().trim())
+                parentActivity.openAiModel  = openAiModel.text.toString().trim()
+                parentActivity.storeSystemMessage(systemMessage.text.toString().trim())
+                parentActivity.systemMessage  = systemMessage.text.toString().trim()
             }else{
 
               //  Toast.makeText(requireActivity(),"Please enter your OpenAI key",Toast.LENGTH_SHORT).show()
@@ -335,74 +339,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         chatView.scrollToPosition(chatMessages.size-1)
     }
 
-    fun getResponse(question: String, callback: (String) -> Unit){
-        try {
-
-            etMessage.setText("")
-
-
-            val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
-
-            val requestBody="""
-            {
-            "prompt": "$question",
-            "max_tokens": 500,
-            "temperature": 0
-            }
-        """.trimIndent()
-
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer ${parentActivity.apiKey}")
-                .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                .build()
-
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("error","API failed",e)
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val body=response.body?.string()
-                    if (body != null) {
-                        Log.v("data",body)
-                    }
-                    else{
-                        Log.v("data","empty")
-                    }
-                    val jsonObject= JSONObject(body)
-                    Log.d("TAG", "onResponse: "+jsonObject)
-
-                    if (jsonObject.has("id")) {
-                        val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                        val textResult = jsonArray.getJSONObject(0).getString("text")
-
-                        parentActivity.sendChatGptResponce(textResult,"res:")
-                        callback(textResult)
-                    }else{
-                        val error: JSONObject = jsonObject.getJSONObject("error")
-                        val msg:String=error.getString("message")
-
-                        parentActivity.sendChatGptResponce(msg,"err:")
-                        activity?.runOnUiThread(Runnable {
-                            //  Toast.makeText(this@ChatGptActivity,msg, Toast.LENGTH_SHORT).show()
-//                            txtResponse.text = msg
-                            val singleChat = ChatModel(1,"R",msg)
-                            chatMessages.add(singleChat)
-                            scrollToBottom()
-                            chatAdapter.notifyDataSetChanged()
-
-                        })
-                    }
-                }
-            })
-        }catch (ex:Exception){
-            parentActivity.sendChatGptResponce("getResponse: $ex","err:")
-            Log.d("ChatGpt", "getResponse: $ex")
-        }
-    }
-
     override fun onUrlClick(position: Int, url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         startActivity(intent)
@@ -421,6 +357,4 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     override fun onOpenApiClick(position: Int, chatModel: ChatModel) {
         openChangeApiKey()
     }
-
-
 }

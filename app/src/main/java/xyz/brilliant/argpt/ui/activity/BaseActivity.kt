@@ -15,14 +15,12 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.BroadcastReceiver
-import android.content.ContentUris
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,18 +28,12 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
-import android.view.View
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -82,7 +74,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -95,6 +86,11 @@ import kotlin.math.ceil
 
 
 class BaseActivity : AppCompatActivity() {
+    lateinit var apiKey: String
+    lateinit var stabilityApiKey: String
+    lateinit var openAiEndpoint: String
+    lateinit var openAiModel: String
+    lateinit var systemMessage: String
 
     companion object {
         private const val TAG = "BaseActivity"
@@ -148,8 +144,6 @@ class BaseActivity : AppCompatActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var recyclerView: RecyclerView
-    var apiKey = ""
-    var stabilityApiKey = ""
     private val handler = Handler(Looper.getMainLooper())
     private var scanning: Boolean = false
     private var bluetoothGatt: BluetoothGatt? = null
@@ -190,6 +184,9 @@ class BaseActivity : AppCompatActivity() {
     private val PREFS_KEY_DEVICE_ADDRESS = "DeviceAddress"
     private val PREFS_OPEN_API_KEY = "OpenAi"
     private val PREFS_STABILITY_API_KEY = "stability"
+    private val PREFS_OPENAI_ENDPOINT = "openai_endpoint"
+    private val PREFS_OPENAI_MODEL = "openai_model"
+    private val PREFS_SYSTEM_MESSAGE = "system_message"
     private var currentScannedDevice: BluetoothDevice? = null
     private var overlallSoftwareProgress = 0
     private var overlallSoftwareSize = 0
@@ -217,6 +214,21 @@ class BaseActivity : AppCompatActivity() {
     fun getStoredApiKey(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
+    }
+    
+    fun getStoredApiEndpoint(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_OPENAI_ENDPOINT, "https://api.openai.com/v1") ?: "https://api.openai.com/v1"
+    }
+    
+    fun getStoredModel(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_OPENAI_MODEL, "gpt-4-vision-preview") ?: "gpt-4-vision-preview"
+    }
+    
+    fun getStoredSystemMessage(): String {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        return prefs.getString(PREFS_SYSTEM_MESSAGE, "The assistant is Noa, the user's AR AI companion.") ?: "The assistant is Noa, the user's AR AI companion."
     }
 
     fun getStoredStabilityApiKey(): String {
@@ -257,12 +269,34 @@ class BaseActivity : AppCompatActivity() {
         editor.apply()
     }
 
+    fun storeApiEndpoint(_endpoint: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_OPENAI_ENDPOINT, _endpoint)
+        editor.apply()
+    }
+
+    fun storeModel(_model: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_OPENAI_MODEL, _model)
+        editor.apply()
+    }
+
+    fun storeSystemMessage(message: String) {
+        val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(PREFS_SYSTEM_MESSAGE, message)
+        editor.apply()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val intentFilter = IntentFilter("ACTION_START_SCAN")
         registerReceiver(scanReceiver, intentFilter)
         setContentView(R.layout.activity_base)
+        apiKey = getStoredApiKey()
+        stabilityApiKey = getStoredStabilityApiKey()
         getAllPermission()
     }
 
@@ -1312,27 +1346,21 @@ class BaseActivity : AppCompatActivity() {
     // OPEN AI
     private fun uploadAudioFile(audioFile: File, byteCallback: Callback) {
         val client = OkHttpClient()
-
-        // Replace 'YOUR_API_KEY' with your actual OpenAI API key
-//        val apiKey = "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"
-
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "audio.wav", audioFile.asRequestBody())
-            .addFormDataPart("model", "whisper-1")
-            // Add additional parameters if required
+            .addFormDataPart("file", audioFile.name, audioFile.asRequestBody("audio/wav".toMediaTypeOrNull()))
+            .addFormDataPart("model", "base.en")
             .build()
-
-
         Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
-
+        var url = "${getStoredApiEndpoint()}/audio/transcriptions"
+        if (translateEnabled) {
+            url = "${getStoredApiEndpoint()}/audio/translations"
+        }
         val request = Request.Builder()
-            .url("https://api.openai.com/v1/audio/translations")
-            //.addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .url(url)
+            .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
             .post(requestBody)
             .build()
-
         client.newCall(request).enqueue(byteCallback)
     }
 
@@ -1361,24 +1389,22 @@ class BaseActivity : AppCompatActivity() {
                     // updatechatList("S","Text not readable... try again!!")
 
                     if (translateEnabled) {
-                        sendTranslatedResponce("Couldn't translate....try again!", "err:")
+                        sendTranslatedResponse("Couldn't translate....try again!", "err:")
                     } else {
-                        updatechatList("S", " ")
-                        getResponse(" ")
+                        updatechatList("S", "Text not readable... try again!!")
                     }
                 } else {
                     if (translateEnabled) {
 
                         // updatechatList("S",textResult.trim())
-                        sendTranslatedResponce(textResult.trim(), "res:")
+                        sendTranslatedResponse(textResult.trim(), "res:")
                     } else {
                         updatechatList("S", textResult.trim())
 
-
-                        if (globalJpegFilePath.isNullOrEmpty()) {
-                            getResponse(textResult)
-                        } else {
-                            callStabilityAiImagetoImage(textResult.trim())
+                        getResponse(textResult.trim()) { response ->
+                            runOnUiThread {
+                                //
+                            }
                         }
                     }
 
@@ -1388,15 +1414,13 @@ class BaseActivity : AppCompatActivity() {
                 val error: JSONObject = jsonObject.getJSONObject("error")
                 val msg: String = error.getString("message")
 
-                sendChatGptResponce(msg, "err:")
+                sendChatGptResponse(msg, "err:")
 
             }
         }
     }
 
     private fun callStabilityAiImagetoImage(prompt: String) {
-        val apiKey = stabilityApiKey//"sk-sb1h86seqfVQrvwIT6MNX4Y82SFmiurrhBSwXLlaFPCbt4cb"
-
         val imageFilePath = globalJpegFilePath // Replace with the actual path to your image file
         val prompt = prompt
         val strength = 0.5f
@@ -1424,7 +1448,7 @@ class BaseActivity : AppCompatActivity() {
         // Create a request with headers and the prepared request body
         val request = Request.Builder()
             .url("https://api.stability.ai/v1/generation/stable-diffusion-v1-5/image-to-image")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Authorization", "Bearer $stabilityApiKey")
             .addHeader("Stability-Client-ID", "Noa/Android")
             .post(requestBody)
             .build()
@@ -1483,76 +1507,115 @@ class BaseActivity : AppCompatActivity() {
 
     }
 
-    fun getResponse(question: String) {
-        if(globalJpegFilePath.isNullOrEmpty()) {
-            try {
-
-                val url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-
-                val requestBody = """
-            {
-            "prompt": "$question",
-            "max_tokens": 500,
-            "temperature": 0
+    fun getResponse(question: String, callback: (String) -> Unit){
+        try {
+            val url = "${getStoredApiEndpoint()}/chat/completions"
+            val userContent: Any
+            if (globalJpegFilePath.isNullOrEmpty()) {
+                userContent = question
+            } else {
+                userContent = JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("type", "text")
+                        put("text", question)
+                    })
+                    put(JSONObject().apply {
+                        put("type", "image_url")
+                        put("image_url", put(JSONObject().apply {
+                           put("url", "data:image/jpeg;base64,${Base64.encodeToString(File(globalJpegFilePath).readBytes(), Base64.DEFAULT)}")
+                        }))
+                    })
+                }
             }
-        """.trimIndent()
+            val messages = JSONArray().apply {
+                put(JSONObject().apply {
+                    put("role", "system")
+                    put("content", getStoredSystemMessage())
+                })
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", userContent)
+                })
+            }
+            val requestBody = JSONObject().apply {
+                put("model", getStoredModel())
+                put("messages", messages)
+                put("max_tokens", 500)
+                put("temperature", 0.5)
+                put("top_p", 0.9)
+            }.toString()
+            
+            val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+            val body = requestBody.toRequestBody(mediaType)
 
-                val request = Request.Builder()
-                    .url(url)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
-                    .build()
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
+                .post(body)
+                .build()
 
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
-                        Log.e("error", "API failed", e)
-                        updatechatList("R", e.message.toString())
-
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val body = response.body?.string()
-                        if (body != null) {
-                            Log.v("data", body)
-                        } else {
-                            Log.v("data", "empty")
+                        Log.e("ChatGpt", "API request failed", e)
+                        runOnUiThread {
+                            sendChatGptResponse("Failed to get response: ${e.localizedMessage}", "err:")
                         }
-                        val jsonObject = JSONObject(body)
-                        Log.d("TAG", "onResponse: " + jsonObject)
-
-                        if (jsonObject.has("id")) {
-                            val jsonArray: JSONArray = jsonObject.getJSONArray("choices")
-                            val textResult = jsonArray.getJSONObject(0).getString("text")
-
-                            sendChatGptResponce(textResult, "res:")
-//                        callback(textResult)
-                        } else {
-                            val error: JSONObject = jsonObject.getJSONObject("error")
-                            val msg: String = error.getString("message")
-
-                            sendChatGptResponce(msg, "err:")
-
+                        callback("Failed to get response: ${e.localizedMessage}")
+                    }
+        
+                    override fun onResponse(call: Call, response: Response) {
+                        response.body?.string()?.let { body ->
+                            try {
+                                val jsonObject = JSONObject(body)
+                                if (jsonObject.has("choices")) {
+                                    val jsonArray = jsonObject.getJSONArray("choices")
+                                    val textResult = jsonArray.getJSONObject(0).getJSONObject("message").getString("content")
+        
+                                    runOnUiThread {
+                                        sendChatGptResponse(textResult, "res:")
+                                    }
+                                    callback(textResult)
+                                } else {
+                                    val errorMsg = jsonObject.optJSONObject("error")?.getString("message")
+                                        ?: "Unknown error occurred: ${jsonObject.toString(2)}"
+                                    Log.e("ChatGpt", "Error in response: $errorMsg")
+                                    runOnUiThread {
+                                        sendChatGptResponse(errorMsg, "err:")
+                                    }
+                                    callback(errorMsg)
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ChatGpt", "JSON parsing error", e)
+                                runOnUiThread {
+                                    sendChatGptResponse("Error parsing response: ${e.localizedMessage}", "err:")
+                                }
+                                callback("Error parsing response: ${e.localizedMessage}")
+                            }
+                        } ?: run {
+                            Log.e("ChatGpt", "Empty response body")
+                            runOnUiThread {
+                                sendChatGptResponse("Received empty response", "err:")
+                            }
+                            callback("Received empty response")
                         }
                     }
                 })
-            } catch (ex: Exception) {
-                sendChatGptResponce("getResponse: ${ex.message}", "err:")
-                Log.d("ChatGpt", "getResponse: $ex")
-            }
-        }else{
-            callStabilityAiImagetoImage(question)
+        } catch (ex: Exception) {
+            sendChatGptResponse("getResponse: ${ex.message}", "err:")
+            Log.d("ChatGpt", "getResponse: $ex")
+            callback("getResponse: ${ex.message}")
         }
     }
 
-    fun sendChatGptResponce(data: String, prefix: String) {
+    fun sendChatGptResponse(data: String, prefix: String) {
         updatechatList("R", data)
         val data = prefix + data //err:
         dataSendBle(data)
     }
 
 
-    fun sendTranslatedResponce(data: String, prefix: String) {
+    fun sendTranslatedResponse(data: String, prefix: String) {
         updatechatList("S", data)
         val data = prefix + data //err:
         dataSendBle(data)
@@ -1742,10 +1805,6 @@ class BaseActivity : AppCompatActivity() {
             val fragment = ChatGptFragment()
             pushFragmentsStatic(fragmentManager, fragment, false, "chat_gpt")
 
-            val apikeyStored = getStoredApiKey()
-            if (!apikeyStored.isNullOrEmpty()) {
-                apiKey = apikeyStored
-            }
             updateConnectionStatus("")
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
@@ -1815,10 +1874,8 @@ class BaseActivity : AppCompatActivity() {
                 R.drawable.openai_website
             ).toString()
         )
-
         val messagelist = listOf(
             ChatModel(1, "R", "Hi, I’m Noa. Let’s show you around 🙂", false, ""),
-
             ChatModel(
                 1, "R", "Tap either of the touch pads and speak.\n\n" +
                         "Ask me any question, and I’ll then respond directly on your Monocle.", false, getThumbnailUrl("https://platform.openai.com"),
@@ -2401,13 +2458,13 @@ class BaseActivity : AppCompatActivity() {
             if (jsonResponse != null) {
                 val jsonObject = JSONObject(jsonResponse)
                 if (jsonObject.has("message")) {
-                    sendChatGptResponce(jsonObject.get("message").toString(), "err:")
+                    sendChatGptResponse(jsonObject.get("message").toString(), "err:")
                 }
                 if (jsonObject.has("transcript")) {
                     updatechatList("S", jsonObject.get("transcript").toString())
                 }
                 if (jsonObject.has("reply")) {
-                    sendChatGptResponce(jsonObject.get("reply").toString(), "res:")
+                    sendChatGptResponse(jsonObject.get("reply").toString(), "res:")
                 }
             }
         } else {
@@ -2423,7 +2480,7 @@ class BaseActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         // Code to handle the exception
                     } finally {
-                        sendChatGptResponce(msg.toString(), "err:")
+                        sendChatGptResponse(msg.toString(), "err:")
                         // Code that will be executed regardless of whether an exception occurred or not
                     }
 
