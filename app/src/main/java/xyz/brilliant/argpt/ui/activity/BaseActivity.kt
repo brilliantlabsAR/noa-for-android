@@ -1389,7 +1389,7 @@ class BaseActivity : AppCompatActivity() {
                     // updatechatList("S","Text not readable... try again!!")
 
                     if (translateEnabled) {
-                        sendTranslatedResponce("Couldn't translate....try again!", "err:")
+                        sendTranslatedResponse("Couldn't translate....try again!", "err:")
                     } else {
                         updatechatList("S", "Text not readable... try again!!")
                     }
@@ -1397,7 +1397,7 @@ class BaseActivity : AppCompatActivity() {
                     if (translateEnabled) {
 
                         // updatechatList("S",textResult.trim())
-                        sendTranslatedResponce(textResult.trim(), "res:")
+                        sendTranslatedResponse(textResult.trim(), "res:")
                     } else {
                         updatechatList("S", textResult.trim())
 
@@ -1615,7 +1615,7 @@ class BaseActivity : AppCompatActivity() {
     }
 
 
-    fun sendTranslatedResponce(data: String, prefix: String) {
+    fun sendTranslatedResponse(data: String, prefix: String) {
         updatechatList("S", data)
         val data = prefix + data //err:
         dataSendBle(data)
