@@ -73,6 +73,7 @@
             android:thumbTint="@drawable/switch_thumb_color_selector"
             android:layout_marginStart="25dp"/>
 
+
     </LinearLayout>
 
     <View
