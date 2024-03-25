@@ -1351,8 +1351,13 @@ class BaseActivity : AppCompatActivity() {
             .addFormDataPart("file", audioFile.name, audioFile.asRequestBody("audio/wav".toMediaTypeOrNull()))
             .addFormDataPart("model", "base.en")
             .build()
+        Log.d("TAG", "uploadAudioFile: " + requestBody.toString())
+        var url = "${getStoredApiEndpoint()}/audio/transcriptions"
+        if (translateEnabled) {
+            url = "${getStoredApiEndpoint()}/audio/translations"
+        }
         val request = Request.Builder()
-            .url("${getStoredApiEndpoint()}/audio/transcriptions")
+            .url(url)
             .addHeader("Authorization", "Bearer ${getStoredApiKey()}")
             .post(requestBody)
             .build()
@@ -1396,15 +1401,10 @@ class BaseActivity : AppCompatActivity() {
                     } else {
                         updatechatList("S", textResult.trim())
 
-
-                        if (globalJpegFilePath.isNullOrEmpty()) {
-                            getResponse(textResult.trim()) { response ->
-                                runOnUiThread {
-                                    //
-                                }
+                        getResponse(textResult.trim()) { response ->
+                            runOnUiThread {
+                                //
                             }
-                        } else {
-                            callStabilityAiImagetoImage(textResult.trim())
                         }
                     }
 
