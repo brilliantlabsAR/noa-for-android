@@ -13,6 +13,7 @@ MESSAGE_IMAGE_4_FLAG = "\x15"
 MESSAGE_END_FLAG = "\x16"
 
 function bluetooth_callback(message)
+    print("Received: " .. message)
     if string.sub(message, 1, 1) == MESSAGE_START_FLAG then
         graphics:clear()
     elseif string.sub(message, 1, 1) == MESSAGE_TEXT_FLAG then

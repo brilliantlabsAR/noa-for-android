@@ -42,10 +42,16 @@ class ScanningFragment : Fragment() {
     }
 
 
-    fun updatePopUp(deviceCloseText: String,buttonText:String){
+    fun updatePopUp(deviceCloseText: String,buttonText:String, fillColor:Boolean=false){
         parentActivity.runOnUiThread {
             deviceCloseTextView.text = deviceCloseText
             popUpBtn.text = buttonText
+            println("fillColor $fillColor")
+            if (fillColor) {
+              popUpBtn.setBackgroundResource(R.drawable.rectangle_bg_black)
+            }else{
+                popUpBtn.setBackgroundResource(R.drawable.rectangle_bg_gray_300_radius_14)
+            }
             popUpBtn.isClickable=false
         }
     }
@@ -80,9 +86,9 @@ class ScanningFragment : Fragment() {
 
         searchBox.setOnClickListener {
             try {
-                if (popUpBtn.text == "Monocle. Connect") {
+                if (popUpBtn.text == "Connect") {
                     parentActivity.connectDevice()
-                }else if (popUpBtn.text =="Frame. Connect"){
+                }else if (popUpBtn.text =="Pair"){
                     parentActivity.connectDevice()
                 }
             }catch (ex:Exception){

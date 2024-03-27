@@ -187,7 +187,7 @@ class BaseActivity : AppCompatActivity() {
     private var currentConnectionStatus = false
     private var accessToken: String = ""
     private var lastAudioFile: File? = null
-
+    val chatMessages = ArrayList<ChatModel>()
     private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
 
     private lateinit var permissionHelper: PermissionHelper
@@ -324,6 +324,7 @@ class BaseActivity : AppCompatActivity() {
                 val fragment = ScanningFragment()
                 ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "start_scan")
             } else {
+                chatMessages.clear()
                 currentAppState = AppState.RUNNING
                 val fragment = ChatGptFragment()
                 ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "chat_gpt")
@@ -436,13 +437,13 @@ class BaseActivity : AppCompatActivity() {
     /**
      * Method to update popup text
      */
-    fun updateProgressDialog(deviceCloseText: String, btnText: String) {
+    fun updateProgressDialog(deviceCloseText: String, btnText: String, fillColor:Boolean=false) {
 
         //   val newDeviceCloseText = deviceCloseText
         runOnUiThread {
             val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
             if (fragment is ScanningFragment) {
-                fragment.updatePopUp(deviceCloseText, btnText)
+                fragment.updatePopUp(deviceCloseText, btnText, fillColor)
             }
         }
 
@@ -559,10 +560,18 @@ class BaseActivity : AppCompatActivity() {
             println(result.device.name + result.rssi)
             if (result.rssi > -65) {
                 currentScannedDevice = result.device
-                updateProgressDialog(
-                    "Bring your device close.",
-                    "${currentScannedDevice?.name?.capitalize(Locale.getDefault())}. Connect"
-                )
+                if (currentScannedDevice?.name?.contains("frame",true)==true){
+                    updateProgressDialog(
+                        "${currentScannedDevice?.name?.capitalize(Locale.getDefault())} Found",
+                        "Pair", true
+                    )
+                }else{
+                    updateProgressDialog(
+                        "${currentScannedDevice?.name?.capitalize(Locale.getDefault())} Found",
+                        "Connect", true
+                    )
+                }
+
 
             } else if (result.rssi < -80) {
                 currentScannedDevice = null
@@ -1108,17 +1117,17 @@ MESSAGE_END_FLAG = "\x16"
 //                                    } else {
 
 
-                            if (imageBuffer.size > 0) {
-                                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
-                                if (bitmap != null) {
-                                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
-                                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
-                                    if (jpegFile != null) {
-                                        globalJpegFilePath = jpegFile.absolutePath
-                                    }
-                                    updateChatList(1, "S", "", bitmap!!)
-                                }
-                            }
+//                            if (imageBuffer.size > 0) {
+//                                bitmap = BitmapFactory.decodeByteArray(imageBuffer, 1, imageBuffer.size - 1)
+//                                if (bitmap != null) {
+//                                    bitmap = resizeBitmapToMultipleOf64(bitmap!!)
+//                                    val jpegFile = saveBitmapAsJPEG(bitmap!!)
+//                                    if (jpegFile != null) {
+//                                        globalJpegFilePath = jpegFile.absolutePath
+//                                    }
+//                                    updateChatList(1, "S", "", bitmap!!)
+//                                }
+//                            }
 
                                         callStabilityApi(f2)
                                    // }
@@ -1468,6 +1477,7 @@ MESSAGE_END_FLAG = "\x16"
     private fun callStabilityApi(
         audioFile: File
     ) {
+        println("in stability")
         val imageFilePath = globalJpegFilePath
         val jsonPayload = apiMessagePayload.toString()
         val jsonConfigPayload = apiConfigPayload.toString()
@@ -1476,15 +1486,16 @@ MESSAGE_END_FLAG = "\x16"
             .addFormDataPart(AUDIO, "audio.wav", audioFile.asRequestBody())
             .addFormDataPart(MESSAGES, jsonPayload)
           //  .addFormDataPart(PROMPT, ".")
-            .addFormDataPart(
-                IMAGE, "Output.jpg",
-                File(imageFilePath.toString()).asRequestBody("image/jpg".toMediaTypeOrNull())
-            )
+//            .addFormDataPart(
+//                IMAGE, "Output.jpg",
+//                File(imageFilePath.toString()).asRequestBody("image/jpg".toMediaTypeOrNull())
+//            )
             .addFormDataPart(CONFIG, jsonConfigPayload)
             .build()
         val callStabilityApiCallback = object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-
+                println(e)
+                println("fialeedddddd")
                 if(currentDeviceName.contains("Frame",true))
                 {
                     // Send error response to Frame
@@ -1497,6 +1508,7 @@ MESSAGE_END_FLAG = "\x16"
 
             override fun onResponse(call: Call, response: Response) {
                 try {
+                    println("successss")
                     println(response.body)
                     if (response.isSuccessful) {
                         globalJpegFilePath = null
@@ -1515,8 +1527,6 @@ MESSAGE_END_FLAG = "\x16"
 
                             addMessage("assistant", assistantResponse)
                             //  updatechatList("R",assistantResponse)
-
-
 
                             sendChatGptResponce(assistantResponse.toString(), "res:")
 
@@ -1603,7 +1613,12 @@ MESSAGE_END_FLAG = "\x16"
         else
         {
             lifecycleScope.launch {
-                frameSendBle(byteArrayOf(0x11) + data.toByteArray())
+                // send in chunk size of 100
+                for(i in data.indices step 60){
+                    val chunk = data.substring(i, minOf(i + 60, data.length))
+                    println("Chunk: $chunk")
+                    frameSendBle(byteArrayOf(0x01)+ byteArrayOf(0x11) + chunk.toByteArray())
+                }
             }
         }
     }
@@ -1900,6 +1915,7 @@ MESSAGE_END_FLAG = "\x16"
         replSendBle(byteArrayOf(0x3, 0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
+            chatMessages.clear()
             val fragment = ChatGptFragment()
             ActivityUtil.navigateToFragment(fragmentManager, fragment, false, "chat_gpt")
             val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
@@ -1910,9 +1926,9 @@ MESSAGE_END_FLAG = "\x16"
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
 
-            handler.postDelayed({
-                showIntroMessages()
-            }, 1000)
+//            handler.postDelayed({
+//                showIntroMessages()
+//            }, 1000)
 
 
             if (bluetoothGatt != null) {
@@ -1959,6 +1975,7 @@ MESSAGE_END_FLAG = "\x16"
         frameSendBle(byteArrayOf(0x4))
         val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
         if (fragment !is ChatGptFragment) {
+            chatMessages.clear()
             val fragment1 = ChatGptFragment()
             ActivityUtil.navigateToFragment(fragmentManager, fragment1, false, "chat_gpt")
             val apikeyStored = sharedPreferencesHelper.getStoredApiKey()
@@ -1969,9 +1986,9 @@ MESSAGE_END_FLAG = "\x16"
             println("[CHAT READY]\n")
             currentAppState = AppState.RUNNING
 
-            handler.postDelayed({
-                showIntroMessages()
-            }, 1000)
+//            handler.postDelayed({
+//                showIntroMessages()
+//            }, 1000)
 
 
             if (bluetoothGatt != null) {

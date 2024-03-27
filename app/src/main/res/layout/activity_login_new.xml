@@ -54,6 +54,7 @@
                     android:singleLine="true"
                     android:text="@string/msg_sign_in_with_apple"
                     android:textAllCaps="false"
+                    android:visibility="invisible"
                     style="@style/btnRoundedOutline" tools:text="@string/msg_sign_in_with_apple"/>
 
                 <androidx.appcompat.widget.AppCompatButton

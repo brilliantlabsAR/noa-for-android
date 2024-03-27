@@ -40,7 +40,6 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
     private lateinit var chatView: RecyclerView
     lateinit var chatAdapter: ChatAdapter
     private lateinit var layoutManager: LinearLayoutManager
-    private val chatMessages = ArrayList<ChatModel>()
     private lateinit var mView: View
     private lateinit var parentActivity: BaseActivity
     private lateinit var connectionStatus : ImageView
@@ -65,7 +64,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
         chatView.layoutManager = layoutManager
         connectionStatus=mView.findViewById(R.id.connectionStatus)
         btnTune=mView.findViewById(R.id.btnTune)
-        chatAdapter = ChatAdapter(chatMessages,this)
+        chatAdapter = ChatAdapter(parentActivity.chatMessages,this)
         chatView.adapter = chatAdapter
         if(parentActivity.connectionStatus.isNotEmpty()){
             connectionStatus.visibility = View.VISIBLE
@@ -98,7 +97,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                 val question = etMessage.text.toString().trim()
                 if(question.isNotEmpty()){
                     val singleChat = ChatModel(1,"S",question)
-                    chatMessages.add(singleChat)
+                    parentActivity.chatMessages.add(singleChat)
                     chatAdapter.notifyDataSetChanged()
                     etMessage.text.clear()
                 }
@@ -163,12 +162,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             if(parentActivity.translateEnabled)
             {
                 val singleChat = ChatModel(1, type, msg.trim(),true)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
             else
             {
                 val singleChat = ChatModel(1, type, msg.trim(),false)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
             scrollToBottom()
             chatAdapter.notifyDataSetChanged()
@@ -185,12 +184,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             if(parentActivity.translateEnabled)
             {
                 val singleChat = ChatModel(id, type, msg.trim(),true,image)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
             else
             {
                 val singleChat = ChatModel(id, type, msg.trim(),false,image)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
 
 
@@ -209,12 +208,12 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
             if(parentActivity.translateEnabled)
             {
                 val singleChat = ChatModel(id, type, msg.trim(),true,"",image)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
             else
             {
                 val singleChat = ChatModel(id, type, msg.trim(),false,"",image)
-                chatMessages.add(singleChat)
+                parentActivity.chatMessages.add(singleChat)
             }
 
 
@@ -293,7 +292,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
      * Method to scroll to bottom
      */
     fun scrollToBottom() {
-        chatView.scrollToPosition(chatMessages.size-1)
+        chatView.scrollToPosition(parentActivity.chatMessages.size-1)
     }
     /**
      * REST API response listener for chat message
@@ -349,7 +348,7 @@ class ChatGptFragment : Fragment(), ChatAdapter.OnItemClickListener {
                         parentActivity.sendChatGptResponce(msg,"err:")
                         activity?.runOnUiThread {
                             val singleChat = ChatModel(1, "R", msg)
-                            chatMessages.add(singleChat)
+                            parentActivity.chatMessages.add(singleChat)
                             scrollToBottom()
                             chatAdapter.notifyDataSetChanged()
 
